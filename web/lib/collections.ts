@@ -27,17 +27,18 @@ function byName(a: InstitutionRecord, b: InstitutionRecord): number {
   return a.name.localeCompare(b.name);
 }
 
+/** No "added at" timestamp exists on institution data, so recency isn't derivable — this
+ * surfaces flagged institutions first as a stand-in, falling back to name order. */
+function byFeaturedFirst(a: InstitutionRecord, b: InstitutionRecord): number {
+  const aFlag = a.isFeatured || a.isSponsored ? 1 : 0;
+  const bFlag = b.isFeatured || b.isSponsored ? 1 : 0;
+  return bFlag - aFlag || byQualificationCount(a, b);
+}
+
 const COLLECTION_SPECS: CollectionSpec[] = [
-  { key: "recommended", title: "Recommended Institutions", sort: byQualificationCount },
-  { key: "universities", title: "Universities", filter: (i) => i.institutionType === "Public University", sort: byName },
-  { key: "tvet", title: "TVET Colleges", filter: (i) => i.institutionType === "TVET College", sort: byName },
-  {
-    key: "private",
-    title: "Private Institutions",
-    filter: (i) => i.institutionType === "Private Higher Education Institution",
-    sort: byName,
-  },
-  { key: "more-to-discover", title: "More to Discover", sort: byName },
+  { key: "recommended", title: "Recommended", sort: byQualificationCount },
+  { key: "featured", title: "Featured", sort: byFeaturedFirst },
+  { key: "recently-added", title: "Recently Added", sort: byName },
 ];
 
 /**

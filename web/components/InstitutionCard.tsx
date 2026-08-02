@@ -2,7 +2,7 @@
 
 import { BadgeCheck, ChevronDown, GraduationCap, Globe, Mail, MapPin, Phone, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { TYPE_LABEL, getStatusBadge } from "@/lib/presentation";
+import { TYPE_LABEL, getDisplayName, getStatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 function websiteHref(website: string): string {
@@ -15,6 +15,7 @@ export default function InstitutionCard({ institution }: { institution: Institut
   const { name, tradingName, registration_number, address, province, contacts, qualifications, institutionType } =
     institution;
   const badge = getStatusBadge(institution);
+  const displayName = getDisplayName(name, tradingName);
 
   const filteredQualifications = useMemo(() => {
     const q = qualQuery.trim().toLowerCase();
@@ -40,10 +41,10 @@ export default function InstitutionCard({ institution }: { institution: Institut
                 {TYPE_LABEL[institutionType] ?? institutionType}
               </span>
             </div>
-            <h3 className="font-display text-lg font-semibold text-foreground">
-              {name}
-              {tradingName && <span className="ml-2 text-sm font-normal text-muted-foreground">({tradingName})</span>}
+            <h3 className="font-display text-lg font-semibold text-foreground" title={name}>
+              {displayName}
             </h3>
+            {displayName !== name && <p className="mt-0.5 text-xs text-muted-foreground">{name}</p>}
           </div>
           {registration_number && (
             <div className="text-right text-sm">

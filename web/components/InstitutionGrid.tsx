@@ -3,7 +3,7 @@
 import { BadgeCheck, ChevronLeft, ChevronRight, GitCompare, GraduationCap, Heart, MapPin, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
-import { TYPE_LABEL, getAvatarPalette, getInitials, getStatusBadge } from "@/lib/presentation";
+import { TYPE_LABEL, getAvatarPalette, getDisplayName, getInitials, getStatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const SAVED_KEY = "eduverify:saved";
@@ -323,7 +323,9 @@ function InstitutionGridCard({
         </span>
       </div>
 
-      <h3 className="mt-2 line-clamp-2 font-display text-base font-semibold text-foreground">{institution.name}</h3>
+      <h3 className="mt-2 line-clamp-2 font-display text-base font-semibold text-foreground">
+        {getDisplayName(institution.name, institution.tradingName)}
+      </h3>
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">

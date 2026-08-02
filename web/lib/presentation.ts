@@ -20,6 +20,50 @@ export function getInitials(name: string): string {
   return initials || name.slice(0, 2).toUpperCase();
 }
 
+const CORPORATE_SUFFIX_RE =
+  /[\s,]+\(?(?:pty\.?\s*\)?\s*(?:ltd\.?|limited)|proprietary\s+limited|limited|ltd\.?|inc\.?|incorporated|npc|cc)\)?\.?$/i;
+
+/** Cuts everything from a trailing "Previous Name: ..." clause onward — DHET records
+ * sometimes append a superseded legal name (and its own trading suffix) as plain text
+ * rather than in parentheses, e.g. "... Previous Name: Durban Computer College t/a DCC". */
+const PREVIOUS_NAME_CUTOFF_RE = /\s*previous name\s*:.*$/i;
+
+/** Parenthetical asides that restate history rather than identity, e.g. "(Previously ...)",
+ * "(Incorporated in ...)", "(Formerly ...)" — dropped wholesale rather than parsed. */
+const DESCRIPTIVE_PARENTHETICAL_RE = /\s*\((?:previously|incorporated(?:\s+in)?|formerly)[^)]*\)/gi;
+
+/** A short trailing all-caps acronym bracket, e.g. "(A4FM)" — distinct from
+ * "(Pty)"/"(NPC)" style corporate-suffix brackets, which have mixed-case content and are
+ * handled by CORPORATE_SUFFIX_RE instead. */
+const TRAILING_ACRONYM_RE = /\s*\([A-Z][A-Z0-9&./-]{1,14}\)\s*$/;
+
+/** Applies the strip rules to a fixed point — order matters (e.g. an acronym bracket can
+ * be sitting outside a corporate suffix, so removing it exposes the suffix to strip next)
+ * but which rule fires first shouldn't, so we loop until nothing more changes. */
+function cleanLegalName(raw: string): string {
+  let result = raw.replace(PREVIOUS_NAME_CUTOFF_RE, "");
+  let previous: string;
+  do {
+    previous = result;
+    result = result
+      .replace(DESCRIPTIVE_PARENTHETICAL_RE, "")
+      .replace(TRAILING_ACRONYM_RE, "")
+      .replace(CORPORATE_SUFFIX_RE, "");
+  } while (result !== previous);
+  return result.replace(/\s{2,}/g, " ").trim();
+}
+
+/** Derives the name browsing surfaces should show: a clean trading name when the
+ * institution has one (e.g. "Educor (Pty) Ltd t/a Damelin" -> "Damelin"), otherwise the
+ * legal name with corporate suffixes and historical asides stripped, e.g. "Academic
+ * Institute of Excellence (Pty) Ltd" -> "Academic Institute of Excellence". The full legal
+ * name is kept wherever registration/verification detail matters (e.g. InstitutionCard). */
+export function getDisplayName(name: string, tradingName?: string | null): string {
+  const trimmedTrading = tradingName?.trim();
+  if (trimmedTrading) return cleanLegalName(trimmedTrading) || trimmedTrading;
+  return cleanLegalName(name) || name.trim();
+}
+
 const AVATAR_PALETTES = [
   "bg-emerald-50 text-emerald-700",
   "bg-sky-50 text-sky-700",
@@ -41,6 +85,43 @@ function hashString(value: string): number {
 
 export function getAvatarPalette(seed: string): string {
   return AVATAR_PALETTES[hashString(seed) % AVATAR_PALETTES.length];
+}
+
+/** Known institution brand colors, matched against the full name. Patterns are anchored
+ * to each university's actual name (not a bare city) so unrelated private colleges named
+ * after the same city — e.g. "ACT Cape Town (Pty) Ltd" — don't inherit a public
+ * university's color. Anything not listed falls back to a deterministic pick from
+ * BRAND_FALLBACK_COLORS so every institution still gets a distinct, stable, solid color. */
+const KNOWN_BRAND_COLORS: Array<{ match: RegExp; color: string }> = [
+  { match: /university of cape town/i, color: "#003B6A" },
+  { match: /stellenbosch university/i, color: "#7A1632" },
+  { match: /university of the witwatersrand/i, color: "#00205B" },
+  { match: /university of pretoria/i, color: "#1C3FAA" },
+  { match: /university of kwazulu-natal/i, color: "#B8860B" },
+  { match: /university of johannesburg/i, color: "#8B1E3F" },
+  { match: /rhodes university/i, color: "#00543C" },
+  { match: /university of the free state/i, color: "#6B2C91" },
+];
+
+const BRAND_FALLBACK_COLORS = [
+  "#1D4E89",
+  "#5B3A29",
+  "#2F5233",
+  "#6B2C91",
+  "#0B5563",
+  "#8C3B2E",
+  "#3D3B8E",
+  "#1A659E",
+];
+
+/** Derives a solid, high-contrast brand color for an institution — a small set of real
+ * SA university brand colors, falling back to a deterministic palette pick (by id) for
+ * everyone else, so the hero header/avatar is always institution-specific rather than
+ * one flat theme color. */
+export function getBrandColor(institution: InstitutionRecord): string {
+  const known = KNOWN_BRAND_COLORS.find(({ match }) => match.test(institution.name));
+  if (known) return known.color;
+  return BRAND_FALLBACK_COLORS[hashString(institution.id) % BRAND_FALLBACK_COLORS.length];
 }
 
 export interface StatusBadge {
