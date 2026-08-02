@@ -53,4 +53,51 @@ describe("getDisplayName", () => {
   it("never returns an empty string, even when stripping would consume the whole name", () => {
     expect(getDisplayName(" (Pty) Ltd")).toBe("(Pty) Ltd");
   });
+
+  it("strips a trailing (The) bracket left after other corporate suffixes are removed", () => {
+    expect(getDisplayName("South African College of Applied Psychology (Pty) Ltd (The)")).toBe(
+      "South African College of Applied Psychology"
+    );
+    expect(getDisplayName("Private Hotel School (Pty) Ltd (The)")).toBe("Private Hotel School");
+    expect(getDisplayName("Bible Institute of South Africa NPC (The)")).toBe(
+      "Bible Institute of South Africa"
+    );
+  });
+
+  it("strips a trailing (Die) bracket, the Afrikaans equivalent of (The)", () => {
+    expect(getDisplayName("Afrikaanse Protestantse Akademie (Die) NPC")).toBe(
+      "Afrikaanse Protestantse Akademie"
+    );
+  });
+
+  it("strips an inline '/ABBREV' trading-name marker embedded in the legal name", () => {
+    expect(
+      getDisplayName("South African School of Motion Picture Medium & Live Performance (Pty) Ltd /AFDA (The)")
+    ).toBe("South African School of Motion Picture Medium & Live Performance");
+  });
+
+  it("cuts a bare (unparenthesized) trailing 'Previously ...' clause, alongside a slash trading marker", () => {
+    expect(
+      getDisplayName(
+        "The Graduate Institute of Financial Sciences Private Higher Education Pty Ltd /GIFSPHEI Previously Katapult Business School (Pty) Ltd"
+      )
+    ).toBe("The Graduate Institute of Financial Sciences Private Higher Education");
+  });
+
+  it("cuts a 'Previous name:' clause even when a stray colon precedes it", () => {
+    expect(getDisplayName("IQ Academy (Pty) Ltd: Previous name: Fernwood Business College (Pty) Ltd")).toBe(
+      "IQ Academy"
+    );
+  });
+
+  it("strips a bare trailing 'Pty' left dangling by a malformed 'Pty (Ltd)' ordering", () => {
+    expect(getDisplayName("Camelot International Pty (Ltd)")).toBe("Camelot International");
+  });
+
+  it("never reduces a full institution name to a bare short-form acronym", () => {
+    expect(getDisplayName("University of Pretoria")).not.toBe("UP");
+    expect(getDisplayName("Tshwane University of Technology")).not.toBe("TUT");
+    expect(getDisplayName("University of the Witwatersrand")).not.toBe("Wits");
+    expect(getDisplayName("University of South Africa")).not.toBe("UNISA");
+  });
 });

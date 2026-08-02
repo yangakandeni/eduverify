@@ -28,6 +28,21 @@ CONTINUATION_BLOCK_NO_NAME = (
     "mkooblal@richfield.ac.za\nPrivate Bag X23\nUmhlanga Rocks\n4320"
 )
 
+NAME_CONTACTS_PLURAL_BLOCK = (
+    "College of Transfiguration NPC\nCONTACTS:\nMs Tamara Heber\nLibrarian\n"
+    "(046) 622 3332 (T)\nWebsite:\nwww.catt.co.za"
+)
+
+NAME_NO_CONTACT_LABEL_BLOCK = (
+    "International Hotel School (Pty)\nLtd (The)\nMs Jolanda Bierman\n"
+    "(031) 536 6650 (T)\n0865320016 (F)\nWebsite:\nwww.hotelschool.co.za"
+)
+
+NAME_NO_CONTACT_LABEL_BLOCK_2 = (
+    "LISOF (Pty) Ltd\nMrs L Wainer\nDeputy Registrar\n(011) 326 1698(T)\n"
+    "Website:\nwww.lisof.co.za"
+)
+
 ADDRESS_BLOCK_SINGLE = (
     "A) Bryanston: The Braes\nOffice Park, 3 Eaton\nAvenue, Bryanston, 2191"
 )
@@ -62,6 +77,15 @@ def test_extract_name_joins_wrapped_lines():
 
 def test_extract_name_returns_empty_for_continuation_block():
     assert extract_name(CONTINUATION_BLOCK_NO_NAME) == ""
+
+
+def test_extract_name_stops_before_plural_contacts_label():
+    assert extract_name(NAME_CONTACTS_PLURAL_BLOCK) == "College of Transfiguration NPC"
+
+
+def test_extract_name_stops_at_salutation_line_with_no_contact_label():
+    assert extract_name(NAME_NO_CONTACT_LABEL_BLOCK) == "International Hotel School (Pty) Ltd (The)"
+    assert extract_name(NAME_NO_CONTACT_LABEL_BLOCK_2) == "LISOF (Pty) Ltd"
 
 
 def test_extract_phones_strips_parens():

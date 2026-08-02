@@ -9,10 +9,14 @@ import re
 
 _STOP_LINE_PATTERNS = [
     re.compile(r"^CONTACT\s*(PERSON|DETAILS)", re.IGNORECASE),
-    re.compile(r"^CONTACT\s*:", re.IGNORECASE),
+    re.compile(r"^CONTACTS?\s*:", re.IGNORECASE),
     re.compile(r"website", re.IGNORECASE),
     re.compile(r"e-?mail", re.IGNORECASE),
     re.compile(r"^\(?\d"),  # phone numbers / postal codes / box numbers
+    # A contact person's name, on rows where the PDF omits the "CONTACT
+    # PERSON:" label altogether (e.g. "LISOF (Pty) Ltd" / "Mrs L Wainer" /
+    # "Deputy Registrar" with no label line between the name and the person).
+    re.compile(r"^(Mr|Mrs|Ms|Dr|Prof)\.?\s+[A-Z]"),
 ]
 
 _PHONE_RE = re.compile(r"\(?0\d{1,2}\)?[\s\-]?\d{3}[\s\-]?\d{4}")

@@ -193,6 +193,27 @@ export const QUALIFICATION_CATEGORIES: QualificationCategory[] = [
   },
 ];
 
+export interface PopularCategory {
+  key: string;
+  label: string;
+}
+
+/**
+ * Fixed pill row shown in the qualification browser bar. Deliberately capped and
+ * ordered by hand for now; swap the contents for an analytics/search-popularity feed
+ * later without touching the component that renders it.
+ */
+export const POPULAR_CATEGORIES: PopularCategory[] = [
+  { key: "all", label: "All" },
+  { key: "computer-science", label: "Computer Science" },
+  { key: "engineering", label: "Engineering" },
+  { key: "business", label: "Business" },
+  { key: "health-sciences", label: "Health Sciences" },
+  { key: "education", label: "Education" },
+  { key: "law", label: "Law" },
+  { key: "arts", label: "Arts & Design" },
+];
+
 const CATEGORY_BY_KEY = new Map(QUALIFICATION_CATEGORIES.map((category) => [category.key, category]));
 
 export function getCategory(key: string): QualificationCategory | undefined {

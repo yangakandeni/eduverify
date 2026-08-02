@@ -21,7 +21,7 @@ export function getInitials(name: string): string {
 }
 
 const CORPORATE_SUFFIX_RE =
-  /[\s,]+\(?(?:pty\.?\s*\)?\s*(?:ltd\.?|limited)|proprietary\s+limited|limited|ltd\.?|inc\.?|incorporated|npc|cc)\)?\.?$/i;
+  /[\s,]+\(?(?:pty\.?\s*\)?\s*(?:ltd\.?|limited)|proprietary\s+limited|limited|ltd\.?|pty\.?|inc\.?|incorporated|npc|cc)\)?[.:]?$/i;
 
 /** Cuts everything from a trailing "Previous Name: ..." clause onward — DHET records
  * sometimes append a superseded legal name (and its own trading suffix) as plain text
@@ -37,6 +37,19 @@ const DESCRIPTIVE_PARENTHETICAL_RE = /\s*\((?:previously|incorporated(?:\s+in)?|
  * handled by CORPORATE_SUFFIX_RE instead. */
 const TRAILING_ACRONYM_RE = /\s*\([A-Z][A-Z0-9&./-]{1,14}\)\s*$/;
 
+/** A bare trailing "(The)" bracket (or its Afrikaans equivalent "(Die)"), left over
+ * once a preceding corporate suffix (e.g. "(Pty) Ltd", "NPC") has already been stripped. */
+const TRAILING_THE_RE = /\s*\((?:the|die)\)\s*$/i;
+
+/** A trailing "/ABBREV" inline trading-name marker DHET sometimes appends directly
+ * to the legal name instead of a separate "t/a ..." clause, e.g. "... (Pty) Ltd /AFDA". */
+const TRAILING_SLASH_ABBR_RE = /\s*\/[A-Za-z][A-Za-z0-9&.-]{1,20}\s*$/;
+
+/** A bare (unparenthesized) trailing "Previously ..." clause — the parenthesized form is
+ * handled by DESCRIPTIVE_PARENTHETICAL_RE, but DHET sometimes appends it as plain trailing
+ * text instead, e.g. "... Pty Ltd /GIFSPHEI Previously Katapult Business School (Pty) Ltd". */
+const BARE_PREVIOUSLY_CUTOFF_RE = /(?<!\()\s*previously\b.*$/i;
+
 /** Applies the strip rules to a fixed point — order matters (e.g. an acronym bracket can
  * be sitting outside a corporate suffix, so removing it exposes the suffix to strip next)
  * but which rule fires first shouldn't, so we loop until nothing more changes. */
@@ -47,7 +60,10 @@ function cleanLegalName(raw: string): string {
     previous = result;
     result = result
       .replace(DESCRIPTIVE_PARENTHETICAL_RE, "")
+      .replace(BARE_PREVIOUSLY_CUTOFF_RE, "")
       .replace(TRAILING_ACRONYM_RE, "")
+      .replace(TRAILING_THE_RE, "")
+      .replace(TRAILING_SLASH_ABBR_RE, "")
       .replace(CORPORATE_SUFFIX_RE, "");
   } while (result !== previous);
   return result.replace(/\s{2,}/g, " ").trim();
