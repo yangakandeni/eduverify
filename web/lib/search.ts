@@ -1,0 +1,45 @@
+import { ALL_INSTITUTIONS } from "./localData";
+import { normalizeRegistrationNumber, normalizeText } from "./normalize";
+import type { InstitutionRecord, SearchFilters } from "./types";
+
+function matchesFilters(institution: InstitutionRecord, filters: SearchFilters): boolean {
+  if (filters.province && institution.province !== filters.province) return false;
+  if (filters.status && normalizeText(institution.status ?? "") !== normalizeText(filters.status)) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Fuzzy/partial matching over the bundled seed data. Used as a fallback when DynamoDB
+ * is unreachable, and as the primary source for fast client-side typeahead suggestions.
+ */
+export function searchLocal(query: string, filters: SearchFilters = {}, limit = 24): InstitutionRecord[] {
+  const q = normalizeText(query);
+  const qReg = normalizeRegistrationNumber(query);
+  if (!q) return [];
+
+  const scored: Array<{ institution: InstitutionRecord; score: number }> = [];
+
+  for (const institution of ALL_INSTITUTIONS) {
+    if (!matchesFilters(institution, filters)) continue;
+
+    const name = normalizeText(institution.name);
+    const reg = institution.registration_number
+      ? normalizeRegistrationNumber(institution.registration_number)
+      : "";
+
+    let score = 0;
+    if (reg && reg === qReg) score = 100;
+    else if (name === q) score = 90;
+    else if (reg && qReg.length >= 3 && reg.includes(qReg)) score = 80;
+    else if (name.startsWith(q)) score = 70;
+    else if (name.split(" ").some((word) => word.startsWith(q))) score = 55;
+    else if (name.includes(q)) score = 40;
+
+    if (score > 0) scored.push({ institution, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score || a.institution.name.localeCompare(b.institution.name));
+  return scored.slice(0, limit).map((entry) => entry.institution);
+}
