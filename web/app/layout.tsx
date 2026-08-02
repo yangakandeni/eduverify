@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { DM_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
+import { clerkAppearance } from "@/lib/clerkAppearance";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,15 +35,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${plusJakartaSans.variable} ${dmMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Nav />
-        {children}
-        <Footer />
-      </body>
-    </html>
+    <ClerkProvider appearance={clerkAppearance} afterSignOutUrl="/">
+      <html
+        lang="en"
+        className={`${inter.variable} ${plusJakartaSans.variable} ${dmMono.variable} h-full antialiased`}
+      >
+        <body className="min-h-full flex flex-col bg-background text-foreground">
+          <Nav />
+          {children}
+          <Footer />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

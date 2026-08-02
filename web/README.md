@@ -16,6 +16,10 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+### Auth setup
+
+Log In / Get Started are powered by [Clerk](https://dashboard.clerk.com). Copy `.env.local.example` to `.env.local` and fill in your Clerk instance's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`. Google Sign-In and email/password + verification are enabled from the Clerk dashboard under **User & Authentication**.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

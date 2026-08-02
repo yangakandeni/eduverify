@@ -1,6 +1,7 @@
 "use client";
 
-import { BookOpen, Menu, Shield, X } from "lucide-react";
+import { Show, UserButton } from "@clerk/nextjs";
+import { LayoutDashboard, Menu, Shield, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -31,15 +32,30 @@ export default function Nav() {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href="https://www.dhet.gov.za"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 text-sm text-white/70 transition hover:text-white sm:flex"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            DHET Register
-          </a>
+          <Show when="signed-out">
+            <Link
+              href="/sign-in"
+              className="hidden text-sm font-medium text-white/70 transition hover:text-white sm:block"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="hidden items-center rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90 sm:flex"
+            >
+              Get Started
+            </Link>
+          </Show>
+          <Show when="signed-in">
+            <Link
+              href="/dashboard"
+              className="hidden items-center gap-1.5 text-sm font-medium text-white/70 transition hover:text-white sm:flex"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              Dashboard
+            </Link>
+            <UserButton />
+          </Show>
           <button
             type="button"
             onClick={() => setMobileOpen((value) => !value)}
@@ -63,15 +79,32 @@ export default function Nav() {
               {link.label}
             </Link>
           ))}
-          <a
-            href="https://www.dhet.gov.za"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm font-medium text-white/70 transition hover:text-white"
-          >
-            {/* <BookOpen className="h-3.5 w-3.5" /> */}
-            DHET Register
-          </a>
+          <Show when="signed-out">
+            <Link
+              href="/sign-in"
+              onClick={() => setMobileOpen(false)}
+              className="text-left text-sm font-medium text-white/70 transition hover:text-white"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/sign-up"
+              onClick={() => setMobileOpen(false)}
+              className="flex w-fit items-center rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
+            >
+              Get Started
+            </Link>
+          </Show>
+          <Show when="signed-in">
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-1.5 text-sm font-medium text-white/70 transition hover:text-white"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              Dashboard
+            </Link>
+          </Show>
         </div>
       )}
     </nav>
