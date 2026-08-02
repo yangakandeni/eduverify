@@ -13,12 +13,15 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { buildCollections, type Collection } from "@/lib/collections";
+import { buildCollections, chunk, type Collection } from "@/lib/collections";
 import { PRIMARY_CATEGORY_KEYS, getCategory, institutionMatchesCategory } from "@/lib/categories";
+import { useUserProvince } from "@/lib/location";
+import { CANONICAL_PROVINCES } from "@/lib/normalize";
 import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge, type StatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const FADE_TRANSITION = { duration: 0.2, ease: "easeInOut" as const };
+const SLIDE_SIZE = 5;
 
 interface HeroShowcaseProps {
   institutions: InstitutionRecord[];
@@ -26,26 +29,39 @@ interface HeroShowcaseProps {
 }
 
 export default function HeroShowcase({ institutions, onExplore }: HeroShowcaseProps) {
-  const collections = useMemo(() => buildCollections(institutions), [institutions]);
-  const [collectionIndex, setCollectionIndex] = useState(0);
-  const [featuredIndex, setFeaturedIndex] = useState(0);
+  const { province, setProvince } = useUserProvince();
+  const collections = useMemo(() => buildCollections(institutions, province), [institutions, province]);
+  const [activeKey, setActiveKey] = useState("recommended");
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [mainOffset, setMainOffset] = useState(0);
 
-  // Modulo (rather than a corrective effect) keeps indices valid even if `collections`
-  // shrinks — e.g. right after the institutions list first loads.
-  const safeCollectionIndex = collections.length > 0 ? collectionIndex % collections.length : 0;
-  const activeCollection: Collection | undefined = collections[safeCollectionIndex];
-  const safeFeaturedIndex =
-    activeCollection && activeCollection.institutions.length > 0 ? featuredIndex % activeCollection.institutions.length : 0;
+  // Falls back to "recommended" if the active tab disappears out from under it — e.g. the
+  // only Featured institution stops being sponsored between renders.
+  const safeActiveKey = collections.some((collection) => collection.key === activeKey) ? activeKey : "recommended";
+  const activeCollection: Collection | undefined = collections.find((collection) => collection.key === safeActiveKey);
+  const slides = useMemo(() => chunk(activeCollection?.institutions ?? [], SLIDE_SIZE), [activeCollection]);
 
-  function goToCollection(index: number) {
-    setCollectionIndex(index);
-    setFeaturedIndex(0);
+  const safeSlideIndex = slides.length > 0 ? slideIndex % slides.length : 0;
+  const activeSlide = slides[safeSlideIndex] ?? [];
+  const safeMainOffset = activeSlide.length > 0 ? mainOffset % activeSlide.length : 0;
+
+  const hasLocalMatches = institutions.some((institution) => institution.province === province);
+
+  function goToTab(key: string) {
+    setActiveKey(key);
+    setSlideIndex(0);
+    setMainOffset(0);
   }
 
-  if (!activeCollection) return null;
+  function goToSlide(index: number) {
+    setSlideIndex(index);
+    setMainOffset(0);
+  }
 
-  const main = activeCollection.institutions[safeFeaturedIndex];
-  const supporting = activeCollection.institutions.filter((_, index) => index !== safeFeaturedIndex);
+  if (!activeCollection || activeSlide.length === 0) return null;
+
+  const main = activeSlide[safeMainOffset];
+  const supporting = activeSlide.filter((_, index) => index !== safeMainOffset);
 
   return (
     <section className="bg-background px-6 py-14">
@@ -54,15 +70,41 @@ export default function HeroShowcase({ institutions, onExplore }: HeroShowcasePr
           <div>
             <p className="font-mono text-xs uppercase tracking-widest text-accent">Curated Collections</p>
             <h2 className="font-display text-2xl font-bold text-foreground">Explore Institutions</h2>
+            {safeActiveKey === "recommended" && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {hasLocalMatches
+                  ? `Showing institutions local to ${province}`
+                  : `No local matches yet in ${province} — showing institutions nationwide`}
+              </p>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            {collections.map((collection, index) => (
+
+          <div className="flex flex-wrap items-center gap-2">
+            {safeActiveKey === "recommended" && (
+              <label className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-sm text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5" />
+                <select
+                  aria-label="Filter by province"
+                  value={province}
+                  onChange={(event) => setProvince(event.target.value)}
+                  className="bg-transparent text-sm font-medium text-foreground focus:outline-none"
+                >
+                  {CANONICAL_PROVINCES.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {collections.map((collection) => (
               <button
                 key={collection.key}
                 type="button"
-                onClick={() => goToCollection(index)}
+                onClick={() => goToTab(collection.key)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  index === safeCollectionIndex
+                  collection.key === safeActiveKey
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
@@ -70,20 +112,28 @@ export default function HeroShowcase({ institutions, onExplore }: HeroShowcasePr
                 {collection.title}
               </button>
             ))}
-            <div className="ml-2 flex gap-1">
+
+            <div className="ml-2 flex items-center gap-1">
               <button
                 type="button"
-                aria-label="Previous collection"
-                onClick={() => goToCollection((safeCollectionIndex - 1 + collections.length) % collections.length)}
-                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-secondary"
+                aria-label="Previous set"
+                disabled={slides.length <= 1}
+                onClick={() => goToSlide((safeSlideIndex - 1 + slides.length) % slides.length)}
+                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
+              {slides.length > 1 && (
+                <span className="px-1 font-mono text-xs text-muted-foreground">
+                  {safeSlideIndex + 1}/{slides.length}
+                </span>
+              )}
               <button
                 type="button"
-                aria-label="Next collection"
-                onClick={() => goToCollection((safeCollectionIndex + 1) % collections.length)}
-                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-secondary"
+                aria-label="Next set"
+                disabled={slides.length <= 1}
+                onClick={() => goToSlide((safeSlideIndex + 1) % slides.length)}
+                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -92,7 +142,7 @@ export default function HeroShowcase({ institutions, onExplore }: HeroShowcasePr
         </div>
 
         <motion.div
-          key={activeCollection.key}
+          key={`${safeActiveKey}-${safeSlideIndex}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25 }}
@@ -107,14 +157,14 @@ export default function HeroShowcase({ institutions, onExplore }: HeroShowcasePr
                 exit={{ opacity: 0 }}
                 transition={FADE_TRANSITION}
               >
-                <MainCard institution={main} sponsored={activeCollection.sponsoredIds.has(main.id)} onExplore={onExplore} />
+                <MainCard institution={main} onExplore={onExplore} />
               </motion.div>
             </AnimatePresence>
           </div>
 
           <div className="flex flex-col gap-3 lg:col-span-1">
             {supporting.map((institution) => {
-              const realIndex = activeCollection.institutions.findIndex((item) => item.id === institution.id);
+              const realOffset = activeSlide.findIndex((item) => item.id === institution.id);
               return (
                 <motion.div
                   key={institution.id}
@@ -122,11 +172,7 @@ export default function HeroShowcase({ institutions, onExplore }: HeroShowcasePr
                   animate={{ opacity: 1 }}
                   transition={FADE_TRANSITION}
                 >
-                  <SmallCard
-                    institution={institution}
-                    sponsored={activeCollection.sponsoredIds.has(institution.id)}
-                    onSelect={() => setFeaturedIndex(realIndex)}
-                  />
+                  <SmallCard institution={institution} onSelect={() => setMainOffset(realOffset)} />
                 </motion.div>
               );
             })}
@@ -174,11 +220,9 @@ function websiteHref(website: string): string {
 
 function MainCard({
   institution,
-  sponsored,
   onExplore,
 }: {
   institution: InstitutionRecord;
-  sponsored: boolean;
   onExplore: (institution: InstitutionRecord) => void;
 }) {
   const badge = getStatusBadge(institution);
@@ -191,9 +235,9 @@ function MainCard({
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
       <div className="relative px-6 py-6 sm:px-8 sm:py-7" style={{ backgroundColor: brandColor }}>
-        {(sponsored || institution.isFeatured) && (
+        {(institution.isSponsored || institution.isFeatured) && (
           <div className="absolute right-4 top-4 flex items-center gap-2">
-            {sponsored && <SponsoredBadge />}
+            {institution.isSponsored && <SponsoredBadge />}
             {institution.isFeatured && <FeaturedBadge />}
           </div>
         )}
@@ -256,15 +300,7 @@ function MainCard({
   );
 }
 
-function SmallCard({
-  institution,
-  sponsored,
-  onSelect,
-}: {
-  institution: InstitutionRecord;
-  sponsored: boolean;
-  onSelect: () => void;
-}) {
+function SmallCard({ institution, onSelect }: { institution: InstitutionRecord; onSelect: () => void }) {
   const brandColor = getBrandColor(institution);
   const badge = getStatusBadge(institution);
 
@@ -274,7 +310,7 @@ function SmallCard({
       onClick={onSelect}
       className="relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-3.5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
-      {sponsored && (
+      {institution.isSponsored && (
         <span className="absolute right-2 top-2 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
           Sponsored
         </span>

@@ -41,6 +41,7 @@ export interface Institution {
   institutionType: InstitutionType;
   isFeatured?: boolean;
   isSponsored?: boolean;
+  isRecentlyAdded?: boolean;
 }
 
 export interface InstitutionRecord extends Institution {
