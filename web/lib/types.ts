@@ -39,6 +39,8 @@ export interface Institution {
   contacts: Contacts;
   qualifications: Qualification[];
   institutionType: InstitutionType;
+  isFeatured?: boolean;
+  isSponsored?: boolean;
 }
 
 export interface InstitutionRecord extends Institution {

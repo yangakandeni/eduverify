@@ -1,13 +1,14 @@
 "use client";
 
-import { BadgeCheck, GitCompare, GraduationCap, Heart, MapPin, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BadgeCheck, ChevronLeft, ChevronRight, GitCompare, GraduationCap, Heart, MapPin, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { TYPE_LABEL, getAvatarPalette, getInitials, getStatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const SAVED_KEY = "eduverify:saved";
 const MAX_COMPARE = 4;
+const ITEMS_PER_PAGE = 6;
 
 interface InstitutionGridProps {
   institutions: InstitutionRecord[];
@@ -28,10 +29,59 @@ function readSavedIds(): Set<string> {
   }
 }
 
+function sortWithFeaturedFirst(institutions: InstitutionRecord[]): InstitutionRecord[] {
+  const alphabetical = [...institutions].sort((a, b) => a.name.localeCompare(b.name));
+  const promoted = alphabetical.filter((institution) => institution.isFeatured || institution.isSponsored);
+  const rest = alphabetical.filter((institution) => !institution.isFeatured && !institution.isSponsored);
+  return [...promoted, ...rest];
+}
+
+/** Windowed page list with ellipsis gaps, e.g. [1, "ellipsis", 4, 5, 6, "ellipsis", 12]. */
+function buildPageList(current: number, total: number): (number | "ellipsis")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+
+  const pages = new Set<number>([1, total, current]);
+  if (current - 1 >= 1) pages.add(current - 1);
+  if (current + 1 <= total) pages.add(current + 1);
+
+  const sorted = [...pages].sort((a, b) => a - b);
+  const result: (number | "ellipsis")[] = [];
+  sorted.forEach((page, index) => {
+    if (index > 0 && page - sorted[index - 1] > 1) result.push("ellipsis");
+    result.push(page);
+  });
+  return result;
+}
+
 export default function InstitutionGrid({ institutions, onExplore, emptyMessage }: InstitutionGridProps) {
   const [savedIds, setSavedIds] = useState<Set<string>>(readSavedIds);
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
   const [compareOpen, setCompareOpen] = useState(false);
+  const gridTopRef = useRef<HTMLDivElement>(null);
+
+  const sortedInstitutions = useMemo(() => sortWithFeaturedFirst(institutions), [institutions]);
+
+  const institutionsKey = institutions.map((institution) => institution.id).join("|");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageResetKey, setPageResetKey] = useState(institutionsKey);
+  if (institutionsKey !== pageResetKey) {
+    setPageResetKey(institutionsKey);
+    setCurrentPage(1);
+  }
+
+  const totalItems = sortedInstitutions.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const page = Math.min(currentPage, totalPages);
+  if (page !== currentPage) setCurrentPage(page);
+
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const pageInstitutions = sortedInstitutions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  function goToPage(target: number) {
+    const next = Math.min(Math.max(target, 1), totalPages);
+    setCurrentPage(next);
+    gridTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   useEffect(() => {
     window.localStorage.setItem(SAVED_KEY, JSON.stringify([...savedIds]));
@@ -70,8 +120,8 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {institutions.map((institution) => (
+      <div ref={gridTopRef} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {pageInstitutions.map((institution) => (
           <InstitutionGridCard
             key={institution.id}
             institution={institution}
@@ -84,6 +134,15 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
           />
         ))}
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        startIndex={startIndex}
+        pageSize={ITEMS_PER_PAGE}
+        onGoToPage={goToPage}
+      />
 
       {compareIds.size > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
@@ -140,6 +199,74 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
           </table>
         </div>
       </Modal>
+    </div>
+  );
+}
+
+interface PaginationControlsProps {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  startIndex: number;
+  pageSize: number;
+  onGoToPage: (page: number) => void;
+}
+
+function PaginationControls({ page, totalPages, totalItems, startIndex, pageSize, onGoToPage }: PaginationControlsProps) {
+  const rangeStart = startIndex + 1;
+  const rangeEnd = Math.min(startIndex + pageSize, totalItems);
+
+  return (
+    <div className="mt-8 flex flex-col items-center gap-3">
+      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+        Showing {rangeStart}–{rangeEnd} of {totalItems} institution{totalItems === 1 ? "" : "s"}
+      </span>
+
+      {totalPages > 1 && (
+        <nav aria-label="Pagination" className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onGoToPage(page - 1)}
+            disabled={page === 1}
+            aria-label="Previous page"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          {buildPageList(page, totalPages).map((entry, index) =>
+            entry === "ellipsis" ? (
+              <span key={`ellipsis-${index}`} className="px-1 text-sm text-slate-400">
+                …
+              </span>
+            ) : (
+              <button
+                key={entry}
+                type="button"
+                onClick={() => onGoToPage(entry)}
+                aria-current={entry === page ? "page" : undefined}
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition ${
+                  entry === page
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                {entry}
+              </button>
+            )
+          )}
+
+          <button
+            type="button"
+            onClick={() => onGoToPage(page + 1)}
+            disabled={page === totalPages}
+            aria-label="Next page"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
