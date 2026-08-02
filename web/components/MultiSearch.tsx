@@ -65,7 +65,7 @@ export default function MultiSearch({ value, onValueChange, onSearch, onClear, l
           <GraduationCap className="h-4 w-4" />
           Higher Education Discovery Portal
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">EduVerify SA</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">EduVerify</h1>
         <p className="mx-auto mt-3 max-w-xl text-slate-600">
           Search by institution, qualification, or province to discover and verify South
           Africa&apos;s registered higher education providers.

@@ -76,11 +76,6 @@ export default function Home() {
         loading={search.status === "loading"}
       />
 
-      <div className="border-b border-slate-200 bg-slate-50/50 px-6 py-3 text-center text-xs text-slate-500">
-        EduVerify SA is an independent verification utility. It is not affiliated with,
-        endorsed by, or operated by the Department of Higher Education and Training (DHET).
-      </div>
-
       {search.active ? (
         <section className="flex-1 px-6 py-8">
           <div className="mx-auto w-full max-w-3xl">

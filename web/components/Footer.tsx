@@ -24,11 +24,11 @@ export default function Footer() {
         </nav>
 
         <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-400">
-          EduVerify SA is an independent directory and is not affiliated with or operated by the
+          EduVerify is an independent directory and is not affiliated with or operated by the
           Department of Higher Education and Training (DHET).
         </p>
 
-        <p className="mt-3 text-center text-xs text-slate-400">© {year} EduVerify SA</p>
+        <p className="mt-3 text-center text-xs text-slate-400">© {year} EduVerify</p>
       </div>
     </footer>
   );
