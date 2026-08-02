@@ -3,11 +3,11 @@
 import { Search, MapPin, ShieldCheck, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { CANONICAL_PROVINCES } from "@/lib/normalize";
-import type { InstitutionRecord } from "@/lib/types";
+import type { InstitutionRecord, InstitutionType } from "@/lib/types";
 
 export interface SearchFilterState {
   province: string;
-  status: string;
+  institutionType: string;
 }
 
 interface SearchHeaderProps {
@@ -15,12 +15,16 @@ interface SearchHeaderProps {
   loading?: boolean;
 }
 
-const REGISTRATION_TYPES = ["Registered", "Provisionally Registered"];
+const INSTITUTION_TYPES: Array<{ value: InstitutionType; label: string }> = [
+  { value: "Public University", label: "Public Universities" },
+  { value: "Private Higher Education Institution", label: "Private Higher Education Institutions" },
+  { value: "TVET College", label: "TVET Colleges" },
+];
 
 export default function SearchHeader({ onSearch, loading }: SearchHeaderProps) {
   const [query, setQuery] = useState("");
   const [province, setProvince] = useState("");
-  const [status, setStatus] = useState("");
+  const [institutionType, setInstitutionType] = useState("");
   const [suggestions, setSuggestions] = useState<InstitutionRecord[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,7 +40,7 @@ export default function SearchHeader({ onSearch, loading }: SearchHeaderProps) {
 
       const params = new URLSearchParams({ q: trimmed, mode: "typeahead" });
       if (province) params.set("province", province);
-      if (status) params.set("status", status);
+      if (institutionType) params.set("institutionType", institutionType);
 
       fetch(`/api/search?${params.toString()}`)
         .then((res) => res.json())
@@ -45,7 +49,7 @@ export default function SearchHeader({ onSearch, loading }: SearchHeaderProps) {
     }, 200);
 
     return () => clearTimeout(handle);
-  }, [query, province, status]);
+  }, [query, province, institutionType]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -59,20 +63,20 @@ export default function SearchHeader({ onSearch, loading }: SearchHeaderProps) {
 
   function runSearch(value: string) {
     setShowSuggestions(false);
-    onSearch(value, { province, status });
+    onSearch(value, { province, institutionType });
   }
 
   return (
-    <header className="bg-gradient-to-b from-emerald-700 to-emerald-600 px-6 py-16 text-white sm:py-20">
+    <header className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800 px-6 py-16 text-white sm:py-20">
       <div className="mx-auto max-w-3xl text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium">
-          <ShieldCheck className="h-4 w-4" />
-          Official DHET register lookup
+          <ShieldCheck className="h-4 w-4 text-emerald-400" />
+          Higher Education Register Lookup
         </div>
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">EduVerify</h1>
-        <p className="mx-auto mt-3 max-w-xl text-emerald-50">
-          Check whether a private higher education institution is registered with South
-          Africa&apos;s Department of Higher Education and Training.
+        <p className="mx-auto mt-3 max-w-xl text-slate-300">
+          Check whether a public university, private higher education institution, or TVET
+          college is legitimately registered or established in South Africa.
         </p>
 
         <div ref={containerRef} className="relative mt-8 text-left">
@@ -111,7 +115,7 @@ export default function SearchHeader({ onSearch, loading }: SearchHeaderProps) {
                       setQuery(institution.name);
                       runSearch(institution.name);
                     }}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-emerald-50"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-50"
                   >
                     <span className="font-medium">{institution.name}</span>
                     <span className="flex items-center gap-1 text-xs text-slate-500">
@@ -140,14 +144,14 @@ export default function SearchHeader({ onSearch, loading }: SearchHeaderProps) {
           </select>
 
           <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
+            value={institutionType}
+            onChange={(event) => setInstitutionType(event.target.value)}
             className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white [color-scheme:dark]"
           >
-            <option value="">All registration types</option>
-            {REGISTRATION_TYPES.map((t) => (
-              <option key={t} value={t} className="text-slate-900">
-                {t}
+            <option value="">All Institutions</option>
+            {INSTITUTION_TYPES.map((t) => (
+              <option key={t.value} value={t.value} className="text-slate-900">
+                {t.label}
               </option>
             ))}
           </select>

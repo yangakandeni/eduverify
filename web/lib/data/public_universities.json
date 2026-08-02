@@ -1,0 +1,352 @@
+[
+  {
+    "name": "University of Cape Town",
+    "abbreviation": "UCT",
+    "address": "Rondebosch, Cape Town",
+    "province": "Western Cape",
+    "website": "www.uct.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Medicine and Bachelor of Surgery (MBChB)", "nqfLevel": 8 },
+      { "title": "Master of Business Administration (MBA)", "nqfLevel": 9 }
+    ]
+  },
+  {
+    "name": "Stellenbosch University",
+    "abbreviation": "SU",
+    "address": "Stellenbosch",
+    "province": "Western Cape",
+    "website": "www.sun.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Engineering (BEng)", "nqfLevel": 8 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Medicine and Bachelor of Surgery (MBChB)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "University of the Western Cape",
+    "abbreviation": "UWC",
+    "address": "Bellville, Cape Town",
+    "province": "Western Cape",
+    "website": "www.uwc.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Pharmacy (BPharm)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "Cape Peninsula University of Technology",
+    "abbreviation": "CPUT",
+    "address": "Cape Town",
+    "province": "Western Cape",
+    "website": "www.cput.ac.za",
+    "degrees": [
+      { "title": "Diploma in Information Technology", "nqfLevel": 6 },
+      { "title": "Bachelor of Engineering Technology (BEngTech)", "nqfLevel": 7 },
+      { "title": "Bachelor of Business Administration", "nqfLevel": 7 },
+      { "title": "National Diploma in Engineering", "nqfLevel": 6 }
+    ]
+  },
+  {
+    "name": "University of the Witwatersrand",
+    "abbreviation": "Wits",
+    "address": "Braamfontein, Johannesburg",
+    "province": "Gauteng",
+    "website": "www.wits.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Engineering (BEng)", "nqfLevel": 8 },
+      { "title": "Bachelor of Medicine and Bachelor of Surgery (MBBCh)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "University of Johannesburg",
+    "abbreviation": "UJ",
+    "address": "Auckland Park, Johannesburg",
+    "province": "Gauteng",
+    "website": "www.uj.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Engineering Technology (BEngTech)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Diploma in Accounting", "nqfLevel": 6 }
+    ]
+  },
+  {
+    "name": "University of Pretoria",
+    "abbreviation": "UP",
+    "address": "Hatfield, Pretoria",
+    "province": "Gauteng",
+    "website": "www.up.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Veterinary Science (BVSc)", "nqfLevel": 8 },
+      { "title": "Bachelor of Medicine and Bachelor of Surgery (MBChB)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "University of South Africa",
+    "abbreviation": "UNISA",
+    "address": "Muckleneuk, Pretoria",
+    "province": "Gauteng",
+    "website": "www.unisa.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Higher Certificate in Business Management", "nqfLevel": 5 }
+    ]
+  },
+  {
+    "name": "Sefako Makgatho Health Sciences University",
+    "abbreviation": "SMU",
+    "address": "Ga-Rankuwa, Pretoria",
+    "province": "Gauteng",
+    "website": "www.smu.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Medicine and Bachelor of Surgery (MBChB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Dentistry (BDS)", "nqfLevel": 8 },
+      { "title": "Bachelor of Pharmacy (BPharm)", "nqfLevel": 8 },
+      { "title": "Bachelor of Nursing", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "Tshwane University of Technology",
+    "abbreviation": "TUT",
+    "address": "Pretoria",
+    "province": "Gauteng",
+    "website": "www.tut.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Engineering Technology (BEngTech)", "nqfLevel": 7 },
+      { "title": "Diploma in Information Technology", "nqfLevel": 6 },
+      { "title": "Bachelor of Business Administration", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "Vaal University of Technology",
+    "abbreviation": "VUT",
+    "address": "Vanderbijlpark",
+    "province": "Gauteng",
+    "website": "www.vut.ac.za",
+    "degrees": [
+      { "title": "Diploma in Engineering", "nqfLevel": 6 },
+      { "title": "Bachelor of Engineering Technology (BEngTech)", "nqfLevel": 7 },
+      { "title": "Bachelor of Applied Science", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "University of KwaZulu-Natal",
+    "abbreviation": "UKZN",
+    "address": "Durban",
+    "province": "KwaZulu-Natal",
+    "website": "www.ukzn.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Medicine and Bachelor of Surgery (MBChB)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "Durban University of Technology",
+    "abbreviation": "DUT",
+    "address": "Durban",
+    "province": "KwaZulu-Natal",
+    "website": "www.dut.ac.za",
+    "degrees": [
+      { "title": "Diploma in Information Technology", "nqfLevel": 6 },
+      { "title": "Bachelor of Engineering Technology (BEngTech)", "nqfLevel": 7 },
+      { "title": "Bachelor of Applied Science", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "Mangosuthu University of Technology",
+    "abbreviation": "MUT",
+    "address": "Umlazi, Durban",
+    "province": "KwaZulu-Natal",
+    "website": "www.mut.ac.za",
+    "degrees": [
+      { "title": "Diploma in Engineering", "nqfLevel": 6 },
+      { "title": "Diploma in Public Management", "nqfLevel": 6 },
+      { "title": "Bachelor of Engineering Technology (BEngTech)", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "University of Zululand",
+    "abbreviation": "UNIZULU",
+    "address": "KwaDlangezwa",
+    "province": "KwaZulu-Natal",
+    "website": "www.unizulu.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Education (BEd)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "Rhodes University",
+    "abbreviation": "RU",
+    "address": "Makhanda (Grahamstown)",
+    "province": "Eastern Cape",
+    "website": "www.ru.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Journalism (BJourn)", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "University of Fort Hare",
+    "abbreviation": "UFH",
+    "address": "Alice",
+    "province": "Eastern Cape",
+    "website": "www.ufh.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "Nelson Mandela University",
+    "abbreviation": "NMU",
+    "address": "Gqeberha (Port Elizabeth)",
+    "province": "Eastern Cape",
+    "website": "www.mandela.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Engineering (BEng)", "nqfLevel": 8 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "Walter Sisulu University",
+    "abbreviation": "WSU",
+    "address": "Mthatha",
+    "province": "Eastern Cape",
+    "website": "www.wsu.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Diploma in Nursing", "nqfLevel": 6 },
+      { "title": "Bachelor of Education (BEd)", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "University of the Free State",
+    "abbreviation": "UFS",
+    "address": "Bloemfontein",
+    "province": "Free State",
+    "website": "www.ufs.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Medicine and Bachelor of Surgery (MBChB)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "Central University of Technology",
+    "abbreviation": "CUT",
+    "address": "Bloemfontein",
+    "province": "Free State",
+    "website": "www.cut.ac.za",
+    "degrees": [
+      { "title": "Diploma in Information Technology", "nqfLevel": 6 },
+      { "title": "Bachelor of Engineering Technology (BEngTech)", "nqfLevel": 7 },
+      { "title": "Bachelor of Health Sciences", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "North-West University",
+    "abbreviation": "NWU",
+    "address": "Potchefstroom",
+    "province": "North West",
+    "website": "www.nwu.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Engineering (BEng)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "University of Limpopo",
+    "abbreviation": "UL",
+    "address": "Mankweng, Polokwane",
+    "province": "Limpopo",
+    "website": "www.ul.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Laws (LLB)", "nqfLevel": 8 },
+      { "title": "Bachelor of Pharmacy (BPharm)", "nqfLevel": 8 }
+    ]
+  },
+  {
+    "name": "University of Venda",
+    "abbreviation": "UNIVEN",
+    "address": "Thohoyandou",
+    "province": "Limpopo",
+    "website": "www.univen.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Arts (BA)", "nqfLevel": 7 },
+      { "title": "Bachelor of Commerce (BCom)", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Bachelor of Agricultural Management", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "University of Mpumalanga",
+    "abbreviation": "UMP",
+    "address": "Mbombela (Nelspruit)",
+    "province": "Mpumalanga",
+    "website": "www.ump.ac.za",
+    "degrees": [
+      { "title": "Bachelor of Agriculture", "nqfLevel": 7 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 },
+      { "title": "Diploma in Information Communication Technology", "nqfLevel": 6 },
+      { "title": "Bachelor of Education (BEd)", "nqfLevel": 7 }
+    ]
+  },
+  {
+    "name": "Sol Plaatje University",
+    "abbreviation": "SPU",
+    "address": "Kimberley",
+    "province": "Northern Cape",
+    "website": "www.spu.ac.za",
+    "degrees": [
+      { "title": "Higher Certificate in Data Science", "nqfLevel": 5 },
+      { "title": "Bachelor of Education (BEd)", "nqfLevel": 7 },
+      { "title": "Diploma in Heritage Studies", "nqfLevel": 6 },
+      { "title": "Bachelor of Science (BSc)", "nqfLevel": 7 }
+    ]
+  }
+]

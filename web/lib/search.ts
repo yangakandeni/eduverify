@@ -4,9 +4,7 @@ import type { InstitutionRecord, SearchFilters } from "./types";
 
 function matchesFilters(institution: InstitutionRecord, filters: SearchFilters): boolean {
   if (filters.province && institution.province !== filters.province) return false;
-  if (filters.status && normalizeText(institution.status ?? "") !== normalizeText(filters.status)) {
-    return false;
-  }
+  if (filters.institutionType && institution.institutionType !== filters.institutionType) return false;
   return true;
 }
 

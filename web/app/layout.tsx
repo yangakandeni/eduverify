@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduVerify — DHET Institution Register Search",
+  title: "EduVerify — Higher Education Register Lookup",
   description:
-    "Search South Africa's official DHET register of accredited private higher education institutions.",
+    "Search South Africa's public universities and DHET-registered private higher education institutions. EduVerify SA is an independent verification utility and is not affiliated with DHET.",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col dark:bg-slate-950">
         {children}
         <Footer />
       </body>

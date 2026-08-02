@@ -16,7 +16,7 @@ function dedupeById(institutions: InstitutionRecord[]): InstitutionRecord[] {
 function applyFilters(institutions: InstitutionRecord[], filters: SearchFilters): InstitutionRecord[] {
   return institutions.filter((institution) => {
     if (filters.province && institution.province !== filters.province) return false;
-    if (filters.status && institution.status?.toLowerCase() !== filters.status.toLowerCase()) return false;
+    if (filters.institutionType && institution.institutionType !== filters.institutionType) return false;
     return true;
   });
 }

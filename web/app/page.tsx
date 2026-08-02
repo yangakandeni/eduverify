@@ -30,7 +30,7 @@ export default function Home() {
 
     const params = new URLSearchParams({ q: trimmed });
     if (filters.province) params.set("province", filters.province);
-    if (filters.status) params.set("status", filters.status);
+    if (filters.institutionType) params.set("institutionType", filters.institutionType);
 
     try {
       const response = await fetch(`/api/search?${params.toString()}`);
@@ -50,38 +50,45 @@ export default function Home() {
     <main className="flex flex-1 flex-col">
       <SearchHeader onSearch={handleSearch} loading={state.status === "loading"} />
 
-      <section className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-        {state.status === "idle" && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center text-slate-400">
-            <Search className="h-8 w-8" />
-            <p>Search for an institution name or registration number to get started.</p>
-          </div>
-        )}
+      <div className="border-t border-slate-200 bg-slate-50 px-6 py-3 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+        EduVerify SA is an independent verification utility. It is not affiliated with,
+        endorsed by, or operated by the Department of Higher Education and Training (DHET).
+      </div>
 
-        {state.status === "loading" && (
-          <div className="flex flex-col items-center gap-3 py-16 text-slate-400">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <p>Checking the register...</p>
-          </div>
-        )}
+      <section className="flex-1 bg-slate-50 px-6 py-10 dark:bg-slate-900">
+        <div className="mx-auto w-full max-w-3xl">
+          {state.status === "idle" && (
+            <div className="flex flex-col items-center gap-3 py-16 text-center text-slate-400">
+              <Search className="h-8 w-8" />
+              <p>Search for an institution name or registration number to get started.</p>
+            </div>
+          )}
 
-        {state.status === "done" && (
-          <div className="space-y-4">
-            <p className="text-sm text-slate-500">
-              {state.notFound
-                ? `No results for "${state.query}"`
-                : `${state.results.length} result${state.results.length === 1 ? "" : "s"} for "${state.query}"`}
-            </p>
+          {state.status === "loading" && (
+            <div className="flex flex-col items-center gap-3 py-16 text-slate-400">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p>Checking the register...</p>
+            </div>
+          )}
 
-            {state.notFound ? (
-              <NotFoundCard query={state.query} />
-            ) : (
-              state.results.map((institution) => (
-                <InstitutionCard key={institution.id} institution={institution} />
-              ))
-            )}
-          </div>
-        )}
+          {state.status === "done" && (
+            <div className="space-y-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {state.notFound
+                  ? `No results for "${state.query}"`
+                  : `${state.results.length} result${state.results.length === 1 ? "" : "s"} for "${state.query}"`}
+              </p>
+
+              {state.notFound ? (
+                <NotFoundCard query={state.query} />
+              ) : (
+                state.results.map((institution) => (
+                  <InstitutionCard key={institution.id} institution={institution} />
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );
