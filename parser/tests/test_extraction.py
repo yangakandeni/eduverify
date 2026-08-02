@@ -1,0 +1,142 @@
+"""Tests for pure text-parsing helpers, using raw text blocks captured from the
+real DHET Annexure A register (extracted via pdfplumber table extraction)."""
+
+from extraction import (
+    clean_address,
+    extract_emails,
+    extract_name,
+    extract_registration_number,
+    extract_website,
+    extract_phones,
+    split_qualifications,
+)
+
+
+NAME_CONTACT_BLOCK_1 = (
+    "AAA School of Advertising\n(Pty) Ltd\nCONTACT PERSON:\nDr Muni Kooblal\n"
+    "Academic Registrar"
+)
+
+NAME_CONTACT_BLOCK_2 = (
+    "Academy for Facility\nManagement (Pty) Ltd (A4FM)\nCONTACT PERSON:\n"
+    "Mrs M Dimas\nAcademic Administrator\n(012) 993 0533(T)\nWebsite:\n"
+    "www.a4fm.ac.za\nEmail Address:\nadmin@a4fm.ac.za\njge@a4fm.ac.za"
+)
+
+CONTINUATION_BLOCK_NO_NAME = (
+    "031 307 7170 (F)\nWebsite:\nwww.aaaschool.co.za\nEmail Address:\n"
+    "mkooblal@richfield.ac.za\nPrivate Bag X23\nUmhlanga Rocks\n4320"
+)
+
+ADDRESS_BLOCK_SINGLE = (
+    "A) Bryanston: The Braes\nOffice Park, 3 Eaton\nAvenue, Bryanston, 2191"
+)
+
+ADDRESS_BLOCK_MULTI = (
+    "A) Pretoria: 374 Cliff\nAvenue, Waterkloof Ridge\nX2, Pretoria, 0181."
+)
+
+QUALIFICATIONS_BLOCK = (
+    "1) Higher Certificate in Digital Marketing (NQF\nlevel 5, 120-Credits: "
+    "Distance Mode) [A]\n2) Higher Certificate in Marketing Communication\n"
+    "(HEQSF Aligned, NQF Level 5, 120-\nCredits: Contact Mode) [A, B]"
+)
+
+QUALIFICATIONS_BLOCK_WITH_PREAMBLE = (
+    "The following programmes are registered in\nterms of section 54(3) of "
+    "the Higher\nEducation Act until 31 December 2027\n1) Higher Certificate "
+    "in Architectural\nTechnology (HEQSF Aligned,\nNQF Level 5, "
+    "120-Credits: Contact\nMode) [A, B]\n2) Higher Certificate in Creative "
+    "Music\nTechnology [Em] (HEQSF\nAligned, NQF Level 5, 120-\nCredits: "
+    "Contact Mode) [D]"
+)
+
+
+def test_extract_name_stops_before_contact_person():
+    assert extract_name(NAME_CONTACT_BLOCK_1) == "AAA School of Advertising (Pty) Ltd"
+
+
+def test_extract_name_joins_wrapped_lines():
+    assert extract_name(NAME_CONTACT_BLOCK_2) == "Academy for Facility Management (Pty) Ltd (A4FM)"
+
+
+def test_extract_name_returns_empty_for_continuation_block():
+    assert extract_name(CONTINUATION_BLOCK_NO_NAME) == ""
+
+
+def test_extract_phones_strips_parens():
+    assert extract_phones(NAME_CONTACT_BLOCK_2) == ["012 993 0533"]
+
+
+def test_extract_phones_handles_spaced_prefix():
+    assert extract_phones(CONTINUATION_BLOCK_NO_NAME) == ["031 307 7170"]
+
+
+def test_extract_phones_empty_when_absent():
+    assert extract_phones("no numbers here") == []
+
+
+def test_extract_website():
+    assert extract_website(NAME_CONTACT_BLOCK_2) == "www.a4fm.ac.za"
+
+
+def test_extract_website_none_when_absent():
+    assert extract_website(NAME_CONTACT_BLOCK_1) is None
+
+
+def test_extract_emails_multiple_dedup_lowercase():
+    assert extract_emails(NAME_CONTACT_BLOCK_2) == ["admin@a4fm.ac.za", "jge@a4fm.ac.za"]
+
+
+def test_extract_emails_single():
+    assert extract_emails(CONTINUATION_BLOCK_NO_NAME) == ["mkooblal@richfield.ac.za"]
+
+
+def test_extract_emails_empty_when_absent():
+    assert extract_emails("no email here") == []
+
+
+def test_clean_address_reflows_wrapped_lines():
+    assert clean_address(ADDRESS_BLOCK_SINGLE) == "A) Bryanston: The Braes Office Park, 3 Eaton Avenue, Bryanston, 2191"
+
+
+def test_clean_address_multi_line():
+    assert clean_address(ADDRESS_BLOCK_MULTI) == "A) Pretoria: 374 Cliff Avenue, Waterkloof Ridge X2, Pretoria, 0181."
+
+
+def test_clean_address_empty_string_for_none():
+    assert clean_address(None) == ""
+
+
+def test_split_qualifications_basic():
+    result = split_qualifications(QUALIFICATIONS_BLOCK)
+    assert result == [
+        "1) Higher Certificate in Digital Marketing (NQF level 5, 120-Credits: Distance Mode) [A]",
+        "2) Higher Certificate in Marketing Communication (HEQSF Aligned, NQF Level 5, 120-Credits: Contact Mode) [A, B]",
+    ]
+
+
+def test_split_qualifications_drops_preamble():
+    result = split_qualifications(QUALIFICATIONS_BLOCK_WITH_PREAMBLE)
+    assert len(result) == 2
+    assert result[0].startswith("1) Higher Certificate in Architectural")
+    assert "The following programmes" not in result[0]
+
+
+def test_split_qualifications_empty_for_blank_input():
+    assert split_qualifications("") == []
+    assert split_qualifications(None) == []
+
+
+def test_extract_registration_number_found():
+    assert extract_registration_number("2000/HE07/015") == "2000/HE07/015"
+
+
+def test_extract_registration_number_strips_noise():
+    assert extract_registration_number(" 2009/HE07/012 \n") == "2009/HE07/012"
+
+
+def test_extract_registration_number_none_when_missing():
+    assert extract_registration_number("") is None
+    assert extract_registration_number(None) is None
+    assert extract_registration_number("Gauteng") is None

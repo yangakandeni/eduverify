@@ -1,0 +1,28 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data
+data/_annexure_a_register.pdf
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+terraform/.terraform.lock.hcl
+terraform/crash.log
+
+# Web / Node
+web/node_modules/
+web/dist/
+web/build/
+web/.env
+web/.env.*
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/

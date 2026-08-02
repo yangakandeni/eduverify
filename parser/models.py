@@ -1,0 +1,21 @@
+"""Pydantic schema for a parsed DHET-registered private higher education institution."""
+
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
+
+
+class Contacts(BaseModel):
+    email: List[str] = Field(default_factory=list)
+    phone: List[str] = Field(default_factory=list)
+    website: Optional[str] = None
+
+
+class Institution(BaseModel):
+    name: str
+    registration_number: Optional[str] = None
+    status: Optional[str] = None
+    address: str = ""
+    province: Optional[str] = None
+    contacts: Contacts = Field(default_factory=Contacts)
+    qualifications: List[str] = Field(default_factory=list)
