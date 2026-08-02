@@ -2,23 +2,19 @@
 
 import { BadgeCheck, ChevronDown, GraduationCap, Globe, Mail, MapPin, Phone, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { InstitutionRecord, InstitutionType } from "@/lib/types";
+import { TYPE_LABEL, getStatusBadge } from "@/lib/presentation";
+import type { InstitutionRecord } from "@/lib/types";
 
 function websiteHref(website: string): string {
   return website.startsWith("http") ? website : `https://${website}`;
 }
 
-const TYPE_LABEL: Record<InstitutionType, string> = {
-  "Public University": "Public University",
-  "Private Higher Education Institution": "Private Institution",
-  "TVET College": "TVET College",
-};
-
 export default function InstitutionCard({ institution }: { institution: InstitutionRecord }) {
   const [expanded, setExpanded] = useState(false);
   const [qualQuery, setQualQuery] = useState("");
-  const { name, tradingName, registration_number, status, address, province, contacts, qualifications, institutionType } =
+  const { name, tradingName, registration_number, address, province, contacts, qualifications, institutionType } =
     institution;
+  const badge = getStatusBadge(institution);
 
   const filteredQualifications = useMemo(() => {
     const q = qualQuery.trim().toLowerCase();
@@ -27,35 +23,37 @@ export default function InstitutionCard({ institution }: { institution: Institut
   }, [qualifications, qualQuery]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm dark:border-emerald-900/50 dark:bg-slate-900">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  badge.verified ? "bg-emerald-600 text-white" : "bg-amber-100 text-amber-800"
+                }`}
+              >
                 <BadgeCheck className="h-3.5 w-3.5" />
-                {status || "Verified"}
+                {badge.label}
               </span>
-              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600">
                 {TYPE_LABEL[institutionType] ?? institutionType}
               </span>
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+            <h3 className="text-lg font-semibold text-slate-900">
               {name}
-              {tradingName && (
-                <span className="ml-2 text-sm font-normal text-slate-500 dark:text-slate-400">({tradingName})</span>
-              )}
+              {tradingName && <span className="ml-2 text-sm font-normal text-slate-500">({tradingName})</span>}
             </h3>
           </div>
           {registration_number && (
             <div className="text-right text-sm">
-              <div className="text-slate-500 dark:text-slate-400">Registration No.</div>
-              <div className="font-mono font-medium text-slate-900 dark:text-white">{registration_number}</div>
+              <div className="text-slate-500">Registration No.</div>
+              <div className="font-mono font-medium text-slate-900">{registration_number}</div>
             </div>
           )}
         </div>
 
-        <div className="mt-3 space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
+        <div className="mt-3 space-y-1.5 text-sm text-slate-700">
           <div className="flex items-start gap-2">
             <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" />
             <span>
@@ -70,7 +68,7 @@ export default function InstitutionCard({ institution }: { institution: Institut
             <a
               key={email}
               href={`mailto:${email}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-slate-700"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50"
             >
               <Mail className="h-3.5 w-3.5" />
               Email
@@ -80,7 +78,7 @@ export default function InstitutionCard({ institution }: { institution: Institut
             <a
               key={phone}
               href={`tel:${phone.replace(/\s+/g, "")}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-slate-700"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50"
             >
               <Phone className="h-3.5 w-3.5" />
               Call
@@ -91,7 +89,7 @@ export default function InstitutionCard({ institution }: { institution: Institut
               href={websiteHref(contacts.website)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-slate-700"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50"
             >
               <Globe className="h-3.5 w-3.5" />
               Website
@@ -101,11 +99,11 @@ export default function InstitutionCard({ institution }: { institution: Institut
       </div>
 
       {qualifications.length > 0 && (
-        <div className="border-t border-slate-200 dark:border-slate-800">
+        <div className="border-t border-slate-200">
           <button
             type="button"
             onClick={() => setExpanded((value) => !value)}
-            className="flex w-full items-center justify-between px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800/60"
+            className="flex w-full items-center justify-between px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
             <span className="inline-flex items-center gap-2">
               <GraduationCap className="h-4 w-4 text-emerald-600" />
@@ -115,7 +113,7 @@ export default function InstitutionCard({ institution }: { institution: Institut
           </button>
 
           {expanded && (
-            <div className="space-y-3 border-t border-slate-100 px-5 py-4 dark:border-slate-800">
+            <div className="space-y-3 border-t border-slate-100 px-5 py-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
@@ -123,7 +121,7 @@ export default function InstitutionCard({ institution }: { institution: Institut
                   value={qualQuery}
                   onChange={(event) => setQualQuery(event.target.value)}
                   placeholder="Filter qualifications (e.g. Computer, Business, NQF 7)..."
-                  className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-emerald-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-emerald-400"
                 />
               </div>
 
@@ -134,23 +132,18 @@ export default function InstitutionCard({ institution }: { institution: Institut
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {filteredQualifications.map((qualification, index) => (
-                    <div
-                      key={`${qualification.title}-${index}`}
-                      className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/50"
-                    >
+                    <div key={`${qualification.title}-${index}`} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                       <div className="mb-1.5 flex flex-wrap items-center gap-2">
                         {qualification.nqfLevel && (
-                          <span className="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                          <span className="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                             NQF {qualification.nqfLevel}
                           </span>
                         )}
-                        {qualification.saqaId && (
-                          <span className="text-xs font-mono text-slate-400">SAQA {qualification.saqaId}</span>
-                        )}
+                        {qualification.saqaId && <span className="text-xs font-mono text-slate-400">SAQA {qualification.saqaId}</span>}
                       </div>
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{qualification.title}</p>
+                      <p className="text-sm font-medium text-slate-800">{qualification.title}</p>
                       {(qualification.mode || qualification.credits) && (
-                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-0.5 text-xs text-slate-500">
                           {qualification.mode}
                           {qualification.mode && qualification.credits ? " · " : ""}
                           {qualification.credits ? `${qualification.credits} credits` : ""}

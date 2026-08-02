@@ -15,7 +15,17 @@ const privateInstitutions: InstitutionRecord[] = institutions.map((institution) 
   qualifications: institution.qualifications.map(parseQualification),
 }));
 
-export const ALL_INSTITUTIONS: InstitutionRecord[] = [...privateInstitutions, ...loadPublicUniversities()];
+/** The DHET scrape occasionally repeats an entire row verbatim (same registration
+ * number and all) — dedupe once here so every consumer gets a clean, unique-by-id list. */
+function dedupeById(records: InstitutionRecord[]): InstitutionRecord[] {
+  const seen = new Set<string>();
+  return records.filter((record) => (seen.has(record.id) ? false : (seen.add(record.id), true)));
+}
+
+export const ALL_INSTITUTIONS: InstitutionRecord[] = dedupeById([
+  ...privateInstitutions,
+  ...loadPublicUniversities(),
+]);
 
 export function findLocalById(id: string): InstitutionRecord | undefined {
   return ALL_INSTITUTIONS.find((institution) => institution.id === id);
