@@ -1,34 +1,69 @@
+import { Shield } from "lucide-react";
 import Link from "next/link";
 
-const FOOTER_LINKS = [
+const PLATFORM_LINKS = [
+  { label: "Verify Institution", href: "/#" },
+  { label: "Browse Institutions", href: "/#browse" },
+];
+
+const LEGAL_LINKS = [
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms of Service", href: "/terms" },
-  { label: "Feedback", href: "/feedback" },
-  { label: "Cookie Preferences", href: "/cookie-preferences" },
 ];
 
 export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto border-t border-slate-200 bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
-          {FOOTER_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="transition hover:text-slate-700">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+    <footer className="mt-auto bg-primary text-white/60">
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="lg:col-span-2">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent">
+                <Shield className="h-3.5 w-3.5 text-accent-foreground" />
+              </span>
+              <span className="font-display font-bold text-white">EduVerify</span>
+            </div>
 
-        <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-400">
-          EduVerify is an independent directory and is not affiliated with or operated by the
-          Department of Higher Education and Training (DHET).
-        </p>
+            <p className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs leading-relaxed">
+              <strong className="text-white/80">Disclaimer:</strong> EduVerify is an independent South African platform for verifying higher education institutions and accredited qualifications.
+              It is not affiliated with or operated by the Department of Higher Education and Training (DHET).
+              Data is sourced from publicly available DHET registers and official records.</p>
+          </div>
 
-        <p className="mt-3 text-center text-xs text-slate-400">© {year} EduVerify</p>
+          <div>
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-white">Platform</p>
+            <ul className="flex flex-col gap-2">
+              {PLATFORM_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm transition hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-white">Legal &amp; Info</p>
+            <ul className="flex flex-col gap-2">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-sm transition hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 border-t border-white/10 pt-6 sm:flex-row">
+          <p className="font-mono text-xs">© {year} EduVerify.</p>
+        </div>
       </div>
     </footer>
   );

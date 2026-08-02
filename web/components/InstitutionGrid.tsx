@@ -112,7 +112,7 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
 
   if (institutions.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500">
+      <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
         {emptyMessage ?? "No institutions match these filters yet."}
       </div>
     );
@@ -146,15 +146,15 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
 
       {compareIds.size > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
-          <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 shadow-lg">
-            <span className="text-sm font-medium text-slate-700">
+          <div className="flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2.5 shadow-lg">
+            <span className="text-sm font-medium text-foreground">
               {compareIds.size} selected for comparison
             </span>
             <button
               type="button"
               onClick={() => setCompareOpen(true)}
               disabled={compareIds.size < 2}
-              className="rounded-full bg-slate-900 px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-full bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Compare
             </button>
@@ -162,7 +162,7 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
               type="button"
               onClick={() => setCompareIds(new Set())}
               aria-label="Clear comparison"
-              className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </button>
@@ -174,7 +174,7 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
+              <tr className="border-b border-border font-mono text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="py-2 pr-4">Institution</th>
                 <th className="py-2 pr-4">Type</th>
                 <th className="py-2 pr-4">Province</th>
@@ -186,12 +186,12 @@ export default function InstitutionGrid({ institutions, onExplore, emptyMessage 
               {compareList.map((institution) => {
                 const badge = getStatusBadge(institution);
                 return (
-                  <tr key={institution.id} className="border-b border-slate-100">
-                    <td className="py-3 pr-4 font-medium text-slate-900">{institution.name}</td>
-                    <td className="py-3 pr-4 text-slate-600">{TYPE_LABEL[institution.institutionType] ?? institution.institutionType}</td>
-                    <td className="py-3 pr-4 text-slate-600">{institution.province}</td>
-                    <td className="py-3 pr-4 text-slate-600">{badge.label}</td>
-                    <td className="py-3 text-slate-600">{institution.qualifications.length}</td>
+                  <tr key={institution.id} className="border-b border-border/60">
+                    <td className="py-3 pr-4 font-medium text-foreground">{institution.name}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{TYPE_LABEL[institution.institutionType] ?? institution.institutionType}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{institution.province}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{badge.label}</td>
+                    <td className="py-3 text-muted-foreground">{institution.qualifications.length}</td>
                   </tr>
                 );
               })}
@@ -218,7 +218,7 @@ function PaginationControls({ page, totalPages, totalItems, startIndex, pageSize
 
   return (
     <div className="mt-8 flex flex-col items-center gap-3">
-      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+      <span className="rounded-full bg-secondary px-3 py-1 font-mono text-xs font-medium text-muted-foreground">
         Showing {rangeStart}–{rangeEnd} of {totalItems} institution{totalItems === 1 ? "" : "s"}
       </span>
 
@@ -229,14 +229,14 @@ function PaginationControls({ page, totalPages, totalItems, startIndex, pageSize
             onClick={() => onGoToPage(page - 1)}
             disabled={page === 1}
             aria-label="Previous page"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
 
           {buildPageList(page, totalPages).map((entry, index) =>
             entry === "ellipsis" ? (
-              <span key={`ellipsis-${index}`} className="px-1 text-sm text-slate-400">
+              <span key={`ellipsis-${index}`} className="px-1 text-sm text-muted-foreground">
                 …
               </span>
             ) : (
@@ -247,8 +247,8 @@ function PaginationControls({ page, totalPages, totalItems, startIndex, pageSize
                 aria-current={entry === page ? "page" : undefined}
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition ${
                   entry === page
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border text-foreground hover:bg-secondary"
                 }`}
               >
                 {entry}
@@ -261,7 +261,7 @@ function PaginationControls({ page, totalPages, totalItems, startIndex, pageSize
             onClick={() => onGoToPage(page + 1)}
             disabled={page === totalPages}
             aria-label="Next page"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -294,9 +294,9 @@ function InstitutionGridCard({
   const palette = getAvatarPalette(institution.id);
 
   return (
-    <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
       <div className="flex items-start justify-between gap-3">
-        <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold ${palette}`}>
+        <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl font-display text-sm font-bold ${palette}`}>
           {getInitials(institution.name)}
         </div>
         <button
@@ -304,7 +304,7 @@ function InstitutionGridCard({
           onClick={onToggleSaved}
           aria-label={saved ? "Remove from saved" : "Save institution"}
           aria-pressed={saved}
-          className={`rounded-full p-1.5 transition ${saved ? "text-rose-500" : "text-slate-300 hover:text-rose-400"}`}
+          className={`rounded-full p-1.5 transition ${saved ? "text-rose-500" : "text-muted-foreground/50 hover:text-rose-400"}`}
         >
           <Heart className={`h-5 w-5 ${saved ? "fill-current" : ""}`} />
         </button>
@@ -312,7 +312,7 @@ function InstitutionGridCard({
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span
-          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-xs font-semibold ${
             badge.verified
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
               : "border-amber-200 bg-amber-50 text-amber-700"
@@ -323,29 +323,29 @@ function InstitutionGridCard({
         </span>
       </div>
 
-      <h3 className="mt-2 line-clamp-2 text-base font-semibold text-slate-900">{institution.name}</h3>
+      <h3 className="mt-2 line-clamp-2 font-display text-base font-semibold text-foreground">{institution.name}</h3>
 
-      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <MapPin className="h-3 w-3" />
           {institution.province}
         </span>
-        <span className="text-slate-300">·</span>
+        <span className="text-border">·</span>
         <span>{TYPE_LABEL[institution.institutionType] ?? institution.institutionType}</span>
       </div>
 
       <div className="mt-3">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
           <GraduationCap className="h-3.5 w-3.5" />
           {institution.qualifications.length} qualifications
         </span>
       </div>
 
-      <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
+      <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
         <button
           type="button"
           onClick={onExplore}
-          className="flex-1 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+          className="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
         >
           Explore
         </button>
@@ -357,8 +357,8 @@ function InstitutionGridCard({
           title={compareDisabled ? "You can compare up to 4 institutions at a time" : "Toggle compare"}
           className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
             comparing
-              ? "border-slate-900 bg-slate-900 text-white"
-              : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-muted-foreground hover:border-primary/30 hover:bg-secondary"
           }`}
         >
           <GitCompare className="h-4 w-4" />

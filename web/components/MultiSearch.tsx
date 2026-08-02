@@ -1,10 +1,12 @@
 "use client";
 
-import { GraduationCap, Loader2, MapPin, Search, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ArrowRight, Loader2, MapPin, Search, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { normalizeProvince } from "@/lib/normalize";
 import type { InstitutionRecord } from "@/lib/types";
 
 interface MultiSearchProps {
+  institutions: InstitutionRecord[];
   value: string;
   onValueChange: (value: string) => void;
   onSearch: (query: string) => void;
@@ -12,12 +14,25 @@ interface MultiSearchProps {
   loading?: boolean;
 }
 
-const POPULAR_SEARCHES = ["Computer Science", "Engineering", "Nursing", "Teaching", "Western Cape"];
+const POPULAR_SEARCHES = ["Nursing", "Teaching", "IT", "Engineering", "TVET", "NSFAS", "Accounting", "Law"];
 
-export default function MultiSearch({ value, onValueChange, onSearch, onClear, loading }: MultiSearchProps) {
+export default function MultiSearch({ institutions, value, onValueChange, onSearch, onClear, loading }: MultiSearchProps) {
   const [suggestions, setSuggestions] = useState<InstitutionRecord[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const stats = useMemo(() => {
+    const qualificationCount = institutions.reduce((total, institution) => total + institution.qualifications.length, 0);
+    const provinceCount = new Set(
+      institutions.map((institution) => normalizeProvince(institution.province)).filter((province) => province !== "Unknown")
+    ).size;
+
+    return {
+      institutionCount: institutions.length,
+      qualificationCount,
+      provinceCount,
+    };
+  }, [institutions]);
 
   useEffect(() => {
     const trimmed = value.trim();
@@ -59,21 +74,27 @@ export default function MultiSearch({ value, onValueChange, onSearch, onClear, l
   }
 
   return (
-    <section className="border-b border-slate-200 bg-white px-6 py-10 sm:py-14">
-      <div className="mx-auto max-w-3xl text-center">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
-          <GraduationCap className="h-4 w-4" />
-          Higher Education Discovery Portal
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">EduVerify</h1>
-        <p className="mx-auto mt-3 max-w-xl text-slate-600">
-          Search by institution, qualification, or province to discover and verify South
-          Africa&apos;s registered higher education providers.
+    <section className="relative overflow-hidden bg-primary px-6 py-16 sm:py-20">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-4xl text-center">
+        <h1 className="font-display text-4xl font-bold leading-tight text-white sm:text-5xl">
+          Verify before you <span className="text-accent">enrol.</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-white/60">
+          Search DHET-registered institutions and accredited qualifications.
         </p>
 
-        <div ref={containerRef} className="relative mt-8 text-left">
-          <div className="flex items-stretch overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-100">
-            <div className="flex items-center pl-4 text-slate-400">
+        <div ref={containerRef} className="relative mx-auto mt-10 max-w-2xl text-left">
+          <div className="flex items-stretch gap-2 rounded-2xl bg-white p-2 shadow-2xl">
+            <div className="flex items-center pl-3 text-muted-foreground">
               <Search className="h-5 w-5" />
             </div>
             <input
@@ -84,15 +105,15 @@ export default function MultiSearch({ value, onValueChange, onSearch, onClear, l
               onKeyDown={(event) => {
                 if (event.key === "Enter") runSearch(value);
               }}
-              placeholder="Try an institution, a qualification, or a province..."
-              className="w-full px-3 py-4 text-slate-900 outline-none placeholder:text-slate-400"
+              placeholder="Search by institution, qualification, or province..."
+              className="w-full min-w-0 bg-transparent px-1 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
             {value && (
               <button
                 type="button"
                 onClick={() => runSearch("")}
                 aria-label="Clear search"
-                className="flex items-center px-2 text-slate-400 transition hover:text-slate-600"
+                className="flex flex-shrink-0 items-center px-1 text-muted-foreground transition hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -101,23 +122,30 @@ export default function MultiSearch({ value, onValueChange, onSearch, onClear, l
               type="button"
               onClick={() => runSearch(value)}
               disabled={loading}
-              className="flex items-center gap-2 bg-emerald-600 px-6 font-medium text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex flex-shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  Search
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </div>
 
           {showSuggestions && suggestions.length > 0 && (
-            <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-100 bg-white text-slate-900 shadow-xl">
+            <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
               {suggestions.map((institution) => (
                 <li key={institution.id}>
                   <button
                     type="button"
                     onClick={() => runSearch(institution.name)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-50"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary"
                   >
                     <span className="font-medium">{institution.name}</span>
-                    <span className="flex items-center gap-1 text-xs text-slate-500">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       {institution.province}
                     </span>
@@ -128,19 +156,34 @@ export default function MultiSearch({ value, onValueChange, onSearch, onClear, l
           )}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
           {POPULAR_SEARCHES.map((term) => (
             <button
               key={term}
               type="button"
               onClick={() => runSearch(term)}
-              className="rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-sm font-medium text-slate-600 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+              className="rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-sm font-medium text-white/70 transition hover:bg-white/20 hover:text-white"
             >
               {term}
             </button>
           ))}
         </div>
+
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-3 gap-4">
+          <StatCard value={`${stats.institutionCount}+`} label="Institutions" />
+          <StatCard value={`${stats.qualificationCount.toLocaleString()}+`} label="Qualifications" />
+          <StatCard value={`${stats.provinceCount}`} label="Provinces" />
+        </div>
       </div>
     </section>
+  );
+}
+
+function StatCard({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
+      <p className="font-display text-3xl font-bold text-white">{value}</p>
+      <p className="mt-1 text-sm text-white/60">{label}</p>
+    </div>
   );
 }

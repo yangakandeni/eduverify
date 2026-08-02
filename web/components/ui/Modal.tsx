@@ -32,20 +32,20 @@ export default function Modal({ open, onClose, title, children, widthClassName =
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/40" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-primary/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative flex max-h-[85vh] w-full ${widthClassName} flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl`}
+        className={`relative flex max-h-[85vh] w-full ${widthClassName} flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl`}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h2 className="font-display text-base font-semibold text-foreground">{title}</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>

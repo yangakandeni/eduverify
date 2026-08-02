@@ -67,8 +67,9 @@ export default function Home() {
   const browseInstitutions = filterByCategory(allInstitutions, activeCategory);
 
   return (
-    <main className="flex flex-1 flex-col bg-white">
+    <main className="flex flex-1 flex-col bg-background">
       <MultiSearch
+        institutions={allInstitutions}
         value={query}
         onValueChange={setQuery}
         onSearch={handleSearch}
@@ -82,20 +83,20 @@ export default function Home() {
             <button
               type="button"
               onClick={handleClear}
-              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-700"
+              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to browsing
             </button>
 
             {search.status === "loading" ? (
-              <div className="flex flex-col items-center gap-3 py-16 text-slate-400">
+              <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
                 <Loader2 className="h-8 w-8 animate-spin" />
                 <p>Checking the register...</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-sm text-slate-500">
+                <p className="font-mono text-sm text-muted-foreground">
                   {search.notFound
                     ? `No results for "${search.query}"`
                     : `${search.results.length} result${search.results.length === 1 ? "" : "s"} for "${search.query}"`}
@@ -115,7 +116,7 @@ export default function Home() {
       ) : (
         <>
           {loadingAll ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-slate-400">
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin" />
               <p>Loading the discovery portal...</p>
             </div>
