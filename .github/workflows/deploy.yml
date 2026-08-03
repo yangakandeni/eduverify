@@ -1,0 +1,58 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Test, package & apply
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: parser/requirements.txt
+
+      - name: Install parser dependencies
+        run: pip install -r requirements.txt pytest-cov
+        working-directory: parser
+
+      - name: Run pytest (guard against broken deploys)
+        run: pytest tests/
+        working-directory: parser
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      # No separate zip/package step here: terraform/modules/lambda builds the
+      # deployment artifact itself as part of `terraform apply` — a
+      # null_resource pip-installs requirements-lambda.txt for the Lambda
+      # platform into a layer, and an archive_file resource zips parser/
+      # (source_dir) for the function code. Both zips are content-hashed via
+      # source_code_hash, so `terraform apply` only redeploys what changed.
+      # This runner needs `pip` and `zip` available for that local-exec step,
+      # both of which are preinstalled on ubuntu-latest.
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'af-south-1' }}
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend.hcl -input=false
+        working-directory: terraform
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve
+        working-directory: terraform

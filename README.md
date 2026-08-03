@@ -159,10 +159,14 @@ Key details:
 - **IAM** (`modules/iam`) — least-privilege role scoped to: read `raw/*`, write `backups/*`, read/write the institutions table, query `GSI1`, and write to its own CloudWatch log group only.
 - **Lambda** (`modules/lambda`) — `parser/` zipped as the function package (tests/fixtures/venv excluded); dependencies (`pdfplumber`, `pydantic`, etc.) ship as a separate layer, cross-compiled for the Lambda runtime's manylinux platform straight from `requirements-lambda.txt` via `pip install --platform ... --only-binary=:all:` — no Docker required, even from an Apple Silicon dev machine. Default: `512MB` memory, `120s` timeout, `x86_64`, region `af-south-1`.
 - The S3 → Lambda trigger (`aws_s3_bucket_notification` in `main.tf`) fires only on `ObjectCreated` events matching prefix `raw/` and suffix `.pdf`.
+- **Remote state** (`backend_state.tf`) — S3 bucket + DynamoDB lock table backing `main.tf`'s `backend "s3" {}`; bootstrapped once with local state before the backend it creates can be used (see `docs/DEPLOYMENT.md`).
+- **Scheduled ingestion** (`eventbridge.tf`) — a weekly EventBridge rule invokes the Lambda directly, but `lambda_handler.handler` currently only handles the S3 event shape, so this invocation is a no-op today.
+- **Monitoring** (`monitoring.tf`) — SNS topic (`eduverify-alerts`, optional email subscription) plus CloudWatch alarms on Lambda `Errors`/`Throttles`.
 
 Operational scripts:
 
 ```bash
+./scripts/verify_deployment.sh                                        # production pre-flight (see docs/DEPLOYMENT.md)
 cd terraform && terraform plan   # / apply — provisions everything above
 python scripts/seed_dynamodb.py                                       # bulk-load data/institutions.json
 python scripts/seed_dynamodb.py --endpoint-url http://localhost:8000  # against DynamoDB Local

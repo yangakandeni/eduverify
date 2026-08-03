@@ -11,6 +11,10 @@ terraform {
       version = "~> 2.4"
     }
   }
+
+  # Values supplied via partial configuration - see backend.hcl and the
+  # `terraform init -backend-config=backend.hcl` step in the runbook.
+  backend "s3" {}
 }
 
 provider "aws" {
@@ -56,15 +60,16 @@ module "iam" {
 module "lambda" {
   source = "./modules/lambda"
 
-  function_name     = local.lambda_function_name
-  role_arn          = module.iam.role_arn
-  source_dir        = "${path.module}/../parser"
-  requirements_file = "${path.module}/../parser/requirements-lambda.txt"
-  architecture      = var.lambda_architecture
-  memory_size       = var.lambda_memory_size
-  timeout           = var.lambda_timeout
-  log_group_name    = local.log_group_name
-  tags              = local.common_tags
+  function_name      = local.lambda_function_name
+  role_arn           = module.iam.role_arn
+  source_dir         = "${path.module}/../parser"
+  requirements_file  = "${path.module}/../parser/requirements-lambda.txt"
+  architecture       = var.lambda_architecture
+  memory_size        = var.lambda_memory_size
+  timeout            = var.lambda_timeout
+  log_group_name     = local.log_group_name
+  log_retention_days = var.log_retention_days
+  tags               = local.common_tags
 
   environment_variables = {
     DYNAMODB_TABLE = module.dynamodb.table_name
