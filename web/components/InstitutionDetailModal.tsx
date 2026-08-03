@@ -1,14 +1,7 @@
 "use client";
 
 import { CheckCircle2, Clock, Globe, Mail, Phone, X } from "lucide-react";
-import {
-  TYPE_LABEL,
-  getBrandColor,
-  getDisplayName,
-  getInitials,
-  getStatusBadge,
-  getVerificationDescription,
-} from "@/lib/presentation";
+import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge } from "@/lib/presentation";
 import { institutionCategoryLabels } from "@/lib/categories";
 import type { InstitutionRecord } from "@/lib/types";
 
@@ -58,23 +51,12 @@ export default function InstitutionDetailModal({
 
       <div className="space-y-4 px-5 py-4">
         <div
-          className={`flex items-start gap-3 rounded-xl border p-4 ${
-            badge.verified ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+            badge.verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
           }`}
         >
-          {badge.verified ? (
-            <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
-          ) : (
-            <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
-          )}
-          <div>
-            <p className={`text-sm font-semibold ${badge.verified ? "text-emerald-800" : "text-amber-800"}`}>
-              {badge.verified ? "Officially Registered" : badge.label}
-            </p>
-            <p className={`mt-0.5 text-sm ${badge.verified ? "text-emerald-700" : "text-amber-700"}`}>
-              {getVerificationDescription(institution)}
-            </p>
-          </div>
+          {badge.verified ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+          {badge.label}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -149,8 +131,8 @@ export default function InstitutionDetailModal({
         )}
       </div>
 
-      <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
-        Data sourced from DHET public registers. EduVerify is an independent platform — verify at{" "}
+      <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground justify-center text-center">
+        EduVerify is an independent platform — verify at{" "}
         <a
           href="https://www.dhet.gov.za"
           target="_blank"

@@ -131,7 +131,15 @@ export default function BrowseSection({ institutions, onVerify }: BrowseSectionP
         </div>
       )}
 
-      <Modal open={compareOpen} onClose={() => setCompareOpen(false)} title="Compare institutions" widthClassName="max-w-3xl">
+      <Modal
+        open={compareOpen}
+        onClose={() => {
+          setCompareOpen(false);
+          setCompareIds(new Set());
+        }}
+        title="Compare institutions"
+        widthClassName="max-w-3xl"
+      >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] border-collapse text-left text-sm">
             <thead>

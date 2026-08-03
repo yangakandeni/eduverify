@@ -92,7 +92,7 @@ export default function BrowseInstitutionCard({
         </div>
       )}
 
-      <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
+      <div className="mt-auto flex items-center gap-2 border-t border-border pt-3">
         <button
           type="button"
           onClick={onVerify}

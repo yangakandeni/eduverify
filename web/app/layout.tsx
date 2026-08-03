@@ -38,7 +38,7 @@ export default function RootLayout({
     <ClerkProvider appearance={clerkAppearance} afterSignOutUrl="/">
       <html
         lang="en"
-        className={`${inter.variable} ${plusJakartaSans.variable} ${dmMono.variable} h-full antialiased`}
+        className={`${inter.variable} ${plusJakartaSans.variable} ${dmMono.variable} h-full scroll-smooth antialiased`}
       >
         <body className="min-h-full flex flex-col bg-background text-foreground">
           <Nav />
