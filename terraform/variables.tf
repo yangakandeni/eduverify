@@ -45,3 +45,9 @@ variable "lambda_architecture" {
   type        = string
   default     = "x86_64"
 }
+
+variable "scraper_schedule_expression" {
+  description = "EventBridge schedule expression controlling how often the ingestion Lambda runs to fetch and parse the latest DHET register PDF."
+  type        = string
+  default     = "cron(0 6 ? * MON *)"
+}

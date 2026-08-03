@@ -32,3 +32,13 @@ output "iam_role_arn" {
   description = "ARN of the Lambda execution role."
   value       = module.iam.role_arn
 }
+
+output "scraper_schedule_rule_name" {
+  description = "Name of the EventBridge rule scheduling the ingestion Lambda."
+  value       = aws_cloudwatch_event_rule.weekly_pdf_scraper.name
+}
+
+output "scraper_schedule_rule_arn" {
+  description = "ARN of the EventBridge rule scheduling the ingestion Lambda."
+  value       = aws_cloudwatch_event_rule.weekly_pdf_scraper.arn
+}
