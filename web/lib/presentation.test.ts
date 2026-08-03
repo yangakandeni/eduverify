@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDisplayName, getVerificationDescription } from "./presentation";
+import { getDisplayName, getRegistrationDetails, getVerificationDescription } from "./presentation";
 import type { InstitutionRecord } from "./types";
 
 function makeInstitution(overrides: Partial<InstitutionRecord> = {}): InstitutionRecord {
@@ -112,6 +112,32 @@ describe("getDisplayName", () => {
     expect(getDisplayName("Tshwane University of Technology")).not.toBe("TUT");
     expect(getDisplayName("University of the Witwatersrand")).not.toBe("Wits");
     expect(getDisplayName("University of South Africa")).not.toBe("UNISA");
+  });
+});
+
+describe("getRegistrationDetails", () => {
+  it("uses the registration number when present", () => {
+    const institution = makeInstitution({ registration_number: "2007/HE07/003" });
+    expect(getRegistrationDetails(institution)).toEqual({
+      label: "Registration No.",
+      value: "2007/HE07/003",
+    });
+  });
+
+  it("falls back to the institution type when there is no registration number, so the grid column never collapses", () => {
+    const institution = makeInstitution({ registration_number: null, institutionType: "Public University" });
+    expect(getRegistrationDetails(institution)).toEqual({
+      label: "Institution Type",
+      value: "Public University",
+    });
+  });
+
+  it("falls back to the institution type for a TVET college with no registration number", () => {
+    const institution = makeInstitution({ registration_number: undefined, institutionType: "TVET College" });
+    expect(getRegistrationDetails(institution)).toEqual({
+      label: "Institution Type",
+      value: "TVET College",
+    });
   });
 });
 

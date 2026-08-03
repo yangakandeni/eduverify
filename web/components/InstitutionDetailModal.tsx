@@ -2,9 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { CheckCircle2, Clock, Globe, Mail, Phone, X } from "lucide-react";
-import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge } from "@/lib/presentation";
+import {
+  TYPE_LABEL,
+  getBrandColor,
+  getDisplayName,
+  getInitials,
+  getRegistrationDetails,
+  getStatusBadge,
+} from "@/lib/presentation";
 import { institutionCategoryLabels } from "@/lib/categories";
-import { CANONICAL_PROVINCES, parseInstitutionAddresses } from "@/lib/normalize";
+import { CANONICAL_PROVINCES, normalizeProvince, parseInstitutionAddresses } from "@/lib/normalize";
 import type { InstitutionRecord } from "@/lib/types";
 
 function websiteHref(website: string): string {
@@ -18,14 +25,14 @@ export default function InstitutionDetailModal({
   institution: InstitutionRecord;
   onClose: () => void;
 }) {
-  const { name, tradingName, registration_number, address, province, contacts, qualifications, institutionType } =
-    institution;
+  const { name, tradingName, address, province, contacts, qualifications, institutionType } = institution;
   const badge = getStatusBadge(institution);
   const displayName = getDisplayName(name, tradingName);
   const categoryPills = institutionCategoryLabels(institution).slice(0, 3);
+  const registrationDetails = getRegistrationDetails(institution);
 
   const locations = useMemo(
-    () => parseInstitutionAddresses(address, CANONICAL_PROVINCES, province),
+    () => parseInstitutionAddresses(address, CANONICAL_PROVINCES, province ?? undefined),
     [address, province],
   );
   const [selectedLocationId, setSelectedLocationId] = useState(locations[0]?.id);
@@ -69,41 +76,39 @@ export default function InstitutionDetailModal({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {registration_number && (
-            <div>
-              <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Registration No.</div>
-              <div className="mt-0.5 text-sm font-medium text-foreground">{registration_number}</div>
+          <div>
+            <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+              {registrationDetails.label}
             </div>
-          )}
-          {(province || locations.length > 0) && (
-            <div>
-              <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Province</div>
-              {locations.length > 0 ? (
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {locations.map((location) => (
-                    <button
-                      key={location.id}
-                      type="button"
-                      onClick={() => setSelectedLocationId(location.id)}
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
-                        location.id === activeLocation?.id
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      }`}
-                    >
-                      {location.label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white">
-                    {province}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+            <div className="mt-0.5 text-sm font-medium text-foreground">{registrationDetails.value}</div>
+          </div>
+          <div>
+            <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Province</div>
+            {locations.length > 0 ? (
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {locations.map((location) => (
+                  <button
+                    key={location.id}
+                    type="button"
+                    onClick={() => setSelectedLocationId(location.id)}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                      location.id === activeLocation?.id
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    {location.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                <span className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white">
+                  {normalizeProvince(province)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div>

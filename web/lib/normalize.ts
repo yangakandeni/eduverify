@@ -83,7 +83,7 @@ export function parseInstitutionAddresses(
     return [{ id: "loc-1", label, address: trimmed }];
   }
 
-  return markers.map((marker, index) => {
+  const locations = markers.map((marker, index) => {
     const start = marker.index + marker[0].length;
     const end = index + 1 < markers.length ? markers[index + 1].index : trimmed.length;
     const segment = trimmed.slice(start, end).trim();
@@ -101,4 +101,15 @@ export function parseInstitutionAddresses(
       address: segment.slice(labelMatch[0].length).trim(),
     };
   });
+
+  // A single campus can still carry a DHET letter-marker ("A) City: ..."), which reads
+  // as a city rather than a province. With no second campus to distinguish it from,
+  // prefer the institution's actual province over that raw city text.
+  const isSingleUnresolvedCity =
+    locations.length === 1 && !provinces.some((province) => province.toLowerCase() === locations[0].label.toLowerCase());
+  if (isSingleUnresolvedCity && fallbackLabel) {
+    locations[0] = { ...locations[0], label: fallbackLabel };
+  }
+
+  return locations;
 }

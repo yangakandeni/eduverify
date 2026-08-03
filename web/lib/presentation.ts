@@ -140,6 +140,22 @@ export function getBrandColor(institution: InstitutionRecord): string {
   return BRAND_FALLBACK_COLORS[hashString(institution.id) % BRAND_FALLBACK_COLORS.length];
 }
 
+export interface RegistrationDetails {
+  label: string;
+  value: string;
+}
+
+/** Left-hand field of the detail modal's registration/province grid. Public
+ * universities and TVET colleges have no DHET registration number, so this falls back
+ * to the institution type instead — otherwise that grid column would go blank and
+ * collapse the layout. */
+export function getRegistrationDetails(institution: InstitutionRecord): RegistrationDetails {
+  if (institution.registration_number) {
+    return { label: "Registration No.", value: institution.registration_number };
+  }
+  return { label: "Institution Type", value: TYPE_LABEL[institution.institutionType] ?? institution.institutionType };
+}
+
 export interface StatusBadge {
   label: string;
   verified: boolean;

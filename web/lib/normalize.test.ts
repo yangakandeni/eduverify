@@ -53,4 +53,38 @@ describe("parseInstitutionAddresses", () => {
     const locations = parseInstitutionAddresses(raw, CANONICAL_PROVINCES);
     expect(new Set(locations.map((location) => location.id)).size).toBe(2);
   });
+
+  it("prefers the institution's actual province over a single campus's raw city marker", () => {
+    const raw = "A) Cape Town: Deneb House, 368 Main Road, Observatory, 7925.";
+
+    const locations = parseInstitutionAddresses(raw, CANONICAL_PROVINCES, "Western Cape");
+
+    expect(locations).toHaveLength(1);
+    expect(locations[0].label).toBe("Western Cape");
+    expect(locations[0].address).toBe("Deneb House, 368 Main Road, Observatory, 7925.");
+  });
+
+  it("keeps a single campus's raw city label when no fallback province is given", () => {
+    const raw = "A) Cape Town: Deneb House, 368 Main Road, Observatory, 7925.";
+
+    const locations = parseInstitutionAddresses(raw, CANONICAL_PROVINCES);
+
+    expect(locations[0].label).toBe("Cape Town");
+  });
+
+  it("does not override a single campus's marker when it already names a canonical province", () => {
+    const raw = "A) Gauteng: 1 Main Road";
+
+    const locations = parseInstitutionAddresses(raw, CANONICAL_PROVINCES, "Western Cape");
+
+    expect(locations[0].label).toBe("Gauteng");
+  });
+
+  it("does not collapse distinct campus labels when an institution has more than one location", () => {
+    const raw = "A) Bryanston: 1 Main Road B) Cape Town: 2 Long Street";
+
+    const locations = parseInstitutionAddresses(raw, CANONICAL_PROVINCES, "Gauteng");
+
+    expect(locations.map((location) => location.label)).toEqual(["Bryanston", "Cape Town"]);
+  });
 });
