@@ -22,9 +22,6 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent">
-                <Shield className="h-3.5 w-3.5 text-accent-foreground" />
-              </span>
               <span className="font-display font-bold text-white">EduVerify</span>
             </div>
 

@@ -14,9 +14,6 @@ export default function Nav() {
     <nav className="sticky top-0 z-40 border-b border-white/10 bg-primary">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-accent">
-            <Shield className="h-3.5 w-3.5 text-accent-foreground" />
-          </span>
           <span className="font-display text-lg font-bold tracking-tight text-white">EduVerify</span>
         </Link>
 
