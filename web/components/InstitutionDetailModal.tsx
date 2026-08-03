@@ -18,6 +18,9 @@ function websiteHref(website: string): string {
   return website.startsWith("http") ? website : `https://${website}`;
 }
 
+const PILL_BUTTON_CLASS =
+  "inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm";
+
 export default function InstitutionDetailModal({
   institution,
   onClose,
@@ -116,21 +119,17 @@ export default function InstitutionDetailModal({
           <p className="mt-0.5 text-sm text-foreground">{activeLocation?.address ?? address}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm text-foreground">
-          {contacts.phone.slice(0, 1).map((phone) => (
-            <a
-              key={phone}
-              href={`tel:${phone.replace(/\s+/g, "")}`}
-              className="inline-flex items-center gap-1.5 transition hover:text-primary"
-            >
-              <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-              {phone}
+        <div className="flex flex-wrap items-center gap-3 my-4">
+          {contacts.email.slice(0, 1).map((email) => (
+            <a key={email} href={`mailto:${email}`} className={PILL_BUTTON_CLASS}>
+              <Mail className="w-3.5 h-3.5 text-slate-500" />
+              Email
             </a>
           ))}
-          {contacts.email.slice(0, 1).map((email) => (
-            <a key={email} href={`mailto:${email}`} className="inline-flex items-center gap-1.5 transition hover:text-primary">
-              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-              {email}
+          {contacts.phone.slice(0, 1).map((phone) => (
+            <a key={phone} href={`tel:${phone.replace(/\s+/g, "")}`} className={PILL_BUTTON_CLASS}>
+              <Phone className="w-3.5 h-3.5 text-slate-500" />
+              Call
             </a>
           ))}
           {contacts.website && (
@@ -138,10 +137,10 @@ export default function InstitutionDetailModal({
               href={websiteHref(contacts.website)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 transition hover:text-primary"
+              className={PILL_BUTTON_CLASS}
             >
-              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-              {contacts.website}
+              <Globe className="w-3.5 h-3.5 text-slate-500" />
+              Website
             </a>
           )}
         </div>
