@@ -2,12 +2,15 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { Bookmark } from "lucide-react";
 import Link from "next/link";
 import EmptyState from "@/components/dashboard/EmptyState";
-import { getSavedInstitutions } from "@/lib/dashboardData";
+import SavedInstitutionsList from "@/components/dashboard/SavedInstitutionsList";
+import { getSavedInstitutionRecords } from "@/lib/dashboardData";
+
+const OVERVIEW_SAVED_LIMIT = 4;
 
 export default async function DashboardOverviewPage() {
   const { userId } = await auth();
   const user = await currentUser();
-  const saved = await getSavedInstitutions(userId!);
+  const saved = await getSavedInstitutionRecords(userId!);
 
   return (
     <div className="flex flex-col gap-8">
@@ -28,13 +31,15 @@ export default async function DashboardOverviewPage() {
             View all
           </Link>
         </div>
-        {saved.length === 0 && (
+        {saved.length === 0 ? (
           <EmptyState
             icon={Bookmark}
             message="You haven't saved any institutions yet. Bookmark one while browsing to see it here."
             actionLabel="Browse institutions"
             actionHref="/#browse"
           />
+        ) : (
+          <SavedInstitutionsList records={saved.slice(0, OVERVIEW_SAVED_LIMIT)} />
         )}
       </section>
 
