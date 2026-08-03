@@ -1,13 +1,12 @@
 "use client";
 
-import { Bookmark, Clock, LayoutDashboard, Settings } from "lucide-react";
+import { Bookmark, LayoutDashboard, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Saved Institutions", href: "/dashboard/saved", icon: Bookmark },
-  { label: "Recently Viewed", href: "/dashboard/recent", icon: Clock },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

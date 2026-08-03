@@ -3,16 +3,7 @@ export interface SavedInstitution {
   savedAt: string;
 }
 
-export interface RecentlyViewedInstitution {
-  institutionId: string;
-  viewedAt: string;
-}
-
-/** No per-user data table exists yet; these return empty until save/view-tracking write to DynamoDB. */
+/** No per-user data table exists yet; this returns empty until save-tracking writes to DynamoDB. */
 export async function getSavedInstitutions(_userId: string): Promise<SavedInstitution[]> {
-  return [];
-}
-
-export async function getRecentlyViewedInstitutions(_userId: string): Promise<RecentlyViewedInstitution[]> {
   return [];
 }
