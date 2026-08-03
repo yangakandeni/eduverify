@@ -69,13 +69,18 @@ const LOCATION_LABEL_RE = /^([^:]+):\s*/;
  * concatenates multiple campuses into one string with "A) City: ..." / "B) City: ..."
  * markers; this recovers each as a distinct, cleanly-labelled address. Addresses without
  * any markers (the common case — a single campus) come back as one location unchanged. */
-export function parseInstitutionAddresses(rawAddress: string, provinces: readonly string[] = CANONICAL_PROVINCES): AddressLocation[] {
+export function parseInstitutionAddresses(
+  rawAddress: string,
+  provinces: readonly string[] = CANONICAL_PROVINCES,
+  fallbackLabel?: string,
+): AddressLocation[] {
   const trimmed = rawAddress?.trim() ?? "";
   if (!trimmed) return [];
+  const label = fallbackLabel ?? provinces[0] ?? "Location";
 
   const markers = [...trimmed.matchAll(LOCATION_PREFIX_RE)];
   if (markers.length === 0) {
-    return [{ id: "loc-1", label: provinces[0] ?? "Location", address: trimmed }];
+    return [{ id: "loc-1", label, address: trimmed }];
   }
 
   return markers.map((marker, index) => {
@@ -85,7 +90,7 @@ export function parseInstitutionAddresses(rawAddress: string, provinces: readonl
 
     const labelMatch = segment.match(LOCATION_LABEL_RE);
     if (!labelMatch) {
-      return { id: `loc-${index + 1}`, label: provinces[0] ?? "Location", address: segment };
+      return { id: `loc-${index + 1}`, label, address: segment };
     }
 
     const rawLabel = labelMatch[1].trim();

@@ -28,6 +28,14 @@ describe("parseInstitutionAddresses", () => {
     expect(locations[0].address).toBe(raw);
   });
 
+  it("labels a single, unmarked address with the given fallback label instead of the first canonical province", () => {
+    const raw = "150 Kelvin Drive, Woodmead, Johannesburg, 2197";
+
+    const locations = parseInstitutionAddresses(raw, CANONICAL_PROVINCES, "Gauteng");
+
+    expect(locations[0].label).toBe("Gauteng");
+  });
+
   it("uses the canonical province name as the label when the prefix already names a province", () => {
     const raw = "A) Gauteng: 1 Main Road B) Western Cape: 2 Long Street";
 
