@@ -14,7 +14,7 @@ interface MultiSearchProps {
   loading?: boolean;
 }
 
-const POPULAR_SEARCHES = ["Nursing", "Teaching", "IT", "Engineering", "TVET", "NSFAS", "Accounting", "Law"];
+const POPULAR_SEARCHES = ["Nursing", "Teaching", "IT", "Engineering", "TVET", "Accounting", "Law"];
 
 export default function MultiSearch({ institutions, value, onValueChange, onSearch, onClear, loading }: MultiSearchProps) {
   const [suggestions, setSuggestions] = useState<InstitutionRecord[]>([]);
