@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CANONICAL_PROVINCES, parseInstitutionAddresses } from "./normalize";
+import { CANONICAL_PROVINCES, formatAddressLines, parseInstitutionAddresses } from "./normalize";
 
 describe("parseInstitutionAddresses", () => {
   it("splits a multi-location address into distinct locations with prefixes stripped", () => {
@@ -86,5 +86,29 @@ describe("parseInstitutionAddresses", () => {
     const locations = parseInstitutionAddresses(raw, CANONICAL_PROVINCES, "Gauteng");
 
     expect(locations.map((location) => location.label)).toEqual(["Bryanston", "Cape Town"]);
+  });
+});
+
+describe("formatAddressLines", () => {
+  it("splits a comma-separated address into trimmed lines with the trailing period stripped", () => {
+    const raw = "Deneb House, 368 Main Road, Observatory, 7925.";
+
+    expect(formatAddressLines(raw)).toEqual(["Deneb House", "368 Main Road", "Observatory", "7925"]);
+  });
+
+  it("strips extra trailing periods and commas", () => {
+    const raw = "Deneb House, 368 Main Road,, Observatory, 7925..";
+
+    expect(formatAddressLines(raw)).toEqual(["Deneb House", "368 Main Road", "Observatory", "7925"]);
+  });
+
+  it("collapses duplicate internal whitespace within a line", () => {
+    const raw = "Deneb  House,   368 Main Road";
+
+    expect(formatAddressLines(raw)).toEqual(["Deneb House", "368 Main Road"]);
+  });
+
+  it("returns an empty array for an empty address", () => {
+    expect(formatAddressLines("")).toEqual([]);
   });
 });

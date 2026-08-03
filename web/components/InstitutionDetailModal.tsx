@@ -11,7 +11,12 @@ import {
   getStatusBadge,
 } from "@/lib/presentation";
 import { institutionCategoryLabels } from "@/lib/categories";
-import { CANONICAL_PROVINCES, normalizeProvince, parseInstitutionAddresses } from "@/lib/normalize";
+import {
+  CANONICAL_PROVINCES,
+  formatAddressLines,
+  normalizeProvince,
+  parseInstitutionAddresses,
+} from "@/lib/normalize";
 import type { InstitutionRecord } from "@/lib/types";
 
 function websiteHref(website: string): string {
@@ -116,7 +121,13 @@ export default function InstitutionDetailModal({
 
         <div>
           <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Address</div>
-          <p className="mt-0.5 text-sm text-foreground">{activeLocation?.address ?? address}</p>
+          <div className="my-2 space-y-0.5 text-sm font-medium text-slate-800">
+            {formatAddressLines(activeLocation?.address ?? address).map((line, idx) => (
+              <p key={idx} className="leading-snug">
+                {line}
+              </p>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 my-4">

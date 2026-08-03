@@ -50,6 +50,18 @@ export function normalizeProvince(raw: string | null | undefined): string {
   return "Unknown";
 }
 
+/** Splits a raw address string into clean, comma-delimited display lines (e.g. for
+ * one-line-per-address-part rendering), stripping trailing periods and collapsing
+ * whitespace left over from OCR'd source data. */
+export function formatAddressLines(address: string): string[] {
+  if (!address) return [];
+  return address
+    .replace(/\.+\s*$/, "")
+    .split(/,\s*/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter((line) => line.length > 0);
+}
+
 export interface AddressLocation {
   id: string;
   label: string;
