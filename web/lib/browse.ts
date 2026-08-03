@@ -47,8 +47,12 @@ export function getBrowseTitle(query?: string): string {
   return query ? `Results for "${query}"` : "Browse All Institutions";
 }
 
-export function getEmptyStateMessage(query?: string): string {
-  return query ? `No institutions match "${query}". Try a different search term.` : "No institutions match these filters yet.";
+export function getEmptyStateHeading(): string {
+  return "No institutions found";
+}
+
+export function getEmptyStateDetail(query?: string): string {
+  return query ? `` : "No institutions match these filters yet.";
 }
 
 export const INSTITUTION_TYPE_OPTIONS: { value: InstitutionType; label: string }[] = [

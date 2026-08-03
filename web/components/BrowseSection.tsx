@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, X } from "lucide-react";
+import { AlertCircle, Loader2, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import BrowseHeader from "@/components/BrowseHeader";
 import BrowseInstitutionCard from "@/components/BrowseInstitutionCard";
@@ -11,7 +11,8 @@ import {
   ALL_STATUSES_VALUE,
   ALL_TYPES_VALUE,
   filterInstitutionsForBrowse,
-  getEmptyStateMessage,
+  getEmptyStateDetail,
+  getEmptyStateHeading,
 } from "@/lib/browse";
 import { TYPE_LABEL, getStatusBadge } from "@/lib/presentation";
 import { useSavedInstitutions } from "@/lib/savedInstitutions";
@@ -25,9 +26,10 @@ interface BrowseSectionProps {
   query?: string;
   loading?: boolean;
   onVerify: (institution: InstitutionRecord) => void;
+  onClearSearch?: () => void;
 }
 
-export default function BrowseSection({ institutions, query, loading, onVerify }: BrowseSectionProps) {
+export default function BrowseSection({ institutions, query, loading, onVerify, onClearSearch }: BrowseSectionProps) {
   const [province, setProvince] = useState(ALL_PROVINCES_VALUE);
   const [institutionType, setInstitutionType] = useState(ALL_TYPES_VALUE);
   const [status, setStatus] = useState(ALL_STATUSES_VALUE);
@@ -68,6 +70,13 @@ export default function BrowseSection({ institutions, query, loading, onVerify }
     setPage(1);
   }
 
+  function clearFilters() {
+    setProvince(ALL_PROVINCES_VALUE);
+    setInstitutionType(ALL_TYPES_VALUE);
+    setStatus(ALL_STATUSES_VALUE);
+    setPage(1);
+  }
+
   function toggleCompare(id: string) {
     setCompareIds((current) => {
       const next = new Set(current);
@@ -104,8 +113,36 @@ export default function BrowseSection({ institutions, query, loading, onVerify }
             <p>Checking the register...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
-            {getEmptyStateMessage(query)}
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-10 text-center">
+            <AlertCircle className="h-8 w-8 text-muted-foreground" />
+            <p className="font-semibold text-foreground">{getEmptyStateHeading()}</p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              {getEmptyStateDetail(query)}
+              {query && (
+                <>
+                  {" "}
+                  Verify directly with DHET at{" "}
+                  <a
+                    href="https://www.dhet.gov.za"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    www.dhet.gov.za
+                  </a>
+                  .
+                </>
+              )}
+            </p>
+            {(!query || onClearSearch) && (
+              <button
+                type="button"
+                onClick={query ? onClearSearch : clearFilters}
+                className="mt-1 text-sm font-medium text-primary underline-offset-2 hover:underline"
+              >
+                {query ? "Clear search" : "Clear filters"}
+              </button>
+            )}
           </div>
         ) : (
           <>

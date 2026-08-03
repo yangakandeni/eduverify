@@ -37,12 +37,17 @@ export default function Home() {
       .finally(() => setLoadingAll(false));
   }, []);
 
+  useEffect(() => {
+    if (search.active && !loadingAll) {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [search.active, search.query, loadingAll]);
+
   async function handleSearch(rawQuery: string) {
     const trimmed = rawQuery.trim();
     if (!trimmed) return;
 
     setSearch({ active: true, status: "loading", query: trimmed, results: [] });
-    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
       const response = await fetch(`/api/search?${new URLSearchParams({ q: trimmed })}`);
@@ -86,6 +91,7 @@ export default function Home() {
               query={search.active ? search.query : undefined}
               loading={search.active && search.status === "loading"}
               onVerify={setExploreInstitution}
+              onClearSearch={handleClear}
             />
           </div>
         </>

@@ -5,7 +5,8 @@ import {
   ALL_TYPES_VALUE,
   filterInstitutionsForBrowse,
   getBrowseTitle,
-  getEmptyStateMessage,
+  getEmptyStateDetail,
+  getEmptyStateHeading,
   getResultCountLabel,
 } from "./browse";
 import type { InstitutionRecord } from "./types";
@@ -134,13 +135,19 @@ describe("getBrowseTitle", () => {
   });
 });
 
-describe("getEmptyStateMessage", () => {
+describe("getEmptyStateHeading", () => {
+  it("always reads 'No institutions found'", () => {
+    expect(getEmptyStateHeading()).toBe("No institutions found");
+  });
+});
+
+describe("getEmptyStateDetail", () => {
   it("defaults to the generic filter message when there is no active query", () => {
-    expect(getEmptyStateMessage()).toBe("No institutions match these filters yet.");
-    expect(getEmptyStateMessage("")).toBe("No institutions match these filters yet.");
+    expect(getEmptyStateDetail()).toBe("No institutions match these filters yet.");
+    expect(getEmptyStateDetail("")).toBe("No institutions match these filters yet.");
   });
 
   it("shows a query-specific message when a search is active", () => {
-    expect(getEmptyStateMessage("blah")).toBe('No institutions match "blah". Try a different search term.');
+    expect(getEmptyStateDetail("blah")).toBe('"blah" wasn\'t found in the current dataset.');
   });
 });

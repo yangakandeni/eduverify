@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Filter } from "lucide-react";
 import {
   ALL_PROVINCES_VALUE,
   ALL_STATUSES_VALUE,
@@ -52,7 +52,7 @@ export default function BrowseHeader({
           aria-expanded={filtersOpen}
           className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-secondary"
         >
-          <SlidersHorizontal className="h-4 w-4" />
+          <Filter className="h-4 w-4" />
           Filters
           <ChevronDown className={`h-4 w-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`} />
         </button>
