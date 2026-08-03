@@ -1,13 +1,11 @@
 "use client";
 
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import BrowseSection from "@/components/BrowseSection";
 import HeroShowcase from "@/components/HeroShowcase";
-import InstitutionCard from "@/components/InstitutionCard";
 import InstitutionDetailModal from "@/components/InstitutionDetailModal";
 import MultiSearch from "@/components/MultiSearch";
-import NotFoundCard from "@/components/NotFoundCard";
 import QualificationBrowser from "@/components/QualificationBrowser";
 import Modal from "@/components/ui/Modal";
 import { filterByCategory } from "@/lib/categories";
@@ -18,10 +16,9 @@ interface SearchState {
   status: "idle" | "loading" | "done";
   query: string;
   results: InstitutionRecord[];
-  notFound: boolean;
 }
 
-const IDLE_SEARCH: SearchState = { active: false, status: "idle", query: "", results: [], notFound: false };
+const IDLE_SEARCH: SearchState = { active: false, status: "idle", query: "", results: [] };
 
 export default function Home() {
   const [allInstitutions, setAllInstitutions] = useState<InstitutionRecord[]>([]);
@@ -30,6 +27,7 @@ export default function Home() {
   const [search, setSearch] = useState<SearchState>(IDLE_SEARCH);
   const [activeCategory, setActiveCategory] = useState("all");
   const [exploreInstitution, setExploreInstitution] = useState<InstitutionRecord | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/institutions")
@@ -43,20 +41,15 @@ export default function Home() {
     const trimmed = rawQuery.trim();
     if (!trimmed) return;
 
-    setSearch({ active: true, status: "loading", query: trimmed, results: [], notFound: false });
+    setSearch({ active: true, status: "loading", query: trimmed, results: [] });
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
       const response = await fetch(`/api/search?${new URLSearchParams({ q: trimmed })}`);
       const data = await response.json();
-      setSearch({
-        active: true,
-        status: "done",
-        query: trimmed,
-        results: data.results ?? [],
-        notFound: Boolean(data.notFound),
-      });
+      setSearch({ active: true, status: "done", query: trimmed, results: data.results ?? [] });
     } catch {
-      setSearch({ active: true, status: "done", query: trimmed, results: [], notFound: true });
+      setSearch({ active: true, status: "done", query: trimmed, results: [] });
     }
   }
 
@@ -65,7 +58,7 @@ export default function Home() {
     setSearch(IDLE_SEARCH);
   }
 
-  const browseInstitutions = filterByCategory(allInstitutions, activeCategory);
+  const browseInstitutions = search.active ? search.results : filterByCategory(allInstitutions, activeCategory);
 
   return (
     <main className="flex flex-1 flex-col bg-background">
@@ -78,56 +71,23 @@ export default function Home() {
         loading={search.status === "loading"}
       />
 
-      {search.active ? (
-        <section className="flex-1 px-6 py-8">
-          <div className="mx-auto w-full max-w-3xl">
-            <button
-              type="button"
-              onClick={handleClear}
-              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to browsing
-            </button>
-
-            {search.status === "loading" ? (
-              <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <p>Checking the register...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="font-mono text-sm text-muted-foreground">
-                  {search.notFound
-                    ? `No results for "${search.query}"`
-                    : `${search.results.length} result${search.results.length === 1 ? "" : "s"} for "${search.query}"`}
-                </p>
-
-                {search.notFound ? (
-                  <NotFoundCard query={search.query} />
-                ) : (
-                  search.results.map((institution) => (
-                    <InstitutionCard key={institution.id} institution={institution} />
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </section>
+      {loadingAll ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p>Loading the discovery portal...</p>
+        </div>
       ) : (
         <>
-          {loadingAll ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin" />
-              <p>Loading the discovery portal...</p>
-            </div>
-          ) : (
-            <>
-              <HeroShowcase institutions={allInstitutions} onExplore={setExploreInstitution} />
-              <QualificationBrowser activeCategory={activeCategory} onChange={setActiveCategory} />
-              <BrowseSection institutions={browseInstitutions} onVerify={setExploreInstitution} />
-            </>
-          )}
+          <HeroShowcase institutions={allInstitutions} onExplore={setExploreInstitution} />
+          <QualificationBrowser activeCategory={activeCategory} onChange={setActiveCategory} />
+          <div ref={resultsRef} className="scroll-mt-16">
+            <BrowseSection
+              institutions={browseInstitutions}
+              query={search.active ? search.query : undefined}
+              loading={search.active && search.status === "loading"}
+              onVerify={setExploreInstitution}
+            />
+          </div>
         </>
       )}
 

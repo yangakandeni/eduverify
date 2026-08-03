@@ -1,12 +1,18 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import BrowseHeader from "@/components/BrowseHeader";
 import BrowseInstitutionCard from "@/components/BrowseInstitutionCard";
 import BrowsePagination from "@/components/BrowsePagination";
 import Modal from "@/components/ui/Modal";
-import { ALL_PROVINCES_VALUE, ALL_STATUSES_VALUE, ALL_TYPES_VALUE, filterInstitutionsForBrowse } from "@/lib/browse";
+import {
+  ALL_PROVINCES_VALUE,
+  ALL_STATUSES_VALUE,
+  ALL_TYPES_VALUE,
+  filterInstitutionsForBrowse,
+  getEmptyStateMessage,
+} from "@/lib/browse";
 import { TYPE_LABEL, getStatusBadge } from "@/lib/presentation";
 import { useSavedInstitutions } from "@/lib/savedInstitutions";
 import type { InstitutionRecord } from "@/lib/types";
@@ -16,10 +22,12 @@ const ITEMS_PER_PAGE = 6;
 
 interface BrowseSectionProps {
   institutions: InstitutionRecord[];
+  query?: string;
+  loading?: boolean;
   onVerify: (institution: InstitutionRecord) => void;
 }
 
-export default function BrowseSection({ institutions, onVerify }: BrowseSectionProps) {
+export default function BrowseSection({ institutions, query, loading, onVerify }: BrowseSectionProps) {
   const [province, setProvince] = useState(ALL_PROVINCES_VALUE);
   const [institutionType, setInstitutionType] = useState(ALL_TYPES_VALUE);
   const [status, setStatus] = useState(ALL_STATUSES_VALUE);
@@ -76,9 +84,10 @@ export default function BrowseSection({ institutions, onVerify }: BrowseSectionP
 
   return (
     <section className="flex-1 px-6 py-8">
-      <div className="mx-auto max-w-6xl" ref={sectionTopRef}>
+      <div className="mx-auto max-w-6xl scroll-mt-16" ref={sectionTopRef}>
         <BrowseHeader
           resultCount={filtered.length}
+          query={query}
           province={province}
           institutionType={institutionType}
           status={status}
@@ -89,9 +98,14 @@ export default function BrowseSection({ institutions, onVerify }: BrowseSectionP
           onToggleFilters={() => setFiltersOpen((value) => !value)}
         />
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card py-16 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p>Checking the register...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
-            No institutions match these filters yet.
+            {getEmptyStateMessage(query)}
           </div>
         ) : (
           <>

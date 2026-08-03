@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { ALL_PROVINCES_VALUE, ALL_STATUSES_VALUE, ALL_TYPES_VALUE, filterInstitutionsForBrowse, getResultCountLabel } from "./browse";
+import {
+  ALL_PROVINCES_VALUE,
+  ALL_STATUSES_VALUE,
+  ALL_TYPES_VALUE,
+  filterInstitutionsForBrowse,
+  getBrowseTitle,
+  getEmptyStateMessage,
+  getResultCountLabel,
+} from "./browse";
 import type { InstitutionRecord } from "./types";
 
 function makeInstitution(overrides: Partial<InstitutionRecord>): InstitutionRecord {
@@ -112,5 +120,27 @@ describe("getResultCountLabel", () => {
 
   it("keeps the singular form for exactly one result", () => {
     expect(getResultCountLabel(1)).toBe("1 institution found");
+  });
+});
+
+describe("getBrowseTitle", () => {
+  it("defaults to the browse-all heading when there is no active query", () => {
+    expect(getBrowseTitle()).toBe("Browse All Institutions");
+    expect(getBrowseTitle("")).toBe("Browse All Institutions");
+  });
+
+  it("shows a query-specific heading when a search is active", () => {
+    expect(getBrowseTitle("university")).toBe('Results for "university"');
+  });
+});
+
+describe("getEmptyStateMessage", () => {
+  it("defaults to the generic filter message when there is no active query", () => {
+    expect(getEmptyStateMessage()).toBe("No institutions match these filters yet.");
+    expect(getEmptyStateMessage("")).toBe("No institutions match these filters yet.");
+  });
+
+  it("shows a query-specific message when a search is active", () => {
+    expect(getEmptyStateMessage("blah")).toBe('No institutions match "blah". Try a different search term.');
   });
 });

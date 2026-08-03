@@ -7,12 +7,14 @@ import {
   ALL_TYPES_VALUE,
   INSTITUTION_TYPE_OPTIONS,
   STATUS_OPTIONS,
+  getBrowseTitle,
   getResultCountLabel,
 } from "@/lib/browse";
 import { CANONICAL_PROVINCES } from "@/lib/normalize";
 
 interface BrowseHeaderProps {
   resultCount: number;
+  query?: string;
   province: string;
   institutionType: string;
   status: string;
@@ -25,6 +27,7 @@ interface BrowseHeaderProps {
 
 export default function BrowseHeader({
   resultCount,
+  query,
   province,
   institutionType,
   status,
@@ -39,7 +42,7 @@ export default function BrowseHeader({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-mono text-xs font-semibold uppercase tracking-widest text-accent">Institution Directory</p>
-          <h1 className="mt-1 font-display text-3xl font-bold text-foreground">Browse All Institutions</h1>
+          <h1 className="mt-1 font-display text-3xl font-bold text-foreground">{getBrowseTitle(query)}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{getResultCountLabel(resultCount)}</p>
         </div>
 
