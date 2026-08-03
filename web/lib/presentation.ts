@@ -159,6 +159,16 @@ export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
   return { label: isPublic ? "Registered Public" : "Registered Private", verified: true };
 }
 
+/** Longer-form copy for the verification callout in the institution detail modal —
+ * distinct from StatusBadge.label, which stays terse for the small pill badges used
+ * elsewhere (grid cards, hero cards). */
+export function getVerificationDescription(institution: InstitutionRecord): string {
+  if (getStatusBadge(institution).verified) {
+    return "This institution is officially registered with the Department of Higher Education and Training.";
+  }
+  return "This institution is provisionally registered with the Department of Higher Education and Training, pending full accreditation.";
+}
+
 export function getShortDescription(institution: InstitutionRecord): string {
   const typeLabel = TYPE_LABEL[institution.institutionType] ?? institution.institutionType;
   const province = institution.province && institution.province !== "Unknown" ? ` in ${institution.province}` : "";

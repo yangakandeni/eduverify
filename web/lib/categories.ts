@@ -235,6 +235,15 @@ export function institutionMatchesCategory(institution: InstitutionRecord, categ
   return countQualificationsInCategory(institution, categoryKey) > 0;
 }
 
+/** Category labels an institution offers qualifications in, e.g. for a card's tag row —
+ * ordered by PRIMARY_CATEGORY_KEYS (not qualification order) so the same institution
+ * always shows the same tags in the same order across renders. */
+export function institutionCategoryLabels(institution: InstitutionRecord): string[] {
+  return PRIMARY_CATEGORY_KEYS.filter((key) => institutionMatchesCategory(institution, key)).map(
+    (key) => CATEGORY_BY_KEY.get(key)!.label
+  );
+}
+
 export function filterByCategory(institutions: InstitutionRecord[], categoryKey: string): InstitutionRecord[] {
   if (categoryKey === "all") return institutions;
   return institutions.filter((institution) => institutionMatchesCategory(institution, categoryKey));

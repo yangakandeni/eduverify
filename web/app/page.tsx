@@ -2,9 +2,10 @@
 
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import BrowseSection from "@/components/BrowseSection";
 import HeroShowcase from "@/components/HeroShowcase";
 import InstitutionCard from "@/components/InstitutionCard";
-import InstitutionGrid from "@/components/InstitutionGrid";
+import InstitutionDetailModal from "@/components/InstitutionDetailModal";
 import MultiSearch from "@/components/MultiSearch";
 import NotFoundCard from "@/components/NotFoundCard";
 import QualificationBrowser from "@/components/QualificationBrowser";
@@ -124,11 +125,7 @@ export default function Home() {
             <>
               <HeroShowcase institutions={allInstitutions} onExplore={setExploreInstitution} />
               <QualificationBrowser activeCategory={activeCategory} onChange={setActiveCategory} />
-              <section className="flex-1 px-6 py-8">
-                <div className="mx-auto max-w-6xl">
-                  <InstitutionGrid institutions={browseInstitutions} onExplore={setExploreInstitution} />
-                </div>
-              </section>
+              <BrowseSection institutions={browseInstitutions} onVerify={setExploreInstitution} />
             </>
           )}
         </>
@@ -139,8 +136,11 @@ export default function Home() {
         onClose={() => setExploreInstitution(null)}
         title={exploreInstitution?.name ?? "Institution"}
         widthClassName="max-w-2xl"
+        hideHeader
       >
-        {exploreInstitution && <InstitutionCard institution={exploreInstitution} />}
+        {exploreInstitution && (
+          <InstitutionDetailModal institution={exploreInstitution} onClose={() => setExploreInstitution(null)} />
+        )}
       </Modal>
     </main>
   );

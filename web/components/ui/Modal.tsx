@@ -10,9 +10,19 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   widthClassName?: string;
+  /** Skips the default title bar for content (e.g. InstitutionDetailModal) that renders
+   * its own header, while Modal still owns the backdrop, escape key, and scroll lock. */
+  hideHeader?: boolean;
 }
 
-export default function Modal({ open, onClose, title, children, widthClassName = "max-w-lg" }: ModalProps) {
+export default function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  widthClassName = "max-w-lg",
+  hideHeader = false,
+}: ModalProps) {
   useEffect(() => {
     if (!open) return;
 
@@ -39,18 +49,20 @@ export default function Modal({ open, onClose, title, children, widthClassName =
         aria-label={title}
         className={`relative flex max-h-[85vh] w-full ${widthClassName} flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl`}
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="font-display text-base font-semibold text-foreground">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        {!hideHeader && (
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h2 className="font-display text-base font-semibold text-foreground">{title}</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        <div className={hideHeader ? "flex-1 overflow-y-auto" : "flex-1 overflow-y-auto px-5 py-4"}>{children}</div>
       </div>
     </div>,
     document.body

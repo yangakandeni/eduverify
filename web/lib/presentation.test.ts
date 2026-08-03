@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { getDisplayName } from "./presentation";
+import { getDisplayName, getVerificationDescription } from "./presentation";
+import type { InstitutionRecord } from "./types";
+
+function makeInstitution(overrides: Partial<InstitutionRecord> = {}): InstitutionRecord {
+  return {
+    id: "id",
+    name: "Test Institution",
+    address: "",
+    contacts: { email: [], phone: [] },
+    qualifications: [],
+    institutionType: "Private Higher Education Institution",
+    ...overrides,
+  };
+}
 
 describe("getDisplayName", () => {
   it("strips (Pty) Ltd and a trailing acronym bracket", () => {
@@ -99,5 +112,21 @@ describe("getDisplayName", () => {
     expect(getDisplayName("Tshwane University of Technology")).not.toBe("TUT");
     expect(getDisplayName("University of the Witwatersrand")).not.toBe("Wits");
     expect(getDisplayName("University of South Africa")).not.toBe("UNISA");
+  });
+});
+
+describe("getVerificationDescription", () => {
+  it("describes a registered institution as officially registered with DHET", () => {
+    const institution = makeInstitution({ status: "Registered" });
+    expect(getVerificationDescription(institution)).toBe(
+      "This institution is officially registered with the Department of Higher Education and Training."
+    );
+  });
+
+  it("describes a provisionally registered institution as pending full accreditation", () => {
+    const institution = makeInstitution({ status: "Provisionally Registered" });
+    expect(getVerificationDescription(institution)).toBe(
+      "This institution is provisionally registered with the Department of Higher Education and Training, pending full accreditation."
+    );
   });
 });

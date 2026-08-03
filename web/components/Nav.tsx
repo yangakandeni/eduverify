@@ -5,10 +5,7 @@ import { LayoutDashboard, Menu, Shield, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-const NAV_LINKS = [
-  { label: "About", href: "/#about" }, // TODO: Update this link to point to the actual About page when it exists
-  { label: "Browse", href: "/#browse" },
-];
+const NAV_LINKS: any[] = [];
 
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
