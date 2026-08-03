@@ -1,14 +1,25 @@
+import { getStatusBadge } from "./presentation";
 import type { InstitutionRecord, InstitutionType } from "./types";
 
 /** Sentinel select-option values for "no filter applied" — kept as plain empty strings
  * (rather than undefined) so they bind directly to a controlled <select>'s value. */
 export const ALL_PROVINCES_VALUE = "";
 export const ALL_TYPES_VALUE = "";
+export const ALL_STATUSES_VALUE = "";
 
 export interface BrowseFilters {
   province: string;
   institutionType: string;
+  status: string;
 }
+
+/** The DHET register export only ever yields these two statuses — lapsed/cancelled/bogus
+ * institutions are dropped during parsing (see parser/pdf_extract.py) rather than kept
+ * with a "deregistered" status, so there is no such option to filter by here. */
+export const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "registered", label: "Registered" },
+  { value: "provisional", label: "Provisionally Registered" },
+];
 
 export function filterInstitutionsForBrowse(
   institutions: InstitutionRecord[],
@@ -18,6 +29,11 @@ export function filterInstitutionsForBrowse(
     if (filters.province !== ALL_PROVINCES_VALUE && institution.province !== filters.province) return false;
     if (filters.institutionType !== ALL_TYPES_VALUE && institution.institutionType !== filters.institutionType) {
       return false;
+    }
+    if (filters.status !== ALL_STATUSES_VALUE) {
+      const verified = getStatusBadge(institution).verified;
+      if (filters.status === "registered" && !verified) return false;
+      if (filters.status === "provisional" && verified) return false;
     }
     return true;
   });

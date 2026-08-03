@@ -9,4 +9,12 @@ describe("loadPublicUniversities", () => {
     expect(uj).toBeDefined();
     expect(getDisplayName(uj.name, uj.tradingName)).toBe("University of Johannesburg");
   });
+
+  it("carries the abbreviation through for search, without it becoming the trading name", () => {
+    const institutions = loadPublicUniversities();
+    const uct = institutions.find((i) => i.name === "University of Cape Town");
+    expect(uct).toBeDefined();
+    expect(uct.abbreviation).toBe("UCT");
+    expect(uct.tradingName).toBeUndefined();
+  });
 });

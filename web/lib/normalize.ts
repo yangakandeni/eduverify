@@ -49,3 +49,51 @@ export function normalizeProvince(raw: string | null | undefined): string {
 
   return "Unknown";
 }
+
+export interface AddressLocation {
+  id: string;
+  label: string;
+  address: string;
+}
+
+/** Matches DHET's letter-list markers ("A) ", "B) ", ...) that introduce each campus
+ * address within a single raw address string. Requires the letter to start the string or
+ * follow whitespace so it can't misfire on unrelated text. */
+const LOCATION_PREFIX_RE = /(?:^|\s)[A-Z]\)\s*/g;
+
+/** A leading "City: " (or "Province: ") tag on a campus address segment, DHET's way of
+ * naming which location an address belongs to before the actual street address. */
+const LOCATION_LABEL_RE = /^([^:]+):\s*/;
+
+/** Splits a raw institution address into its constituent campus locations. DHET
+ * concatenates multiple campuses into one string with "A) City: ..." / "B) City: ..."
+ * markers; this recovers each as a distinct, cleanly-labelled address. Addresses without
+ * any markers (the common case — a single campus) come back as one location unchanged. */
+export function parseInstitutionAddresses(rawAddress: string, provinces: readonly string[] = CANONICAL_PROVINCES): AddressLocation[] {
+  const trimmed = rawAddress?.trim() ?? "";
+  if (!trimmed) return [];
+
+  const markers = [...trimmed.matchAll(LOCATION_PREFIX_RE)];
+  if (markers.length === 0) {
+    return [{ id: "loc-1", label: provinces[0] ?? "Location", address: trimmed }];
+  }
+
+  return markers.map((marker, index) => {
+    const start = marker.index + marker[0].length;
+    const end = index + 1 < markers.length ? markers[index + 1].index : trimmed.length;
+    const segment = trimmed.slice(start, end).trim();
+
+    const labelMatch = segment.match(LOCATION_LABEL_RE);
+    if (!labelMatch) {
+      return { id: `loc-${index + 1}`, label: provinces[0] ?? "Location", address: segment };
+    }
+
+    const rawLabel = labelMatch[1].trim();
+    const matchedProvince = provinces.find((province) => province.toLowerCase() === rawLabel.toLowerCase());
+    return {
+      id: `loc-${index + 1}`,
+      label: matchedProvince ?? rawLabel,
+      address: segment.slice(labelMatch[0].length).trim(),
+    };
+  });
+}

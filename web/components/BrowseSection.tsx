@@ -6,7 +6,7 @@ import BrowseHeader from "@/components/BrowseHeader";
 import BrowseInstitutionCard from "@/components/BrowseInstitutionCard";
 import BrowsePagination from "@/components/BrowsePagination";
 import Modal from "@/components/ui/Modal";
-import { ALL_PROVINCES_VALUE, ALL_TYPES_VALUE, filterInstitutionsForBrowse } from "@/lib/browse";
+import { ALL_PROVINCES_VALUE, ALL_STATUSES_VALUE, ALL_TYPES_VALUE, filterInstitutionsForBrowse } from "@/lib/browse";
 import { TYPE_LABEL, getStatusBadge } from "@/lib/presentation";
 import { useSavedInstitutions } from "@/lib/savedInstitutions";
 import type { InstitutionRecord } from "@/lib/types";
@@ -22,6 +22,7 @@ interface BrowseSectionProps {
 export default function BrowseSection({ institutions, onVerify }: BrowseSectionProps) {
   const [province, setProvince] = useState(ALL_PROVINCES_VALUE);
   const [institutionType, setInstitutionType] = useState(ALL_TYPES_VALUE);
+  const [status, setStatus] = useState(ALL_STATUSES_VALUE);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [savedIds, toggleSaved] = useSavedInstitutions();
@@ -30,8 +31,8 @@ export default function BrowseSection({ institutions, onVerify }: BrowseSectionP
   const sectionTopRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(
-    () => filterInstitutionsForBrowse(institutions, { province, institutionType }),
-    [institutions, province, institutionType]
+    () => filterInstitutionsForBrowse(institutions, { province, institutionType, status }),
+    [institutions, province, institutionType, status]
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -51,6 +52,11 @@ export default function BrowseSection({ institutions, onVerify }: BrowseSectionP
 
   function handleInstitutionTypeChange(value: string) {
     setInstitutionType(value);
+    setPage(1);
+  }
+
+  function handleStatusChange(value: string) {
+    setStatus(value);
     setPage(1);
   }
 
@@ -75,8 +81,10 @@ export default function BrowseSection({ institutions, onVerify }: BrowseSectionP
           resultCount={filtered.length}
           province={province}
           institutionType={institutionType}
+          status={status}
           onProvinceChange={handleProvinceChange}
           onInstitutionTypeChange={handleInstitutionTypeChange}
+          onStatusChange={handleStatusChange}
           filtersOpen={filtersOpen}
           onToggleFilters={() => setFiltersOpen((value) => !value)}
         />

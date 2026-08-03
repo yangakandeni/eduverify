@@ -32,6 +32,8 @@ export interface RawInstitution {
 export interface Institution {
   name: string;
   tradingName?: string | null;
+  /** Common short form, e.g. "UCT" — search-only, never a valid getDisplayName result. */
+  abbreviation?: string | null;
   registration_number?: string | null;
   status?: string | null;
   address: string;

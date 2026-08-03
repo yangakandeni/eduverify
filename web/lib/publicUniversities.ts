@@ -23,6 +23,7 @@ export function loadPublicUniversities(): InstitutionRecord[] {
 
     const institution: Institution = {
       name: university.name,
+      abbreviation: university.abbreviation,
       registration_number: null,
       status: "Established — Higher Education Act",
       address: university.address,

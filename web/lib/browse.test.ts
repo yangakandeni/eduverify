@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALL_PROVINCES_VALUE, ALL_TYPES_VALUE, filterInstitutionsForBrowse, getResultCountLabel } from "./browse";
+import { ALL_PROVINCES_VALUE, ALL_STATUSES_VALUE, ALL_TYPES_VALUE, filterInstitutionsForBrowse, getResultCountLabel } from "./browse";
 import type { InstitutionRecord } from "./types";
 
 function makeInstitution(overrides: Partial<InstitutionRecord>): InstitutionRecord {
@@ -23,13 +23,21 @@ describe("filterInstitutionsForBrowse", () => {
   ];
 
   it("returns every institution when both filters are set to 'All'", () => {
-    expect(filterInstitutionsForBrowse(institutions, { province: ALL_PROVINCES_VALUE, institutionType: ALL_TYPES_VALUE })).toEqual(
-      institutions
-    );
+    expect(
+      filterInstitutionsForBrowse(institutions, {
+        province: ALL_PROVINCES_VALUE,
+        institutionType: ALL_TYPES_VALUE,
+        status: ALL_STATUSES_VALUE,
+      })
+    ).toEqual(institutions);
   });
 
   it("filters by province only", () => {
-    const result = filterInstitutionsForBrowse(institutions, { province: "Gauteng", institutionType: ALL_TYPES_VALUE });
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: "Gauteng",
+      institutionType: ALL_TYPES_VALUE,
+      status: ALL_STATUSES_VALUE,
+    });
     expect(result.map((institution) => institution.id)).toEqual(["1", "3"]);
   });
 
@@ -37,18 +45,62 @@ describe("filterInstitutionsForBrowse", () => {
     const result = filterInstitutionsForBrowse(institutions, {
       province: ALL_PROVINCES_VALUE,
       institutionType: "Public University",
+      status: ALL_STATUSES_VALUE,
     });
     expect(result.map((institution) => institution.id)).toEqual(["1", "2"]);
   });
 
   it("filters by both province and institution type combined", () => {
-    const result = filterInstitutionsForBrowse(institutions, { province: "Gauteng", institutionType: "Public University" });
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: "Gauteng",
+      institutionType: "Public University",
+      status: ALL_STATUSES_VALUE,
+    });
     expect(result.map((institution) => institution.id)).toEqual(["1"]);
   });
 
   it("returns an empty list when no institution matches the combination", () => {
-    const result = filterInstitutionsForBrowse(institutions, { province: "Limpopo", institutionType: "Public University" });
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: "Limpopo",
+      institutionType: "Public University",
+      status: ALL_STATUSES_VALUE,
+    });
     expect(result).toEqual([]);
+  });
+});
+
+describe("filterInstitutionsForBrowse status filter", () => {
+  const institutions = [
+    makeInstitution({ id: "1", status: "Registered" }),
+    makeInstitution({ id: "2", status: "Provisionally Registered" }),
+    makeInstitution({ id: "3", status: null }),
+  ];
+
+  it("returns everything when status is 'All'", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: ALL_STATUSES_VALUE,
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["1", "2", "3"]);
+  });
+
+  it("filters to registered institutions, treating a missing status as registered", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: "registered",
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["1", "3"]);
+  });
+
+  it("filters to provisionally registered institutions", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: "provisional",
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["2"]);
   });
 });
 

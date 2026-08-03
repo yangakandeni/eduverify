@@ -22,10 +22,10 @@ function matchProvinceQuery(q: string): string | undefined {
  * Fuzzy/partial matching over the bundled seed data. Used as a fallback when DynamoDB
  * is unreachable, and as the primary source for fast client-side typeahead suggestions.
  *
- * Supports three search intents, ranked so a strong institution-name match always wins
+ * Supports four search intents, ranked so a strong institution-name match always wins
  * over a qualification or province match (e.g. "Cape College" surfaces Cape Audio College
  * ahead of every other Western-Cape institution that merely offers "Cape"-titled courses):
- *   - Institution name / registration number (score 40-100)
+ *   - Institution name / registration number / common abbreviation (score 40-100)
  *   - Qualification title, e.g. "Computer Science" (score 20-38, scaled by match count)
  *   - Province name, e.g. "Western Cape" (score 15)
  */
@@ -42,15 +42,18 @@ export function searchLocal(query: string, filters: SearchFilters = {}, limit = 
     if (!matchesFilters(institution, filters)) continue;
 
     const name = normalizeText(institution.name);
+    const abbreviation = institution.abbreviation ? normalizeText(institution.abbreviation) : "";
     const reg = institution.registration_number
       ? normalizeRegistrationNumber(institution.registration_number)
       : "";
 
     let score = 0;
     if (reg && reg === qReg) score = 100;
+    else if (abbreviation && abbreviation === q) score = 95;
     else if (name === q) score = 90;
     else if (reg && qReg.length >= 3 && reg.includes(qReg)) score = 80;
     else if (name.startsWith(q)) score = 70;
+    else if (abbreviation && q.length >= 2 && abbreviation.startsWith(q)) score = 65;
     else if (name.split(" ").some((word) => word.startsWith(q))) score = 55;
     else if (name.includes(q)) score = 40;
 
