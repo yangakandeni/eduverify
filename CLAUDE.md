@@ -91,7 +91,7 @@ Auth is Clerk, wired via `web/proxy.ts` (Next middleware): only `/dashboard(.*)`
 
 `main.tf` wires four modules: `s3` (raw PDF uploads under `raw/`), `dynamodb` (the institutions table + GSI1), `iam` (Lambda execution role), `lambda` (packages `parser/` using `requirements-lambda.txt`, a trimmed dependency set for cold-start size). An S3 `ObjectCreated` notification on `raw/*.pdf` invokes the Lambda, which is `parser/lambda_handler.py`.
 
-# EduVerify SA - Claude Code Engineering Guidelines
+# EduVerify - Claude Code Engineering Guidelines
 
 ## Core Development Philosophy: Test-Driven Development (TDD)
 1. **Red-Green-Refactor Mandatory**: ALWAYS write or update automated unit/integration tests covering reported bugs or new requirements BEFORE touching implementation code.
