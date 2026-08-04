@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "{ cur=$(git rev-parse HEAD); state=\".git/claude-readme-check-last\"; prev=$(cat \"$state\" 2>/dev/null); if [ -n \"$cur\" ] && [ \"$cur\" != \"$prev\" ]; then echo \"$cur\" > \"$state\"; files=$(git diff-tree --no-commit-id --name-only -r \"$cur\" | grep -v '^README\\.md$'); if [ -n \"$files\" ]; then jq -n --arg files \"$files\" '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:(\"A new commit was just made in this repo. Changed files (README.md was not among them):\\n\" + $files + \"\\n\\nCheck whether README.md needs updating to reflect this change (new commands, architecture, scripts, env vars, or workflow changes). If not significant, no action needed.\")}}'; fi; fi; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

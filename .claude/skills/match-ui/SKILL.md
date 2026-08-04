@@ -17,7 +17,7 @@ Automatically inspect a `current-ui` screenshot and a `target-ui` screenshot, pe
 
 ## Execution Instructions for Claude
 
-When this skill is invoked:
+When this skill is invoked, always use the `ui-ux-pro-max` skill for any UI design decisions (colors, typography, spacing, component styling) — treat it as the source of truth over ad-hoc styling choices.
 
 1. **Vision Analysis**:
    - Compare the current image against the target image.

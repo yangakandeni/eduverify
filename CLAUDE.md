@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Learning about this codebase
+
+Always use the `graphify` skill first when answering questions about this codebase's architecture, file relationships, or project content — treat it as the primary tool for codebase exploration, not a fallback. If `graphify-out/` exists, query it before searching the repo manually.
+
+## Designing UI
+
+Always use the `ui-ux-pro-max` skill for any UI design work in `web/` — colors, typography, spacing, layout, component styling, accessibility. Treat it as the source of truth over ad-hoc styling choices.
+
 ## What this is
 
 EduVerify is a lookup tool for South African higher-education institutions (public universities, TVET colleges, and DHET-registered private institutions), so people can verify a qualification/provider is legitimate. The repo has three independent parts that share data through `data/institutions.json`:
