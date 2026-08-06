@@ -67,3 +67,13 @@ output "lambda_throttles_alarm_name" {
   description = "Name of the CloudWatch alarm for ingestion Lambda throttles."
   value       = aws_cloudwatch_metric_alarm.lambda_parser_throttles.alarm_name
 }
+
+output "amplify_app_id" {
+  description = "ID of the Amplify Hosting app serving the frontend."
+  value       = aws_amplify_app.web.id
+}
+
+output "amplify_default_domain" {
+  description = "Default (*.amplifyapp.com) URL Amplify Hosting assigns the branch, e.g. https://main.<app_id>.amplifyapp.com."
+  value       = "https://${aws_amplify_branch.main.branch_name}.${aws_amplify_app.web.default_domain}"
+}

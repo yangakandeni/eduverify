@@ -69,3 +69,47 @@ variable "alert_email" {
   type        = string
   default     = ""
 }
+
+variable "github_repository_url" {
+  description = "HTTPS URL of the GitHub repository Amplify Hosting builds the frontend from."
+  type        = string
+  default     = "https://github.com/yangakandeni/eduverify"
+}
+
+variable "github_access_token" {
+  description = "GitHub personal access token (repo, admin:repo_hook scopes) Amplify uses to connect the repository and register its webhook. Leave empty if the repo is already connected via the Amplify GitHub App (e.g. done once through the console). Supply via TF_VAR_github_access_token or a gitignored *.tfvars file — never commit it."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "amplify_branch_name" {
+  description = "Git branch Amplify Hosting deploys from."
+  type        = string
+  default     = "main"
+}
+
+variable "clerk_publishable_key" {
+  description = "Clerk publishable key (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) for the deployed frontend."
+  type        = string
+  default     = ""
+}
+
+variable "clerk_secret_key" {
+  description = "Clerk secret key (CLERK_SECRET_KEY) for the deployed frontend. Supply via TF_VAR_clerk_secret_key or a gitignored *.tfvars file — never commit it."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "domain_name" {
+  description = "Optional custom domain (e.g. app.eduverify.co.za) to serve the Amplify Hosting frontend from. Leave empty to use the default *.amplifyapp.com domain only."
+  type        = string
+  default     = ""
+}
+
+variable "hosted_zone_id" {
+  description = "Route 53 hosted zone ID to create the Amplify domain's certificate-validation and alias records in. Required when domain_name is set."
+  type        = string
+  default     = ""
+}
