@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-# Pre-flight checks + Terraform plan for an EduVerify production deployment.
+# Pre-flight checks + Terraform plan for an EduVerify deployment.
+# Usage: ./scripts/verify_deployment.sh [staging|production]  (default: production)
 # See docs/DEPLOYMENT.md for the full runbook, including the post-deploy smoke test
 # (Lambda invoke + log tail + DynamoDB read), which is interactive/manual by design.
 set -euo pipefail
+
+ENVIRONMENT="${1:-production}"
+case "$ENVIRONMENT" in
+  staging|production) ;;
+  *) echo "usage: $0 [staging|production]" >&2; exit 1 ;;
+esac
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 REPO_ROOT="$(pwd)"
@@ -10,6 +17,9 @@ REPO_ROOT="$(pwd)"
 pass() { printf '  \033[32m✓\033[0m %s\n' "$1"; }
 fail() { printf '  \033[31m✗\033[0m %s\n' "$1"; exit 1; }
 step() { printf '\n\033[1m%s\033[0m\n' "$1"; }
+
+step "0. Environment"
+pass "target environment: $ENVIRONMENT"
 
 step "1. AWS credentials"
 if identity=$(aws sts get-caller-identity --output json 2>&1); then
@@ -21,7 +31,7 @@ else
 fi
 
 step "2. Terraform backend config"
-BACKEND_HCL="$REPO_ROOT/terraform/backend.hcl"
+BACKEND_HCL="$REPO_ROOT/terraform/environments/$ENVIRONMENT.backend.hcl"
 [[ -f "$BACKEND_HCL" ]] || fail "$BACKEND_HCL not found"
 
 bucket_in_hcl=$(grep -E '^[[:space:]]*bucket[[:space:]]*=' "$BACKEND_HCL" | sed -E 's/^[[:space:]]*bucket[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/')
@@ -52,13 +62,20 @@ fi
 step "4. Terraform init + plan"
 (
   cd "$REPO_ROOT/terraform"
-  terraform init -backend-config=backend.hcl -input=false
-  terraform plan -input=false -out=tfplan
+  VAR_FILE_ARGS=(-var-file="environments/$ENVIRONMENT.tfvars")
+  SECRETS_FILE="environments/$ENVIRONMENT.secrets.tfvars"
+  [[ -f "$SECRETS_FILE" ]] && VAR_FILE_ARGS+=(-var-file="$SECRETS_FILE")
+
+  # -reconfigure: switching between staging/production backend.hcl files points
+  # at a different state key entirely (not a migration), so skip the
+  # copy-existing-state-to-new-backend prompt terraform would otherwise show.
+  terraform init -backend-config="environments/$ENVIRONMENT.backend.hcl" -reconfigure -input=false
+  terraform plan -input=false "${VAR_FILE_ARGS[@]}" -out=tfplan
 )
 pass "plan written to terraform/tfplan"
 
 echo
-echo "Pre-flight complete. Review terraform/tfplan, then:"
+echo "Pre-flight complete ($ENVIRONMENT). Review terraform/tfplan, then:"
 echo "  cd terraform && terraform apply tfplan"
 echo
 echo "After apply, continue with the smoke test in docs/DEPLOYMENT.md."

@@ -1,5 +1,5 @@
 resource "aws_sns_topic" "alerts" {
-  name = "eduverify-alerts"
+  name = "${var.project_name}-alerts"
   tags = local.common_tags
 }
 
@@ -12,7 +12,7 @@ resource "aws_sns_topic_subscription" "alert_email" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_parser_errors" {
-  alarm_name          = "eduverify-lambda-parser-errors"
+  alarm_name          = "${var.project_name}-lambda-parser-errors"
   alarm_description   = "Ingestion Lambda reported one or more invocation errors in the last 5 minutes."
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
@@ -34,7 +34,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_parser_errors" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_parser_throttles" {
-  alarm_name          = "eduverify-lambda-parser-throttles"
+  alarm_name          = "${var.project_name}-lambda-parser-throttles"
   alarm_description   = "Ingestion Lambda was throttled one or more times in the last 5 minutes."
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1

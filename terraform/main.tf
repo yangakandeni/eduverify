@@ -12,8 +12,10 @@ terraform {
     }
   }
 
-  # Values supplied via partial configuration - see backend.hcl and the
-  # `terraform init -backend-config=backend.hcl` step in the runbook.
+  # Values supplied via partial configuration - see environments/*.backend.hcl
+  # and the `terraform init -backend-config=environments/<env>.backend.hcl`
+  # step in the runbook. One per environment, so staging and production never
+  # share state.
   backend "s3" {}
 }
 

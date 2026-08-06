@@ -104,7 +104,7 @@ resource "aws_amplify_branch" "main" {
   app_id            = aws_amplify_app.web.id
   branch_name       = var.amplify_branch_name
   framework         = "Next.js - SSR"
-  stage             = "PRODUCTION"
+  stage             = var.environment == "production" ? "PRODUCTION" : "DEVELOPMENT"
   enable_auto_build = true
   tags              = local.common_tags
 }

@@ -1,44 +1,68 @@
 # Deployment Runbook
 
-Manual verification steps for a production deploy of EduVerify's infra
-(`terraform/`). Pre-flight checks and the `terraform plan` step are
-automated by [`scripts/verify_deployment.sh`](../scripts/verify_deployment.sh);
-this doc covers that script plus the interactive apply/smoke-test steps that
-follow it.
+Manual verification steps for deploying EduVerify's infra (`terraform/`).
+Pre-flight checks and the `terraform plan` step are automated by
+[`scripts/verify_deployment.sh`](../scripts/verify_deployment.sh); this doc
+covers that script plus the interactive apply/smoke-test steps that follow it.
 
-Resource names below come from `terraform/variables.tf` / `terraform/main.tf`
-defaults for `environment = "production"`. If your `terraform.tfvars`
-overrides `project_name`, `dynamodb_table_name`, etc., substitute your
-actual values (`terraform output` after apply is the source of truth).
+## Environments
 
-| Resource | Default name |
-|---|---|
-| Lambda function | `eduverify-ingestion` |
-| Lambda log group | `/aws/lambda/eduverify-ingestion` |
-| DynamoDB table | `eduverify-institutions` |
-| S3 register bucket | `eduverify-registers` |
-| Region | `af-south-1` |
+Staging and production are **fully separate stacks** — own DynamoDB table, S3
+bucket, Lambda, IAM role, and Amplify app each — sharing only the Terraform
+state bucket/lock table (bootstrapped once, see below). They're configured
+via `terraform/environments/<env>.{backend,tfvars}` and selected with a
+`terraform init -backend-config=... ` / `-var-file=...` pair, or by passing
+the env name as `scripts/verify_deployment.sh`'s one argument.
+
+Everything (Lambda function name, IAM role, log group, Amplify app, SNS
+alerts) derives from `project_name`, which each environment's tfvars sets to
+a distinct value (`eduverify` / `eduverify-staging`), so nothing collides in
+the same AWS account. `dynamodb_table_name` and `s3_bucket_name` are set
+explicitly per environment for the same reason.
+
+| Resource | Production | Staging |
+|---|---|---|
+| Lambda function | `eduverify-ingestion` | `eduverify-staging-ingestion` |
+| Lambda log group | `/aws/lambda/eduverify-ingestion` | `/aws/lambda/eduverify-staging-ingestion` |
+| DynamoDB table | `eduverify-institutions` | `eduverify-staging-institutions` |
+| S3 register bucket | `eduverify-registers` | `eduverify-staging-registers` |
+| Amplify app | `eduverify-web` | `eduverify-staging-web` |
+| Amplify branch | `main` | `staging` |
+| Terraform state key | `eduverify/production/terraform.tfstate` | `eduverify/staging/terraform.tfstate` |
+| Region | `af-south-1` | `af-south-1` |
+
+Deploying staging for the first time needs a `staging` branch to exist in the
+GitHub repo (Amplify's `aws_amplify_branch` resource points at it by name —
+it doesn't create the branch itself).
+
+Secrets (`clerk_secret_key`, `github_access_token`) are deliberately absent
+from the committed `environments/*.tfvars` files. Supply them either via
+`TF_VAR_clerk_secret_key` / `TF_VAR_github_access_token` env vars, or a
+gitignored `environments/<env>.secrets.tfvars` — `verify_deployment.sh` picks
+it up automatically if present (layered on top with a second `-var-file`).
 
 ## 1. Pre-flight
 
 ```bash
-./scripts/verify_deployment.sh
+./scripts/verify_deployment.sh staging      # or: production (default if omitted)
 ```
 
 This checks, in order:
 1. `aws sts get-caller-identity` succeeds (valid credentials, and prints the
    identity/account you're about to deploy as — confirm it's the intended one).
-2. `terraform/backend.hcl`'s `bucket` matches `variables.tf`'s
-   `tf_state_bucket_name` default (or flags the divergence for you to confirm
-   is intentional) and that the bucket is actually reachable.
+2. `terraform/environments/<env>.backend.hcl`'s `bucket` matches
+   `variables.tf`'s `tf_state_bucket_name` default (or flags the divergence
+   for you to confirm is intentional) and that the bucket is actually
+   reachable.
 3. `pytest` passes in `parser/` (regex extraction, Pydantic model validation,
    bogus-institution filtering — all fully local, no AWS calls).
-4. `terraform init -backend-config=backend.hcl` + `terraform plan -out=tfplan`.
+4. `terraform init -backend-config=environments/<env>.backend.hcl` +
+   `terraform plan -var-file=environments/<env>.tfvars -out=tfplan`.
 
-If the state bucket / lock table don't exist yet (first-ever deploy), bootstrap
-them first — `terraform/backend_state.tf` provisions both, but has to be
-applied with **local** state before `main.tf`'s `backend "s3" {}` can point at
-it:
+If the state bucket / lock table don't exist yet (first-ever deploy of either
+environment), bootstrap them first — `terraform/backend_state.tf` provisions
+both (shared by staging and production), but has to be applied with **local**
+state before `main.tf`'s `backend "s3" {}` can point at it:
 
 ```bash
 cd terraform
@@ -49,7 +73,9 @@ terraform apply -target=aws_s3_bucket.tf_state \
                  -target=aws_s3_bucket_public_access_block.tf_state \
                  -target=aws_s3_bucket_ownership_controls.tf_state \
                  -target=aws_dynamodb_table.tf_locks
-terraform init -backend-config=backend.hcl -migrate-state  # move local state into the new S3 backend
+# migrate whichever environment's local state you were working from into the
+# new S3 backend, e.g. for production:
+terraform init -backend-config=environments/production.backend.hcl -migrate-state
 ```
 
 **Opt-in region gotcha:** `af-south-1` is an AWS opt-in region. If your credentials come from SSO/federation/a `login_session`-style CLI login, they're typically minted against the **global** STS endpoint by default, which AWS rejects for opt-in regions even when the region is enabled on the account — every AWS call (including `terraform plan`) fails with `InvalidClientTokenId`, while the same credentials work fine with no region override. Confirm with:
@@ -68,6 +94,12 @@ Fix by getting a token issued via the regional STS endpoint for `af-south-1` (e.
 cd terraform
 terraform apply tfplan
 ```
+
+`tfplan` is bound to whichever environment's backend was active during step 1
+— applying it doesn't need `-var-file` again, but if you `terraform init`
+against the *other* environment's backend.hcl in between (switching from
+staging to production, say), re-run step 1 first to regenerate `tfplan`
+against the right state.
 
 Grab the outputs you'll need for the smoke test:
 
