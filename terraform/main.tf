@@ -14,13 +14,23 @@ terraform {
 
   # Values supplied via partial configuration - see environments/*.backend.hcl
   # and the `terraform init -backend-config=environments/<env>.backend.hcl`
-  # step in the runbook. One per environment, so staging and production never
-  # share state.
+  # step in the runbook. One per environment/account, so staging and
+  # production never share state.
   backend "s3" {}
 }
 
 provider "aws" {
   region = var.aws_region
+}
+
+# AWS Amplify Hosting has no regional endpoint in af-south-1 (confirmed via a
+# failed apply: "dial tcp: lookup amplify.af-south-1.amazonaws.com: no such
+# host") — it's simply not offered in that region. Everything data-plane
+# (DynamoDB, S3, Lambda) stays in af-south-1 for in-country residency/
+# latency; only the Amplify resources in frontend.tf use this alias.
+provider "aws" {
+  alias  = "amplify"
+  region = var.amplify_region
 }
 
 locals {

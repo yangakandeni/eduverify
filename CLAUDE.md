@@ -40,14 +40,14 @@ Auth (Clerk) needs `web/.env.local` — copy `web/.env.local.example` and fill i
 ```bash
 source .venv/bin/activate
 pip install -r requirements.txt
-pytest                                    # all tests
-pytest tests/test_extraction.py           # single file
-pytest tests/test_extraction.py -k name   # single test
+python -m pytest                                    # all tests
+python -m pytest tests/test_extraction.py           # single file
+python -m pytest tests/test_extraction.py -k name   # single test
 python fetch_and_parse.py                          # download latest DHET PDF, write ../data/institutions.json
 python fetch_and_parse.py --pdf-path FILE          # parse an already-downloaded PDF instead
 ```
 
-Tests import modules directly (`from build import ...`, no package prefix) — `pytest` must be invoked from `parser/` so its `.venv`'s implicit cwd-on-path resolves them; running from the repo root breaks imports.
+Tests import modules directly (`from build import ...`, no package prefix) — invoke with `python -m pytest` (not the bare `pytest` script) from `parser/` so cwd is on `sys.path`; running from the repo root, or via the bare `pytest` command, breaks imports.
 
 ### Infra
 

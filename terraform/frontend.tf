@@ -59,6 +59,8 @@ resource "aws_iam_role_policy_attachment" "amplify_ssr_compute" {
 }
 
 resource "aws_amplify_app" "web" {
+  provider = aws.amplify
+
   name         = "${var.project_name}-web"
   repository   = var.github_repository_url
   access_token = var.github_access_token != "" ? var.github_access_token : null
@@ -101,6 +103,8 @@ resource "aws_amplify_app" "web" {
 }
 
 resource "aws_amplify_branch" "main" {
+  provider = aws.amplify
+
   app_id            = aws_amplify_app.web.id
   branch_name       = var.amplify_branch_name
   framework         = "Next.js - SSR"
@@ -110,7 +114,8 @@ resource "aws_amplify_branch" "main" {
 }
 
 resource "aws_amplify_domain_association" "web" {
-  count = local.frontend_domain_enabled ? 1 : 0
+  provider = aws.amplify
+  count    = local.frontend_domain_enabled ? 1 : 0
 
   app_id                = aws_amplify_app.web.id
   domain_name           = var.domain_name

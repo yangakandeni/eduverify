@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "af-south-1"
 }
 
+variable "amplify_region" {
+  description = "AWS region for Amplify Hosting resources. Amplify has no regional endpoint in af-south-1 (var.aws_region), so the frontend deploys into this separate region while data-plane resources stay put."
+  type        = string
+  default     = "eu-west-1"
+}
+
 variable "environment" {
   description = "Deployment environment name, used in resource tags."
   type        = string
@@ -29,15 +35,15 @@ variable "s3_bucket_name" {
 }
 
 variable "lambda_memory_size" {
-  description = "Memory (MB) allocated to the ingestion Lambda."
+  description = "Memory (MB) allocated to the ingestion Lambda. Lambda scales CPU with memory, so this also controls parse speed. A real ~200-page DHET register PDF peaks around 700MB of Python-tracked memory and takes ~27s to extract on a fast dev machine alone (before grouping/build/DynamoDB writes) — 3008MB (~2 vCPU) gives headroom on both dimensions; 512MB measurably times out on the same input."
   type        = number
-  default     = 512
+  default     = 3008
 }
 
 variable "lambda_timeout" {
-  description = "Timeout (seconds) for the ingestion Lambda."
+  description = "Timeout (seconds) for the ingestion Lambda. See lambda_memory_size — a real register PDF needs meaningfully more than the AWS default of a few seconds; 120s measurably times out on a ~200-page PDF at 512MB memory."
   type        = number
-  default     = 120
+  default     = 300
 }
 
 variable "lambda_architecture" {
@@ -47,7 +53,7 @@ variable "lambda_architecture" {
 }
 
 variable "tf_state_bucket_name" {
-  description = "Globally-unique name for the S3 bucket storing Terraform remote state (S3 bucket names are unique across all of AWS, so the default will need overriding). Must match the `bucket` value in backend.hcl."
+  description = "Globally-unique name for the S3 bucket storing Terraform remote state. Staging and production deploy into separate AWS accounts, each with its own bucket — set per-environment in environments/<env>.tfvars, matching the `bucket` value in that environment's backend.hcl. This default only applies if neither overrides it."
   type        = string
   default     = "eduverify-tf-state"
 }
