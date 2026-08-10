@@ -157,9 +157,10 @@ Key details:
 - **S3** (`modules/s3`) — single bucket, versioned, AES256 server-side encryption, all public access blocked, bucket-owner-enforced ownership. `raw/` holds uploaded registers; `backups/` holds the Lambda's parsed-JSON dumps.
 - **DynamoDB** (`modules/dynamodb`) — single table (`PK` hash key) plus `GSI1` (`GSI1PK`/`GSI1SK`, full projection) for status-partitioned name-prefix search. Pay-per-request billing, point-in-time recovery on.
 - **IAM** (`modules/iam`) — least-privilege role scoped to: read `raw/*`, write `backups/*`, read/write the institutions table, query `GSI1`, and write to its own CloudWatch log group only.
-- **Lambda** (`modules/lambda`) — `parser/` zipped as the function package (tests/fixtures/venv excluded); dependencies (`pdfplumber`, `pydantic`, etc.) ship as a separate layer, cross-compiled for the Lambda runtime's manylinux platform straight from `requirements-lambda.txt` via `pip install --platform ... --only-binary=:all:` — no Docker required, even from an Apple Silicon dev machine. Default: `512MB` memory, `120s` timeout, `x86_64`, region `af-south-1`.
+- **Lambda** (`modules/lambda`) — `parser/` zipped as the function package (tests/fixtures/venv excluded); dependencies (`pdfplumber`, `pydantic`, etc.) ship as a separate layer, cross-compiled for the Lambda runtime's manylinux platform straight from `requirements-lambda.txt` via `pip install --platform ... --only-binary=:all:` — no Docker required, even from an Apple Silicon dev machine. Default: `3008MB` memory, `300s` timeout (a real ~200-page register PDF peaks near 800MB and takes ~25s to parse), `x86_64`, region `af-south-1`.
 - The S3 → Lambda trigger (`aws_s3_bucket_notification` in `main.tf`) fires only on `ObjectCreated` events matching prefix `raw/` and suffix `.pdf`.
-- **Remote state** (`backend_state.tf`) — S3 bucket + DynamoDB lock table backing `main.tf`'s `backend "s3" {}`; bootstrapped once with local state before the backend it creates can be used (see `docs/DEPLOYMENT.md`).
+- **Remote state** (`backend_state.tf`) — S3 bucket + DynamoDB lock table backing `main.tf`'s `backend "s3" {}`, one per AWS account (staging and production each deploy into their own account via a dedicated IAM Identity Center SSO profile — see `docs/DEPLOYMENT.md`); each is bootstrapped once with local state before the backend it creates can be used.
+- **Amplify Hosting** (`frontend.tf`) — has no regional endpoint in `af-south-1`, so it deploys via a separate `aws.amplify` provider alias into `eu-west-1` while everything else stays in `af-south-1`.
 - **Scheduled ingestion** (`eventbridge.tf`) — a weekly EventBridge rule invokes the Lambda directly, but `lambda_handler.handler` currently only handles the S3 event shape, so this invocation is a no-op today.
 - **Monitoring** (`monitoring.tf`) — SNS topic (`eduverify-alerts`, optional email subscription) plus CloudWatch alarms on Lambda `Errors`/`Throttles`.
 
@@ -303,7 +304,7 @@ terraform plan   # / apply — provisions S3, DynamoDB, Lambda, IAM
 
 | Suite | Command | Run from |
 |---|---|---|
-| Parser | `pytest` | `parser/` (inside its `.venv`) |
+| Parser | `python -m pytest` | `parser/` (inside its `.venv`) |
 | Web | `npm run test` | `web/` |
 | Web build | `npm run build` | `web/` |
 
