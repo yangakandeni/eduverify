@@ -76,17 +76,10 @@ variable "alert_email" {
   default     = ""
 }
 
-variable "github_repository_url" {
-  description = "HTTPS URL of the GitHub repository Amplify Hosting builds the frontend from."
-  type        = string
-  default     = "https://github.com/yangakandeni/eduverify"
-}
-
-variable "github_access_token" {
-  description = "GitHub personal access token (repo, admin:repo_hook scopes) Amplify uses to connect the repository and register its webhook. Leave empty if the repo is already connected via the Amplify GitHub App (e.g. done once through the console). Supply via TF_VAR_github_access_token or a gitignored *.tfvars file — never commit it."
+variable "amplify_app_id" {
+  description = "ID of the Amplify Hosting app serving the frontend, created manually through the Console (see frontend.tf and docs/DEPLOYMENT.md for why Terraform doesn't create this itself). Empty until that one-time console setup is done for the environment."
   type        = string
   default     = ""
-  sensitive   = true
 }
 
 variable "amplify_branch_name" {

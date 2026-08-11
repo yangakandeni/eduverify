@@ -68,12 +68,12 @@ output "lambda_throttles_alarm_name" {
   value       = aws_cloudwatch_metric_alarm.lambda_parser_throttles.alarm_name
 }
 
-output "amplify_app_id" {
-  description = "ID of the Amplify Hosting app serving the frontend."
-  value       = aws_amplify_app.web.id
+output "amplify_default_domain" {
+  description = "Default (*.amplifyapp.com) URL Amplify Hosting assigns the branch, e.g. https://staging.<app_id>.amplifyapp.com. Amplify's default domain always follows this pattern, so it's derived from var.amplify_app_id rather than read from a managed resource — see frontend.tf for why the app itself isn't Terraform-managed."
+  value       = "https://${var.amplify_branch_name}.${var.amplify_app_id}.amplifyapp.com"
 }
 
-output "amplify_default_domain" {
-  description = "Default (*.amplifyapp.com) URL Amplify Hosting assigns the branch, e.g. https://main.<app_id>.amplifyapp.com."
-  value       = "https://${aws_amplify_branch.main.branch_name}.${aws_amplify_app.web.default_domain}"
+output "amplify_ssr_compute_role_arn" {
+  description = "ARN of the SSR compute role. Attach this manually as the Amplify app's Compute role via the Console (App settings > IAM roles) — see docs/DEPLOYMENT.md."
+  value       = aws_iam_role.amplify_ssr_compute.arn
 }

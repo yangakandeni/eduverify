@@ -58,66 +58,25 @@ resource "aws_iam_role_policy_attachment" "amplify_ssr_compute" {
   policy_arn = aws_iam_policy.amplify_ssr_compute.arn
 }
 
-resource "aws_amplify_app" "web" {
-  provider = aws.amplify
-
-  name         = "${var.project_name}-web"
-  repository   = var.github_repository_url
-  access_token = var.github_access_token != "" ? var.github_access_token : null
-  platform     = "WEB_COMPUTE"
-  tags         = local.common_tags
-
-  compute_role_arn = aws_iam_role.amplify_ssr_compute.arn
-
-  # web/ lives inside a monorepo; scope the build to that subdirectory.
-  build_spec = <<-YAML
-    version: 1
-    applications:
-      - appRoot: web
-        frontend:
-          phases:
-            preBuild:
-              commands:
-                - npm ci
-            build:
-              commands:
-                - npm run build
-          artifacts:
-            baseDirectory: .next
-            files:
-              - '**/*'
-          cache:
-            paths:
-              - node_modules/**/*
-  YAML
-
-  environment_variables = {
-    EDUVERIFY_TABLE_NAME                            = module.dynamodb.table_name
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY               = var.clerk_publishable_key
-    CLERK_SECRET_KEY                                = var.clerk_secret_key
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL                   = "/sign-in"
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL                   = "/sign-up"
-    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL = "/dashboard"
-    NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL = "/dashboard"
-  }
-}
-
-resource "aws_amplify_branch" "main" {
-  provider = aws.amplify
-
-  app_id            = aws_amplify_app.web.id
-  branch_name       = var.amplify_branch_name
-  framework         = "Next.js - SSR"
-  stage             = var.environment == "production" ? "PRODUCTION" : "DEVELOPMENT"
-  enable_auto_build = true
-  tags              = local.common_tags
-}
+# The Amplify app and branch are deliberately NOT managed here. AWS Amplify's
+# WEB_COMPUTE build orchestrator has a platform bug (undocumented by AWS,
+# reproduced consistently across staging) where apps created via the API/CLI
+# — which is all Terraform's `aws_amplify_app` resource can do — fail every
+# build with a misleading "Unable to assume specified IAM Role" error,
+# regardless of which valid IAM role is attached, or whether any role is
+# attached at all. Apps created through the Amplify Console (with the GitHub
+# App repository connection, not a personal access token) don't hit this.
+#
+# So the app is created once, by hand, through the Console — see
+# docs/DEPLOYMENT.md's "Amplify app setup" section — and its resulting App ID
+# is fed back in via var.amplify_app_id for the resources below (compute role,
+# custom domain) that attach to it.
 
 resource "aws_amplify_domain_association" "web" {
   provider = aws.amplify
   count    = local.frontend_domain_enabled ? 1 : 0
 
-  app_id                = aws_amplify_app.web.id
+  app_id                = var.amplify_app_id
   domain_name           = var.domain_name
   wait_for_verification = false
 
@@ -126,7 +85,7 @@ resource "aws_amplify_domain_association" "web" {
   }
 
   sub_domain {
-    branch_name = aws_amplify_branch.main.branch_name
+    branch_name = var.amplify_branch_name
     prefix      = ""
   }
 }
