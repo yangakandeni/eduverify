@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, BarChart3, Bookmark, GraduationCap, MapPin, ShieldCheck } from "lucide-react";
+import { BadgeCheck, BarChart3, Bookmark, MapPin, ShieldCheck } from "lucide-react";
 import { institutionCategoryLabels } from "@/lib/categories";
 import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
@@ -61,10 +61,6 @@ export default function BrowseInstitutionCard({
         <div className="flex items-center gap-1.5">
           <MapPin className="h-3 w-3" />
           {institution.province}
-        </div>
-        <div className="flex items-center gap-1.5">
-          <GraduationCap className="h-3 w-3" />
-          {institution.qualifications.length} qualifications
         </div>
       </div>
 

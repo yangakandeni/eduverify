@@ -170,9 +170,6 @@ export default function InstitutionDetailModal({
                   {label}
                 </span>
               ))}
-              <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                {qualifications.length} total
-              </span>
             </div>
           </div>
         )}

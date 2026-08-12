@@ -206,8 +206,7 @@ export default function BrowseSection({ institutions, query, loading, onVerify, 
                 <th className="py-2 pr-4">Institution</th>
                 <th className="py-2 pr-4">Type</th>
                 <th className="py-2 pr-4">Province</th>
-                <th className="py-2 pr-4">Status</th>
-                <th className="py-2">Qualifications</th>
+                <th className="py-2">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -220,8 +219,7 @@ export default function BrowseSection({ institutions, query, loading, onVerify, 
                       {TYPE_LABEL[institution.institutionType] ?? institution.institutionType}
                     </td>
                     <td className="py-3 pr-4 text-muted-foreground">{institution.province}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{badge.label}</td>
-                    <td className="py-3 text-muted-foreground">{institution.qualifications.length}</td>
+                    <td className="py-3 text-muted-foreground">{badge.label}</td>
                   </tr>
                 );
               })}

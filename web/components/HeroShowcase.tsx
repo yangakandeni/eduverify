@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  GraduationCap,
   MapPin,
   ShieldCheck,
   Sparkles,
@@ -257,10 +256,6 @@ function MainCard({
             <span className="line-clamp-1">
               {institution.province && institution.province !== "Unknown" ? institution.province : institution.address}
             </span>
-          </span>
-          <span className="inline-flex flex-shrink-0 items-center gap-1.5">
-            <GraduationCap className="h-4 w-4 flex-shrink-0" />
-            {institution.qualifications.length} qualifications
           </span>
         </div>
 
