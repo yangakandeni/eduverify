@@ -3,6 +3,7 @@ import { institutionKey } from "./keys";
 import { normalizeProvince } from "./normalize";
 import { parseQualification } from "./qualifications";
 import { loadPublicUniversities } from "./publicUniversities";
+import { loadPublicTvets } from "./publicTvets";
 import type { InstitutionRecord, RawInstitution } from "./types";
 
 const institutions = raw as RawInstitution[];
@@ -25,6 +26,7 @@ function dedupeById(records: InstitutionRecord[]): InstitutionRecord[] {
 export const ALL_INSTITUTIONS: InstitutionRecord[] = dedupeById([
   ...privateInstitutions,
   ...loadPublicUniversities(),
+  ...loadPublicTvets(),
 ]);
 
 export function findLocalById(id: string): InstitutionRecord | undefined {
