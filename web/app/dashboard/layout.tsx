@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 
@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  await auth.protect();
   const user = await currentUser();
 
   return (
