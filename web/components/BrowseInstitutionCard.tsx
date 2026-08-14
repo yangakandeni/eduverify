@@ -1,29 +1,27 @@
 "use client";
 
-import { BadgeCheck, BarChart3, Bookmark, MapPin, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Bookmark, ExternalLink, MapPin, ShieldCheck } from "lucide-react";
 import { institutionCategoryLabels } from "@/lib/categories";
 import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const MAX_VISIBLE_CATEGORY_TAGS = 3;
 
+function websiteHref(website: string): string {
+  return website.startsWith("http") ? website : `https://${website}`;
+}
+
 interface BrowseInstitutionCardProps {
   institution: InstitutionRecord;
   saved: boolean;
-  comparing: boolean;
-  compareDisabled: boolean;
   onToggleSaved: () => void;
-  onToggleCompare: () => void;
   onVerify: () => void;
 }
 
 export default function BrowseInstitutionCard({
   institution,
   saved,
-  comparing,
-  compareDisabled,
   onToggleSaved,
-  onToggleCompare,
   onVerify,
 }: BrowseInstitutionCardProps) {
   const badge = getStatusBadge(institution);
@@ -97,21 +95,17 @@ export default function BrowseInstitutionCard({
           <ShieldCheck className="h-4 w-4" />
           Verify
         </button>
-        <button
-          type="button"
-          onClick={onToggleCompare}
-          disabled={compareDisabled}
-          aria-pressed={comparing}
-          title={compareDisabled ? "You can compare up to 4 institutions at a time" : "Toggle compare"}
-          className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
-            comparing
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border text-muted-foreground hover:border-primary/30 hover:bg-secondary"
-          }`}
-        >
-          <BarChart3 className="h-4 w-4" />
-          Compare
-        </button>
+        {institution.contacts.website && (
+          <a
+            href={websiteHref(institution.contacts.website)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:bg-secondary"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Visit Website
+          </a>
+        )}
       </div>
     </div>
   );
