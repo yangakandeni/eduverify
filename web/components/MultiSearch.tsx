@@ -22,12 +22,14 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
   const containerRef = useRef<HTMLDivElement>(null);
 
   const stats = useMemo(() => {
+    const qualificationCount = institutions.reduce((total, institution) => total + institution.qualifications.length, 0);
     const provinceCount = new Set(
       institutions.map((institution) => normalizeProvince(institution.province)).filter((province) => province !== "Unknown")
     ).size;
 
     return {
       institutionCount: institutions.length,
+      qualificationCount,
       provinceCount,
     };
   }, [institutions]);
@@ -167,8 +169,9 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
           ))}
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-md grid-cols-2 gap-4">
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-3 gap-4">
           <StatCard value={`${stats.institutionCount}+`} label="Institutions" />
+          <StatCard value={`${stats.qualificationCount.toLocaleString()}+`} label="Qualifications" />
           <StatCard value={`${stats.provinceCount}`} label="Provinces" />
         </div>
       </div>
