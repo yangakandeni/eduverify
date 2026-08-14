@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  GraduationCap,
   MapPin,
   ShieldCheck,
   Sparkles,
@@ -258,10 +257,6 @@ function MainCard({
               {institution.province && institution.province !== "Unknown" ? institution.province : institution.address}
             </span>
           </span>
-          <span className="inline-flex flex-shrink-0 items-center gap-1.5">
-            <GraduationCap className="h-4 w-4 flex-shrink-0" />
-            {institution.qualifications.length} qualifications
-          </span>
         </div>
 
         {categories.length > 0 && (
@@ -281,7 +276,7 @@ function MainCard({
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             <ShieldCheck className="h-4 w-4" />
-            Verify Institution
+            More Info
           </button>
           {website && (
             <a

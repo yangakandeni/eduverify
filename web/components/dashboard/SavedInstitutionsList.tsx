@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, GraduationCap, MapPin } from "lucide-react";
+import { Bookmark, MapPin } from "lucide-react";
 import { useState } from "react";
 import InstitutionDetailModal from "@/components/InstitutionDetailModal";
 import Modal from "@/components/ui/Modal";
@@ -74,10 +74,6 @@ export default function SavedInstitutionsList({ records }: SavedInstitutionsList
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   {institution.province}
-                </span>
-                <span className="flex items-center gap-1">
-                  <GraduationCap className="h-3 w-3" />
-                  {institution.qualifications.length} qualifications
                 </span>
               </div>
 

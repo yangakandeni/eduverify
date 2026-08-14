@@ -52,7 +52,9 @@ export function getEmptyStateHeading(): string {
 }
 
 export function getEmptyStateDetail(query?: string): string {
-  return query ? `` : "No institutions match these filters yet.";
+  return query
+    ? `"${query}" wasn't found in the current dataset.`
+    : "No institutions match these filters yet.";
 }
 
 export const INSTITUTION_TYPE_OPTIONS: { value: InstitutionType; label: string }[] = [

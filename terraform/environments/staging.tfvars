@@ -10,12 +10,12 @@
 # or a gitignored environments/staging.secrets.tfvars layered on top with a
 # second -var-file flag. See docs/DEPLOYMENT.md.
 
-environment          = "staging"
-project_name         = "eduverify-staging"
-dynamodb_table_name  = "eduverify-staging-institutions"
-s3_bucket_name       = "eduverify-staging-registers"
-amplify_branch_name  = "staging"
-amplify_app_id       = "d1w5n2yybv3bld"
+environment         = "staging"
+project_name        = "eduverify-staging"
+dynamodb_table_name = "eduverify-staging-institutions"
+s3_bucket_name      = "eduverify-staging-registers"
+amplify_branch_name = "staging"
+amplify_app_id      = "d1w5n2yybv3bld"
 # us-west-1, not the eu-west-1 default: that's the region the app was
 # actually created in via the AWS Console (see frontend.tf).
 amplify_region       = "us-west-1"
