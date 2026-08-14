@@ -27,7 +27,7 @@ jobs:
         working-directory: parser
 
       - name: Run pytest (guard against broken deploys)
-        run: pytest tests/
+        run: python -m pytest tests/
         working-directory: parser
 
       - uses: hashicorp/setup-terraform@v3
