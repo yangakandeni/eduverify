@@ -93,7 +93,7 @@ export default function BrowseInstitutionCard({
           className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
         >
           <ShieldCheck className="h-4 w-4" />
-          Verify
+          More Info
         </button>
         {institution.contacts.website && (
           <a

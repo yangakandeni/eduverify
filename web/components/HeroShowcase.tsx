@@ -276,7 +276,7 @@ function MainCard({
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             <ShieldCheck className="h-4 w-4" />
-            Verify Institution
+            More Info
           </button>
           {website && (
             <a
