@@ -1,8 +1,8 @@
-name: Deploy
+name: Deploy Staging
 
 on:
   push:
-    branches: [main]
+    branches: [staging]
   workflow_dispatch: {}
 
 permissions:
@@ -46,13 +46,13 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_STAGING }}
           aws-region: ${{ vars.AWS_REGION || 'af-south-1' }}
 
       - name: Terraform init
-        run: terraform init -backend-config=environments/production.backend.hcl -input=false
+        run: terraform init -backend-config=environments/staging.backend.hcl -input=false
         working-directory: terraform
 
       - name: Terraform apply
-        run: terraform apply -auto-approve -var-file=environments/production.tfvars
+        run: terraform apply -auto-approve -var-file=environments/staging.tfvars
         working-directory: terraform

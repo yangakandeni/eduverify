@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/archive"
       version = "~> 2.4"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 
   # Values supplied via partial configuration - see environments/*.backend.hcl
@@ -67,6 +71,18 @@ module "iam" {
   dynamodb_gsi_arn   = module.dynamodb.gsi1_arn
   log_group_name     = local.log_group_name
   tags               = local.common_tags
+}
+
+module "ci_oidc" {
+  source = "./modules/ci_oidc"
+
+  project_name         = var.project_name
+  github_repo          = var.github_repo
+  github_deploy_refs   = var.github_deploy_refs
+  tf_state_bucket_name = var.tf_state_bucket_name
+  tf_lock_table_name   = aws_dynamodb_table.tf_locks.name
+  amplify_app_id       = var.amplify_app_id
+  tags                 = local.common_tags
 }
 
 module "lambda" {

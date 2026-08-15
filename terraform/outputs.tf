@@ -77,3 +77,8 @@ output "amplify_ssr_compute_role_arn" {
   description = "ARN of the SSR compute role. Attach this manually as the Amplify app's Compute role via the Console (App settings > IAM roles) — see docs/DEPLOYMENT.md."
   value       = aws_iam_role.amplify_ssr_compute.arn
 }
+
+output "github_actions_deploy_role_arn" {
+  description = "ARN of the role GitHub Actions assumes via OIDC to deploy this environment. Set as the AWS_ROLE_ARN secret on the GitHub repo (per-environment via a GitHub Environment if staging gets its own deploy workflow later)."
+  value       = module.ci_oidc.role_arn
+}
