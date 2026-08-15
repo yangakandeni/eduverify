@@ -91,7 +91,7 @@ export default function InstitutionDetailModal({
             <div className="mt-0.5 text-sm font-medium text-foreground">{registrationDetails.value}</div>
           </div>
           <div>
-            <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Province</div>
+            <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Locations</div>
             {locations.length > 0 ? (
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {locations.map((location) => (
