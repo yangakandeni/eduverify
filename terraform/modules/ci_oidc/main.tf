@@ -93,7 +93,17 @@ locals {
   # management risk the comment above is guarding against.
   self_oidc_provider_arn = "arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"
   self_role_arn          = "arn:aws:iam::${local.account_id}:role/${var.project_name}-github-actions-deploy"
-  self_policy_arn        = "arn:aws:iam::${local.account_id}:policy/${var.project_name}-github-actions-deploy-policy"
+
+  # Two managed policies below (deploy_permissions / deploy_permissions_app):
+  # a single policy document hit IAM's 6,144-character managed-policy-size
+  # quota once the various Refresh*/List*ForResource statements were added
+  # to fix the CI role's own refresh permissions. Both are well-known names,
+  # not resource attributes, for the same reason self_role_arn above is —
+  # RefreshOwnCiInfra needs to reference them without a dependency cycle.
+  self_policy_arns = [
+    "arn:aws:iam::${local.account_id}:policy/${var.project_name}-github-actions-deploy-policy",
+    "arn:aws:iam::${local.account_id}:policy/${var.project_name}-github-actions-deploy-app-policy",
+  ]
 }
 
 # Scoped by the project_name prefix every resource in main.tf/frontend.tf/
@@ -171,6 +181,31 @@ data "aws_iam_policy_document" "deploy_permissions" {
     resources = ["arn:aws:s3:::${local.project_resource}/*"]
   }
 
+  statement {
+    sid       = "ReadOwnIdentity"
+    effect    = "Allow"
+    actions   = ["sts:GetCallerIdentity"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "deploy_permissions" {
+  name   = "${var.project_name}-github-actions-deploy-policy"
+  policy = data.aws_iam_policy_document.deploy_permissions.json
+  tags   = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "deploy_permissions" {
+  role       = aws_iam_role.github_actions_deploy.name
+  policy_arn = aws_iam_policy.deploy_permissions.arn
+}
+
+# Split from deploy_permissions above purely to stay under IAM's 6,144-
+# character managed-policy-size quota — DynamoDB/Lambda/IAM/logs/alarms/SNS/
+# EventBridge/Amplify management plus the self-refresh statement pushed the
+# single document over the limit. No scoping difference intended; this is
+# the same role's second attached policy, not a separate permission tier.
+data "aws_iam_policy_document" "deploy_permissions_app" {
   statement {
     sid    = "ManageProjectDynamoDbTable"
     effect = "Allow"
@@ -305,13 +340,6 @@ data "aws_iam_policy_document" "deploy_permissions" {
   }
 
   statement {
-    sid       = "ReadOwnIdentity"
-    effect    = "Allow"
-    actions   = ["sts:GetCallerIdentity"]
-    resources = ["*"]
-  }
-
-  statement {
     sid    = "RefreshOwnCiInfra"
     effect = "Allow"
     actions = [
@@ -319,17 +347,17 @@ data "aws_iam_policy_document" "deploy_permissions" {
       "iam:GetRole", "iam:ListRoleTags", "iam:ListAttachedRolePolicies", "iam:ListRolePolicies",
       "iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyVersions", "iam:ListPolicyTags",
     ]
-    resources = [local.self_oidc_provider_arn, local.self_role_arn, local.self_policy_arn]
+    resources = concat([local.self_oidc_provider_arn, local.self_role_arn], local.self_policy_arns)
   }
 }
 
-resource "aws_iam_policy" "deploy_permissions" {
-  name   = "${var.project_name}-github-actions-deploy-policy"
-  policy = data.aws_iam_policy_document.deploy_permissions.json
+resource "aws_iam_policy" "deploy_permissions_app" {
+  name   = "${var.project_name}-github-actions-deploy-app-policy"
+  policy = data.aws_iam_policy_document.deploy_permissions_app.json
   tags   = var.tags
 }
 
-resource "aws_iam_role_policy_attachment" "deploy_permissions" {
+resource "aws_iam_role_policy_attachment" "deploy_permissions_app" {
   role       = aws_iam_role.github_actions_deploy.name
-  policy_arn = aws_iam_policy.deploy_permissions.arn
+  policy_arn = aws_iam_policy.deploy_permissions_app.arn
 }
