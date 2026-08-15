@@ -43,6 +43,11 @@ NAME_NO_CONTACT_LABEL_BLOCK_2 = (
     "Website:\nwww.lisof.co.za"
 )
 
+NAME_STARTS_WITH_DIGIT_BLOCK = (
+    "2 Oceans Graduate Institute\nNPC\nCONTACT PERSON:\nMr JJ van Zyl\n"
+    "Registrar and Marketing Strategist\n(021) 829 7015 (T)\n086 661 1926 (F)"
+)
+
 ADDRESS_BLOCK_SINGLE = (
     "A) Bryanston: The Braes\nOffice Park, 3 Eaton\nAvenue, Bryanston, 2191"
 )
@@ -86,6 +91,10 @@ def test_extract_name_stops_before_plural_contacts_label():
 def test_extract_name_stops_at_salutation_line_with_no_contact_label():
     assert extract_name(NAME_NO_CONTACT_LABEL_BLOCK) == "International Hotel School (Pty) Ltd (The)"
     assert extract_name(NAME_NO_CONTACT_LABEL_BLOCK_2) == "LISOF (Pty) Ltd"
+
+
+def test_extract_name_keeps_leading_digit_in_institution_name():
+    assert extract_name(NAME_STARTS_WITH_DIGIT_BLOCK) == "2 Oceans Graduate Institute NPC"
 
 
 def test_extract_phones_strips_parens():
