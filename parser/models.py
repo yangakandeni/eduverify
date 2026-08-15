@@ -19,3 +19,4 @@ class Institution(BaseModel):
     province: Optional[str] = None
     contacts: Contacts = Field(default_factory=Contacts)
     qualifications: List[str] = Field(default_factory=list)
+    cancellation_reason: Optional[str] = None

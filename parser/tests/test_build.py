@@ -79,3 +79,20 @@ def test_record_to_institution_overrides_status_to_cancelled_when_name_block_has
 def test_record_to_institution_keeps_section_status_when_no_cancellation_notice():
     inst = record_to_institution(RECORD_1)
     assert inst.status == "Registered"
+
+
+def test_record_to_institution_captures_cancellation_reason():
+    record = dict(RECORD_1)
+    record["status"] = "Cancelled"
+    record["name_block"] = (
+        RECORD_1["name_block"] + "\nReasons for cancellation of\nregistration in terms of the\n"
+        "Act and the Regulations\nno longer offers\nprogrammes aligned to the\nHEQSF.\n"
+        "Date when cancellation\ncomes into effect\n13 July 2021"
+    )
+    inst = record_to_institution(record)
+    assert inst.cancellation_reason == "no longer offers programmes aligned to the HEQSF."
+
+
+def test_record_to_institution_cancellation_reason_none_when_no_notice():
+    inst = record_to_institution(RECORD_1)
+    assert inst.cancellation_reason is None

@@ -33,7 +33,8 @@ export default function InstitutionDetailModal({
   institution: InstitutionRecord;
   onClose: () => void;
 }) {
-  const { name, tradingName, address, province, contacts, qualifications, institutionType } = institution;
+  const { name, tradingName, address, province, contacts, qualifications, institutionType, cancellation_reason } =
+    institution;
   const badge = getStatusBadge(institution);
   const displayName = getDisplayName(name, tradingName);
   const categoryPills = institutionCategoryLabels(institution).slice(0, 3);
@@ -88,6 +89,13 @@ export default function InstitutionDetailModal({
           )}
           {badge.label}
         </div>
+
+        {badge.cancelled && cancellation_reason && (
+          <div className="rounded-lg bg-rose-50 px-3 py-2.5 text-sm text-rose-900">
+            <div className="font-mono text-xs uppercase tracking-wide text-rose-700">Reason for cancellation</div>
+            <p className="mt-1 leading-snug">{cancellation_reason}</p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>

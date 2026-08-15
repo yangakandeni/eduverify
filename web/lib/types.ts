@@ -27,6 +27,7 @@ export interface RawInstitution {
   province?: string | null;
   contacts: Contacts;
   qualifications: string[];
+  cancellation_reason?: string | null;
 }
 
 export interface Institution {
@@ -40,6 +41,7 @@ export interface Institution {
   province?: string | null;
   contacts: Contacts;
   qualifications: Qualification[];
+  cancellation_reason?: string | null;
   institutionType: InstitutionType;
   isFeatured?: boolean;
   isSponsored?: boolean;

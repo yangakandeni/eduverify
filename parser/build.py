@@ -3,6 +3,7 @@ validated Institution model, applying the field-level extraction helpers."""
 
 from extraction import (
     clean_address,
+    extract_cancellation_reason,
     extract_emails,
     extract_name,
     extract_phones,
@@ -80,4 +81,5 @@ def record_to_institution(record):
             website=extract_website(name_block),
         ),
         qualifications=split_qualifications(record.get("qualifications_block", "")),
+        cancellation_reason=extract_cancellation_reason(name_block),
     )
