@@ -84,6 +84,16 @@ locals {
 
   tf_state_bucket_arn = "arn:aws:s3:::${var.tf_state_bucket_name}"
   tf_lock_table_arn   = "arn:aws:dynamodb:*:${local.account_id}:table/${var.tf_lock_table_name}"
+
+  # This module's own OIDC provider/role/policy live in the same state this
+  # role applies, so every plan/apply refreshes them too. Read-only, unlike
+  # managed_role_arns/managed_policy_arns above — Get/List actions can't be
+  # used to escalate privilege the way AttachRolePolicy/CreateRole could, so
+  # granting them on the role's own ARN doesn't reintroduce the self-
+  # management risk the comment above is guarding against.
+  self_oidc_provider_arn = "arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"
+  self_role_arn          = "arn:aws:iam::${local.account_id}:role/${var.project_name}-github-actions-deploy"
+  self_policy_arn        = "arn:aws:iam::${local.account_id}:policy/${var.project_name}-github-actions-deploy-policy"
 }
 
 # Scoped by the project_name prefix every resource in main.tf/frontend.tf/
@@ -116,6 +126,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
     actions = [
       "s3:GetEncryptionConfiguration", "s3:GetBucketPublicAccessBlock",
       "s3:GetBucketOwnershipControls", "s3:GetBucketTagging",
+      "s3:GetBucketPolicy",
     ]
     resources = [local.tf_state_bucket_arn]
   }
@@ -123,7 +134,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
   statement {
     sid       = "RefreshBackendLockTable"
     effect    = "Allow"
-    actions   = ["dynamodb:DescribeTable", "dynamodb:ListTagsOfResource"]
+    actions   = ["dynamodb:DescribeTable", "dynamodb:ListTagsOfResource", "dynamodb:DescribeContinuousBackups", "dynamodb:DescribeTimeToLive"]
     resources = [local.tf_lock_table_arn]
   }
 
@@ -145,6 +156,10 @@ data "aws_iam_policy_document" "deploy_permissions" {
       "s3:PutBucketOwnershipControls", "s3:GetBucketOwnershipControls",
       "s3:PutBucketNotification", "s3:GetBucketNotification",
       "s3:PutBucketTagging", "s3:GetBucketTagging",
+      # aws_s3_bucket's Read still populates its deprecated `policy` attribute
+      # on every refresh, so this is needed even though no aws_s3_bucket_policy
+      # resource is declared anywhere in this project.
+      "s3:GetBucketPolicy",
     ]
     resources = ["arn:aws:s3:::${local.project_resource}"]
   }
@@ -161,7 +176,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
     effect = "Allow"
     actions = [
       "dynamodb:CreateTable", "dynamodb:UpdateTable", "dynamodb:DeleteTable", "dynamodb:DescribeTable",
-      "dynamodb:UpdateContinuousBackups", "dynamodb:DescribeContinuousBackups",
+      "dynamodb:UpdateContinuousBackups", "dynamodb:DescribeContinuousBackups", "dynamodb:DescribeTimeToLive",
       "dynamodb:TagResource", "dynamodb:ListTagsOfResource",
     ]
     resources = [
@@ -216,10 +231,21 @@ data "aws_iam_policy_document" "deploy_permissions" {
     sid    = "ManageProjectLogGroups"
     effect = "Allow"
     actions = [
-      "logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DescribeLogGroups",
+      "logs:CreateLogGroup", "logs:DeleteLogGroup",
       "logs:PutRetentionPolicy", "logs:TagResource", "logs:ListTagsForResource",
     ]
     resources = ["arn:aws:logs:*:${local.account_id}:log-group:/aws/lambda/${local.project_resource}*"]
+  }
+
+  # logs:DescribeLogGroups doesn't support resource-level permissions (it's an
+  # account-wide list operation, not scoped to one log group) — IAM silently
+  # denies it if the statement's Resource is anything but "*", regardless of
+  # whether the action is also listed in a scoped statement above.
+  statement {
+    sid       = "ListLogGroupsForRefresh"
+    effect    = "Allow"
+    actions   = ["logs:DescribeLogGroups"]
+    resources = ["*"]
   }
 
   statement {
@@ -238,6 +264,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
     actions = [
       "sns:CreateTopic", "sns:DeleteTopic", "sns:GetTopicAttributes", "sns:SetTopicAttributes",
       "sns:Subscribe", "sns:Unsubscribe", "sns:ListSubscriptionsByTopic", "sns:TagResource",
+      "sns:ListTagsForResource",
     ]
     resources = ["arn:aws:sns:*:${local.account_id}:${local.project_resource}"]
   }
@@ -248,6 +275,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
     actions = [
       "events:PutRule", "events:DeleteRule", "events:DescribeRule",
       "events:PutTargets", "events:RemoveTargets", "events:ListTargetsByRule", "events:TagResource",
+      "events:ListTagsForResource",
     ]
     resources = ["arn:aws:events:*:${local.account_id}:rule/${local.project_resource}"]
   }
@@ -281,6 +309,17 @@ data "aws_iam_policy_document" "deploy_permissions" {
     effect    = "Allow"
     actions   = ["sts:GetCallerIdentity"]
     resources = ["*"]
+  }
+
+  statement {
+    sid    = "RefreshOwnCiInfra"
+    effect = "Allow"
+    actions = [
+      "iam:GetOpenIDConnectProvider", "iam:ListOpenIDConnectProviderTags",
+      "iam:GetRole", "iam:ListRoleTags", "iam:ListAttachedRolePolicies", "iam:ListRolePolicies",
+      "iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyVersions", "iam:ListPolicyTags",
+    ]
+    resources = [local.self_oidc_provider_arn, local.self_role_arn, local.self_policy_arn]
   }
 }
 

@@ -1,43 +1,22 @@
 locals {
-  python_version = replace(var.runtime, "python", "")
-  manylinux_platform = {
-    x86_64 = "manylinux2014_x86_64"
-    arm64  = "manylinux2014_aarch64"
-  }[var.architecture]
   layer_build_dir = "${path.module}/build/layer"
 }
 
-# pip's --platform/--only-binary flags cross-compile the dependency layer for
-# Lambda's Amazon Linux runtime from a developer machine (e.g. macOS/arm64)
-# without needing Docker, provided every dependency ships a prebuilt wheel
-# for the target platform (true for pdfplumber/pydantic as of writing).
-resource "null_resource" "install_layer_deps" {
-  triggers = {
-    requirements_hash = filesha256(var.requirements_file)
-    platform          = local.manylinux_platform
-    python_version    = local.python_version
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      rm -rf ${local.layer_build_dir}
-      mkdir -p ${local.layer_build_dir}/python
-      pip install \
-        -r ${var.requirements_file} \
-        --platform ${local.manylinux_platform} \
-        --implementation cp \
-        --python-version ${local.python_version} \
-        --only-binary=:all: \
-        --target ${local.layer_build_dir}/python
-    EOT
-  }
-}
-
+# The layer_build_dir/python directory is populated by
+# scripts/build_lambda_layer.sh, which must run before `terraform plan`/
+# `apply` (see that script's header comment for why this can't be done with
+# a null_resource local-exec inside this module).
 data "archive_file" "layer" {
   type        = "zip"
   source_dir  = local.layer_build_dir
   output_path = "${path.module}/build/layer.zip"
-  depends_on  = [null_resource.install_layer_deps]
+
+  lifecycle {
+    precondition {
+      condition     = length(fileset(local.layer_build_dir, "python/**")) > 0
+      error_message = "Lambda layer build directory is empty or missing. Run scripts/build_lambda_layer.sh before terraform plan/apply."
+    }
+  }
 }
 
 resource "aws_lambda_layer_version" "deps" {

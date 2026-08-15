@@ -70,7 +70,20 @@ else
   fail "parser/.venv not found — create it and 'pip install -r requirements.txt' first"
 fi
 
-step "4. Terraform init + plan"
+step "4. Lambda layer build"
+# Must happen before `terraform plan`: data.archive_file.layer
+# (terraform/modules/lambda) zips this directory during the plan's refresh
+# step, which is too early for a null_resource/local-exec inside that module
+# to populate it reliably (see scripts/build_lambda_layer.sh's header).
+# Args here must match var.lambda_architecture / the Lambda runtime default
+# in terraform/variables.tf and terraform/modules/lambda/variables.tf.
+"$REPO_ROOT/scripts/build_lambda_layer.sh" \
+  "$REPO_ROOT/parser/requirements-lambda.txt" \
+  "$REPO_ROOT/terraform/modules/lambda/build/layer" \
+  3.12 x86_64
+pass "layer build directory populated"
+
+step "5. Terraform init + plan"
 (
   cd "$REPO_ROOT/terraform"
   VAR_FILE_ARGS=(-var-file="environments/$ENVIRONMENT.tfvars")

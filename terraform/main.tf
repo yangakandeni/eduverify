@@ -91,7 +91,6 @@ module "lambda" {
   function_name      = local.lambda_function_name
   role_arn           = module.iam.role_arn
   source_dir         = "${path.module}/../parser"
-  requirements_file  = "${path.module}/../parser/requirements-lambda.txt"
   architecture       = var.lambda_architecture
   memory_size        = var.lambda_memory_size
   timeout            = var.lambda_timeout
