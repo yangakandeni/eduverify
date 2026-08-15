@@ -12,6 +12,11 @@ import re
 _NEW_RECORD_RE = re.compile(r"^\d+\.$")
 _COLUMN_KEYS = [None, "name_block", "address_block", "registration_number", "province", "qualifications_block"]
 
+# Section 6's ("bogus colleges") NAME column repeats "N. Name" with the index
+# embedded in the same cell, rather than a separate leading index column.
+_BOGUS_NEW_RECORD_RE = re.compile(r"^\d+\.\s+\S")
+_BOGUS_NOISE_RE = re.compile(r"^(NAME|PHYSICAL ADDRESS|CONTACT DETAILS)", re.IGNORECASE)
+
 
 def _cell(value):
     return (value or "").strip()
@@ -55,4 +60,34 @@ def group_table_rows(status_rows):
                     current[key] = f"{current[key]}\n{extra}" if current[key] else extra
     if current:
         records.append(current)
+    return records
+
+
+def group_bogus_rows(status_rows):
+    """Group section 6's ("WARNING: ... BOGUS COLLEGES") rows into one
+    name-only record per college. Unlike `group_table_rows`, a new entry's
+    "N." index is embedded in the same NAME cell rather than a separate
+    column, and the column count varies row to row, so only column 0 (the
+    name) is tracked here — the address/contact/programme columns aren't
+    needed for a warning list and their layout isn't consistent enough to
+    parse reliably.
+
+    status_rows: iterable of (status, row) tuples, as yielded by
+    `pdf_extract.iter_status_rows`; rows not tagged "Bogus" are ignored."""
+    records = []
+    current_name = None
+    for status, row in status_rows:
+        if status != "Bogus":
+            continue
+        col0 = _cell(row[0]) if row else ""
+        if not col0 or _BOGUS_NOISE_RE.match(col0):
+            continue
+        if _BOGUS_NEW_RECORD_RE.match(col0):
+            if current_name:
+                records.append({"status": "Bogus", "name_block": current_name})
+            current_name = re.sub(r"^\d+\.\s+", "", col0).replace("\n", " ").strip()
+        elif current_name is not None:
+            current_name = current_name + " " + col0.replace("\n", " ").strip()
+    if current_name:
+        records.append({"status": "Bogus", "name_block": current_name})
     return records

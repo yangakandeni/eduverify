@@ -14,9 +14,7 @@ from pathlib import Path
 
 import requests
 
-from build import record_to_institution
-from grouping import group_table_rows
-from pdf_extract import iter_status_rows
+from build import build_institutions
 
 DHET_PDF_URL = (
     "https://www.dhet.gov.za/Registers_DocLib/Annexure%20A%20Register%20"
@@ -39,21 +37,9 @@ def download_pdf(url, dest_path, timeout=60):
 
 def parse_pdf(pdf_path):
     """Returns (institutions: list[Institution], stats: dict)."""
-    records = group_table_rows(iter_status_rows(pdf_path))
-
-    institutions = []
-    skipped = 0
-    for record in records:
-        institution = record_to_institution(record)
-        if institution is None:
-            skipped += 1
-            continue
-        institutions.append(institution)
-
+    institutions = build_institutions(pdf_path)
     stats = {
-        "total_rows_grouped": len(records),
         "total_parsed": len(institutions),
-        "total_skipped": skipped,
         "by_status": dict(Counter(i.status or "Unknown" for i in institutions)),
     }
     return institutions, stats
@@ -86,9 +72,7 @@ def main():
 
     print()
     print("=== Summary ===")
-    print(f"Table rows grouped into records : {stats['total_rows_grouped']}")
-    print(f"Institutions parsed             : {stats['total_parsed']}")
-    print(f"Rows skipped (no parseable name) : {stats['total_skipped']}")
+    print(f"Institutions parsed : {stats['total_parsed']}")
     print("By status:")
     for status, count in stats["by_status"].items():
         print(f"  {status}: {count}")

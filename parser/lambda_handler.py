@@ -12,10 +12,8 @@ from pathlib import Path
 
 import boto3
 
-from build import record_to_institution
+from build import build_institutions
 from dynamo_item import to_item
-from grouping import group_table_rows
-from pdf_extract import iter_status_rows
 
 TABLE_NAME = os.environ["DYNAMODB_TABLE"]
 BACKUP_PREFIX = os.environ.get("BACKUP_PREFIX", "backups/")
@@ -28,16 +26,7 @@ def _process_pdf(bucket, key, table):
     local_pdf = Path("/tmp") / Path(key).name
     s3.download_file(bucket, key, str(local_pdf))
 
-    grouped_records = group_table_rows(iter_status_rows(local_pdf))
-
-    institutions = []
-    skipped = 0
-    for grouped_record in grouped_records:
-        institution = record_to_institution(grouped_record)
-        if institution is None:
-            skipped += 1
-            continue
-        institutions.append(institution)
+    institutions = build_institutions(local_pdf)
 
     with table.batch_writer() as batch:
         for institution in institutions:
@@ -55,7 +44,6 @@ def _process_pdf(bucket, key, table):
         "source_key": key,
         "backup_key": backup_key,
         "total_written": len(institutions),
-        "total_skipped": skipped,
     }
 
 

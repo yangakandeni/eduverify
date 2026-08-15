@@ -13,15 +13,16 @@ export interface BrowseFilters {
   status: string;
 }
 
-/** Most of the register only ever yields these two statuses — lapsed/bogus institutions
- * are dropped during parsing (see parser/pdf_extract.py) rather than kept with a
- * "deregistered" status. A "Cancelled" status does occur (see getStatusBadge) but has
- * no filter option of its own here: cancelled institutions are excluded from both
- * buckets below rather than folded into "Provisionally Registered", so they only
- * surface when no status filter is applied. */
+/** Registered/Provisionally Registered cover most of the register; the remaining three
+ * options surface institutions the DHET register flags as no longer (or never)
+ * legitimately registered — cancelled, self-discontinued, or an outright "bogus college"
+ * warning listing (see getStatusBadge and parser/pdf_extract.py's section 3-6 handling). */
 export const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "registered", label: "Registered" },
   { value: "provisional", label: "Provisionally Registered" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "discontinued", label: "Discontinued" },
+  { value: "bogus", label: "Bogus / Unregistered Warning" },
 ];
 
 export function filterInstitutionsForBrowse(
@@ -35,6 +36,9 @@ export function filterInstitutionsForBrowse(
     }
     if (filters.status !== ALL_STATUSES_VALUE) {
       const badge = getStatusBadge(institution);
+      if (filters.status === "cancelled") return badge.label === "Cancelled";
+      if (filters.status === "discontinued") return badge.label === "Discontinued";
+      if (filters.status === "bogus") return badge.label === "Bogus";
       if (badge.cancelled) return false;
       if (filters.status === "registered" && !badge.verified) return false;
       if (filters.status === "provisional" && badge.verified) return false;

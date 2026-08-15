@@ -1,4 +1,4 @@
-import raw from "@/data/institutions.json";
+import raw from "../../data/institutions.json";
 import { institutionKey } from "./keys";
 import { normalizeProvince } from "./normalize";
 import { parseQualification } from "./qualifications";

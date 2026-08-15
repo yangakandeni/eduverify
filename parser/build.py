@@ -11,7 +11,50 @@ from extraction import (
     has_cancellation_notice,
     split_qualifications,
 )
+from grouping import group_bogus_rows, group_table_rows
 from models import Contacts, Institution
+from pdf_extract import iter_name_list_entries, iter_status_rows
+
+# Statuses whose rows share the 6-column NAME/ADDRESS/REG-NO/PROVINCE/
+# QUALIFICATIONS table schema (sections 1-3) and so flow through
+# `grouping.group_table_rows`; "Bogus" (section 6) uses a different, embedded
+# -index schema and is grouped separately by `grouping.group_bogus_rows`.
+_TABULAR_STATUSES = {"Registered", "Provisionally Registered", "Cancelled"}
+
+# A name-only entry (sections 4-6) has no address/registration-number/
+# qualifications data, but `record_to_institution` only requires a name, so
+# these keys are left blank rather than needing a separate code path.
+_BLANK_RECORD_FIELDS = {
+    "address_block": "",
+    "registration_number": "",
+    "province": "",
+    "qualifications_block": "",
+}
+
+
+def build_institutions(pdf_path):
+    """Parse every institution out of the register PDF: the actively
+    registered/provisional/cancelled institutions (tabular sections 1-3),
+    plus the name-only cancelled/discontinued lists (sections 4-5) and the
+    "bogus colleges" warning table (section 6). Returns a flat list of
+    Institution models — callers that need per-status stats can group by
+    `.status` themselves."""
+    status_rows = list(iter_status_rows(pdf_path))
+    tabular_rows = [(status, row) for status, row in status_rows if status in _TABULAR_STATUSES]
+
+    records = group_table_rows(tabular_rows)
+    records += group_bogus_rows(status_rows)
+    records += [
+        {"status": status, "name_block": name, **_BLANK_RECORD_FIELDS}
+        for status, name in iter_name_list_entries(pdf_path)
+    ]
+
+    institutions = []
+    for record in records:
+        institution = record_to_institution(record)
+        if institution is not None:
+            institutions.append(institution)
+    return institutions
 
 
 def record_to_institution(record):

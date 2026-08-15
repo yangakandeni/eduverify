@@ -162,6 +162,20 @@ describe("getVerificationDescription", () => {
       "This institution's registration with the Department of Higher Education and Training has been cancelled."
     );
   });
+
+  it("describes a discontinued institution as having discontinued its own registration", () => {
+    const institution = makeInstitution({ status: "Discontinued" });
+    expect(getVerificationDescription(institution)).toBe(
+      "This institution requested that the Department of Higher Education and Training discontinue its registration."
+    );
+  });
+
+  it("describes a bogus institution as an unregistered warning listing, not a real institution", () => {
+    const institution = makeInstitution({ status: "Bogus" });
+    expect(getVerificationDescription(institution)).toBe(
+      "This is not a registered institution. The Department of Higher Education and Training has published it on its warning list of bogus, unregistered providers."
+    );
+  });
 });
 
 describe("getStatusBadge", () => {
@@ -183,5 +197,15 @@ describe("getStatusBadge", () => {
   it("labels a cancelled institution as Cancelled instead of Provisionally Registered", () => {
     const institution = makeInstitution({ status: "Cancelled" });
     expect(getStatusBadge(institution)).toEqual({ label: "Cancelled", verified: false, cancelled: true });
+  });
+
+  it("labels a discontinued institution as Discontinued", () => {
+    const institution = makeInstitution({ status: "Discontinued" });
+    expect(getStatusBadge(institution)).toEqual({ label: "Discontinued", verified: false, cancelled: true });
+  });
+
+  it("labels a bogus institution as Bogus", () => {
+    const institution = makeInstitution({ status: "Bogus" });
+    expect(getStatusBadge(institution)).toEqual({ label: "Bogus", verified: false, cancelled: true });
   });
 });
