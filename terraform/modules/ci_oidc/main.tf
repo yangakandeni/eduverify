@@ -34,11 +34,21 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
 
     # StringLike (not Equals) so a single ref can also be expressed as a
     # wildcard pattern later (e.g. "refs/heads/release-*") without changing
-    # the condition operator.
+    # the condition operator. Also StringLike because GitHub's actual `sub`
+    # claim here is "repo:<owner>@<owner_id>/<repo>@<repo_id>:ref:<ref>" (the
+    # org has the immutable-ID subject-claim format as its default, confirmed
+    # via `gh api repos/<repo>/actions/oidc/customization/sub`), not the
+    # classic "repo:<owner>/<repo>:ref:<ref>" — matching both keeps this
+    # working whether or not that default changes again.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = [for ref in var.github_deploy_refs : "repo:${var.github_repo}:ref:${ref}"]
+      values = flatten([
+        for ref in var.github_deploy_refs : [
+          "repo:${var.github_repo}:ref:${ref}",
+          "repo:${split("/", var.github_repo)[0]}@*/${split("/", var.github_repo)[1]}@*:ref:${ref}",
+        ]
+      ])
     }
   }
 }
