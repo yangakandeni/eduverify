@@ -24,6 +24,11 @@ _EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 _WEBSITE_RE = re.compile(r"https?://\S+|www\.\S+", re.IGNORECASE)
 _REG_NO_RE = re.compile(r"\d{4}/HE\d{2}/\d+")
 _CANCELLATION_NOTICE_RE = re.compile(r"reasons\s+for\s+cancellation\s+of\s+registration", re.IGNORECASE)
+_CANCELLATION_REASON_LABEL_RE = re.compile(
+    r"reasons\s+for\s+cancellation\s+of\s+registration\s+in\s+terms\s+of\s+the\s+act\s+and\s+the\s+regulations",
+    re.IGNORECASE,
+)
+_CANCELLATION_DATE_LABEL_RE = re.compile(r"date\s+when\s+cancellation\s+comes\s+into\s+effect", re.IGNORECASE)
 _QUALIFICATION_SPLIT_RE = re.compile(r"\n(?=\d+\)\s)")
 _QUALIFICATION_START_RE = re.compile(r"^\d+\)\s")
 
@@ -118,6 +123,26 @@ def extract_registration_number(text):
     if not match:
         return None
     return match.group(0)
+
+
+def extract_cancellation_reason(name_block):
+    """Return the free-text reason DHET gives for a cancellation, pulled from the
+    NAME/contact cell text following the "Reasons for cancellation of registration
+    in terms of the Act and the Regulations" label, and stopping before the "Date
+    when cancellation comes into effect" label (or end of cell) so the effective
+    date/phase-out sentence that follows isn't included. None if the cell carries
+    no cancellation notice at all."""
+    if not name_block:
+        return None
+    label_match = _CANCELLATION_REASON_LABEL_RE.search(name_block)
+    if not label_match:
+        return None
+    remainder = name_block[label_match.end():]
+    date_match = _CANCELLATION_DATE_LABEL_RE.search(remainder)
+    if date_match:
+        remainder = remainder[: date_match.start()]
+    lines = [l.strip() for l in remainder.split("\n") if l.strip()]
+    return _reflow(lines) or None
 
 
 def has_cancellation_notice(name_block):

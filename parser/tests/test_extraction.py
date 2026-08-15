@@ -3,6 +3,7 @@ real DHET Annexure A register (extracted via pdfplumber table extraction)."""
 
 from extraction import (
     clean_address,
+    extract_cancellation_reason,
     extract_emails,
     extract_name,
     extract_registration_number,
@@ -195,3 +196,33 @@ def test_has_cancellation_notice_false_for_ordinary_block():
 def test_has_cancellation_notice_false_for_blank_input():
     assert has_cancellation_notice("") is False
     assert has_cancellation_notice(None) is False
+
+
+CANCELLATION_REASON_WITH_DATE_BLOCK = (
+    "Camelot International Pty\n(Ltd)\nCONTACT PERSON:\nRosemarie Heesen\n"
+    "P O Box 1090\nHOUGHTON\n2121\nReasons for cancellation of\n"
+    "registration in terms of the\nAct and the Regulations\nCamelot "
+    "International (Pty)\nLtd no longer offers\nprogrammes aligned to the\n"
+    "HEQSF.\nDate when cancellation\ncomes into effect\n13 July 2021"
+)
+
+
+def test_extract_cancellation_reason_stops_before_effective_date():
+    assert extract_cancellation_reason(CANCELLATION_REASON_WITH_DATE_BLOCK) == (
+        "Camelot International (Pty) Ltd no longer offers programmes aligned to the HEQSF."
+    )
+
+
+def test_extract_cancellation_reason_without_trailing_date():
+    assert extract_cancellation_reason(CANCELLATION_NOTICE_BLOCK) == (
+        "ceased to meet the eligibility criteria for registration"
+    )
+
+
+def test_extract_cancellation_reason_none_when_no_notice():
+    assert extract_cancellation_reason(NAME_CONTACT_BLOCK_2) is None
+
+
+def test_extract_cancellation_reason_none_for_blank_input():
+    assert extract_cancellation_reason("") is None
+    assert extract_cancellation_reason(None) is None

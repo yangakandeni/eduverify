@@ -17,6 +17,7 @@ def test_institution_defaults_for_missing_optional_fields():
     assert inst.province is None
     assert inst.qualifications == []
     assert inst.contacts == Contacts()
+    assert inst.cancellation_reason is None
 
 
 def test_institution_full_record():

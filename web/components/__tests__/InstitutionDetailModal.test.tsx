@@ -30,6 +30,39 @@ describe("InstitutionDetailModal status badge", () => {
   });
 });
 
+describe("InstitutionDetailModal cancellation reason", () => {
+  it("shows the DHET cancellation reason for a cancelled institution", () => {
+    render(
+      <InstitutionDetailModal
+        institution={makeInstitution({
+          status: "Cancelled",
+          cancellation_reason: "no longer offers programmes aligned to the HEQSF.",
+        })}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("no longer offers programmes aligned to the HEQSF.")).toBeInTheDocument();
+  });
+
+  it("omits the cancellation reason section when none is present", () => {
+    render(<InstitutionDetailModal institution={makeInstitution({ status: "Cancelled" })} onClose={vi.fn()} />);
+
+    expect(screen.queryByText("Reason for cancellation")).not.toBeInTheDocument();
+  });
+
+  it("does not show a cancellation reason for an active institution", () => {
+    render(
+      <InstitutionDetailModal
+        institution={makeInstitution({ status: "Registered", cancellation_reason: "should not render" })}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText("should not render")).not.toBeInTheDocument();
+  });
+});
+
 describe("InstitutionDetailModal location label", () => {
   it("labels the province/campus field as Locations, not Province", () => {
     render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);
