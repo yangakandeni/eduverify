@@ -33,3 +33,20 @@ describe("BrowseInstitutionCard primary action button", () => {
     expect(onVerify).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("BrowseInstitutionCard status badge", () => {
+  it("shows 'Cancelled', not 'Provisionally Registered', for an institution whose registration was cancelled", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Cancelled" })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    const badge = screen.getByText("Cancelled");
+    expect(screen.queryByText("Provisionally Registered")).not.toBeInTheDocument();
+    expect(badge.closest("div")).toHaveClass("bg-rose-50", "text-rose-700");
+  });
+});

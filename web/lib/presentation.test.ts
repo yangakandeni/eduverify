@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDisplayName, getRegistrationDetails, getVerificationDescription } from "./presentation";
+import { getDisplayName, getRegistrationDetails, getStatusBadge, getVerificationDescription } from "./presentation";
 import type { InstitutionRecord } from "./types";
 
 function makeInstitution(overrides: Partial<InstitutionRecord> = {}): InstitutionRecord {
@@ -154,5 +154,34 @@ describe("getVerificationDescription", () => {
     expect(getVerificationDescription(institution)).toBe(
       "This institution is provisionally registered with the Department of Higher Education and Training, pending full accreditation."
     );
+  });
+
+  it("describes a cancelled institution as having had its registration cancelled", () => {
+    const institution = makeInstitution({ status: "Cancelled" });
+    expect(getVerificationDescription(institution)).toBe(
+      "This institution's registration with the Department of Higher Education and Training has been cancelled."
+    );
+  });
+});
+
+describe("getStatusBadge", () => {
+  it("labels a registered private institution as Registered Private and verified", () => {
+    const institution = makeInstitution({ status: "Registered", institutionType: "Private Higher Education Institution" });
+    expect(getStatusBadge(institution)).toEqual({ label: "Registered Private", verified: true, cancelled: false });
+  });
+
+  it("labels a registered public university as Registered Public and verified", () => {
+    const institution = makeInstitution({ status: "Registered", institutionType: "Public University" });
+    expect(getStatusBadge(institution)).toEqual({ label: "Registered Public", verified: true, cancelled: false });
+  });
+
+  it("labels a provisionally registered institution as unverified", () => {
+    const institution = makeInstitution({ status: "Provisionally Registered" });
+    expect(getStatusBadge(institution)).toEqual({ label: "Provisionally Registered", verified: false, cancelled: false });
+  });
+
+  it("labels a cancelled institution as Cancelled instead of Provisionally Registered", () => {
+    const institution = makeInstitution({ status: "Cancelled" });
+    expect(getStatusBadge(institution)).toEqual({ label: "Cancelled", verified: false, cancelled: true });
   });
 });

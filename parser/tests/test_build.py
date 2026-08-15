@@ -63,3 +63,19 @@ def test_record_to_institution_blank_registration_number_becomes_none():
     record["registration_number"] = "not a reg number"
     inst = record_to_institution(record)
     assert inst.registration_number is None
+
+
+def test_record_to_institution_overrides_status_to_cancelled_when_name_block_has_cancellation_notice():
+    record = dict(RECORD_1)
+    record["status"] = "Provisionally Registered"
+    record["name_block"] = (
+        RECORD_1["name_block"] + "\nReasons for cancellation of\nregistration in terms of the\n"
+        "Act and the Regulations\nceased to meet the eligibility criteria"
+    )
+    inst = record_to_institution(record)
+    assert inst.status == "Cancelled"
+
+
+def test_record_to_institution_keeps_section_status_when_no_cancellation_notice():
+    inst = record_to_institution(RECORD_1)
+    assert inst.status == "Registered"

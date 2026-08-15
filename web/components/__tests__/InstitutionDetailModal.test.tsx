@@ -20,6 +20,16 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
   };
 }
 
+describe("InstitutionDetailModal status badge", () => {
+  it("shows 'Cancelled', not 'Provisionally Registered', for an institution whose registration was cancelled", () => {
+    render(<InstitutionDetailModal institution={makeInstitution({ status: "Cancelled" })} onClose={vi.fn()} />);
+
+    const badge = screen.getByText("Cancelled");
+    expect(screen.queryByText("Provisionally Registered")).not.toBeInTheDocument();
+    expect(badge.closest("div")).toHaveClass("bg-rose-50", "text-rose-700");
+  });
+});
+
 describe("InstitutionDetailModal location label", () => {
   it("labels the province/campus field as Locations, not Province", () => {
     render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);

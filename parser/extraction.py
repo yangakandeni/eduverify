@@ -23,6 +23,7 @@ _PHONE_RE = re.compile(r"\(?0\d{1,2}\)?[\s\-]?\d{3}[\s\-]?\d{4}")
 _EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 _WEBSITE_RE = re.compile(r"https?://\S+|www\.\S+", re.IGNORECASE)
 _REG_NO_RE = re.compile(r"\d{4}/HE\d{2}/\d+")
+_CANCELLATION_NOTICE_RE = re.compile(r"reasons\s+for\s+cancellation\s+of\s+registration", re.IGNORECASE)
 _QUALIFICATION_SPLIT_RE = re.compile(r"\n(?=\d+\)\s)")
 _QUALIFICATION_START_RE = re.compile(r"^\d+\)\s")
 
@@ -117,3 +118,14 @@ def extract_registration_number(text):
     if not match:
         return None
     return match.group(0)
+
+
+def has_cancellation_notice(name_block):
+    """True if a NAME/contact cell carries DHET's "Reasons for cancellation of
+    registration..." notice. The register lists these institutions under the
+    Registered/Provisionally Registered sections (not the excluded lapse/
+    cancellation sections pdf_extract drops), so this is the only signal that
+    a registration is actually cancelled rather than still active."""
+    if not name_block:
+        return False
+    return bool(_CANCELLATION_NOTICE_RE.search(name_block))

@@ -159,27 +159,40 @@ export function getRegistrationDetails(institution: InstitutionRecord): Registra
 export interface StatusBadge {
   label: string;
   verified: boolean;
+  cancelled: boolean;
 }
 
 /** Derives a display badge from the raw register status; provisional institutions are
  * called out explicitly rather than folded into "Registered" — this is a verification
- * tool, so overstating a provisional status would defeat its purpose. */
+ * tool, so overstating a provisional status would defeat its purpose. Cancelled
+ * institutions are checked first: DHET lists some cancelled registrations under the
+ * Registered/Provisionally Registered sections rather than a separate section (see
+ * parser/extraction.py's has_cancellation_notice), so a raw status of "Provisionally
+ * Registered" doesn't always mean the registration is still active. */
 export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
   const rawStatus = (institution.status ?? "").toLowerCase();
 
+  if (rawStatus.includes("cancelled")) {
+    return { label: "Cancelled", verified: false, cancelled: true };
+  }
+
   if (rawStatus.includes("provisional")) {
-    return { label: "Provisionally Registered", verified: false };
+    return { label: "Provisionally Registered", verified: false, cancelled: false };
   }
 
   const isPublic = institution.institutionType === "Public University" || institution.institutionType === "TVET College";
-  return { label: isPublic ? "Registered Public" : "Registered Private", verified: true };
+  return { label: isPublic ? "Registered Public" : "Registered Private", verified: true, cancelled: false };
 }
 
 /** Longer-form copy for the verification callout in the institution detail modal —
  * distinct from StatusBadge.label, which stays terse for the small pill badges used
  * elsewhere (grid cards, hero cards). */
 export function getVerificationDescription(institution: InstitutionRecord): string {
-  if (getStatusBadge(institution).verified) {
+  const badge = getStatusBadge(institution);
+  if (badge.cancelled) {
+    return "This institution's registration with the Department of Higher Education and Training has been cancelled.";
+  }
+  if (badge.verified) {
     return "This institution is officially registered with the Department of Higher Education and Training.";
   }
   return "This institution is provisionally registered with the Department of Higher Education and Training, pending full accreditation.";

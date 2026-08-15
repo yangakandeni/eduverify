@@ -13,9 +13,12 @@ export interface BrowseFilters {
   status: string;
 }
 
-/** The DHET register export only ever yields these two statuses — lapsed/cancelled/bogus
- * institutions are dropped during parsing (see parser/pdf_extract.py) rather than kept
- * with a "deregistered" status, so there is no such option to filter by here. */
+/** Most of the register only ever yields these two statuses — lapsed/bogus institutions
+ * are dropped during parsing (see parser/pdf_extract.py) rather than kept with a
+ * "deregistered" status. A "Cancelled" status does occur (see getStatusBadge) but has
+ * no filter option of its own here: cancelled institutions are excluded from both
+ * buckets below rather than folded into "Provisionally Registered", so they only
+ * surface when no status filter is applied. */
 export const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "registered", label: "Registered" },
   { value: "provisional", label: "Provisionally Registered" },
@@ -31,9 +34,10 @@ export function filterInstitutionsForBrowse(
       return false;
     }
     if (filters.status !== ALL_STATUSES_VALUE) {
-      const verified = getStatusBadge(institution).verified;
-      if (filters.status === "registered" && !verified) return false;
-      if (filters.status === "provisional" && verified) return false;
+      const badge = getStatusBadge(institution);
+      if (badge.cancelled) return false;
+      if (filters.status === "registered" && !badge.verified) return false;
+      if (filters.status === "provisional" && badge.verified) return false;
     }
     return true;
   });

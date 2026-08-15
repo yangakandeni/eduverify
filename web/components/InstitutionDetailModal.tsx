@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, Clock, Globe, Mail, Phone, X } from "lucide-react";
+import { CheckCircle2, Clock, Globe, Mail, Phone, X, XCircle } from "lucide-react";
 import {
   TYPE_LABEL,
   getBrandColor,
@@ -76,10 +76,16 @@ export default function InstitutionDetailModal({
       <div className="space-y-4 px-5 py-4">
         <div
           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-            badge.verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+            badge.cancelled ? "bg-rose-50 text-rose-700" : badge.verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
           }`}
         >
-          {badge.verified ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+          {badge.cancelled ? (
+            <XCircle className="h-3.5 w-3.5" />
+          ) : badge.verified ? (
+            <CheckCircle2 className="h-3.5 w-3.5" />
+          ) : (
+            <Clock className="h-3.5 w-3.5" />
+          )}
           {badge.label}
         </div>
 

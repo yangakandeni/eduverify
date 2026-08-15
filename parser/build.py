@@ -8,6 +8,7 @@ from extraction import (
     extract_phones,
     extract_registration_number,
     extract_website,
+    has_cancellation_notice,
     split_qualifications,
 )
 from models import Contacts, Institution
@@ -22,11 +23,12 @@ def record_to_institution(record):
 
     name_block = record.get("name_block", "")
     province = record.get("province", "").strip() or None
+    status = "Cancelled" if has_cancellation_notice(name_block) else record.get("status")
 
     return Institution(
         name=name,
         registration_number=extract_registration_number(record.get("registration_number", "")),
-        status=record.get("status"),
+        status=status,
         address=clean_address(record.get("address_block", "")),
         province=province,
         contacts=Contacts(

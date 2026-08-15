@@ -204,7 +204,11 @@ function StatusPill({ badge }: { badge: StatusBadge }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-wide ${
-        badge.verified ? "border border-emerald-200 bg-emerald-50 text-emerald-600" : "bg-amber-100 text-amber-800"
+        badge.cancelled
+          ? "border border-rose-200 bg-rose-50 text-rose-600"
+          : badge.verified
+            ? "border border-emerald-200 bg-emerald-50 text-emerald-600"
+            : "bg-amber-100 text-amber-800"
       }`}
     >
       <BadgeCheck className="h-3.5 w-3.5" />
@@ -326,11 +330,15 @@ function SmallCard({ institution, onSelect }: { institution: InstitutionRecord; 
       </div>
       <span
         className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide ${
-          badge.verified ? "border border-emerald-200 bg-emerald-50 text-emerald-600" : "bg-amber-100 text-amber-800"
+          badge.cancelled
+            ? "border border-rose-200 bg-rose-50 text-rose-600"
+            : badge.verified
+              ? "border border-emerald-200 bg-emerald-50 text-emerald-600"
+              : "bg-amber-100 text-amber-800"
         }`}
       >
         <BadgeCheck className="h-3 w-3" />
-        {badge.verified ? "Registered" : "Provisional"}
+        {badge.cancelled ? "Cancelled" : badge.verified ? "Registered" : "Provisional"}
       </span>
     </button>
   );
