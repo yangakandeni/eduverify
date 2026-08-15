@@ -34,14 +34,20 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
-      # No separate zip/package step here: terraform/modules/lambda builds the
-      # deployment artifact itself as part of `terraform apply` — a
-      # null_resource pip-installs requirements-lambda.txt for the Lambda
-      # platform into a layer, and an archive_file resource zips parser/
-      # (source_dir) for the function code. Both zips are content-hashed via
-      # source_code_hash, so `terraform apply` only redeploys what changed.
-      # This runner needs `pip` and `zip` available for that local-exec step,
-      # both of which are preinstalled on ubuntu-latest.
+      # Builds the Lambda layer's dependency directory before Terraform ever
+      # reads it: data.archive_file.layer (terraform/modules/lambda) zips
+      # this directory during `terraform plan`'s refresh, which is too early
+      # for a null_resource/local-exec inside that module to populate it
+      # reliably on a fresh runner. Architecture/python-version here must
+      # match var.lambda_architecture / the Lambda runtime default in
+      # terraform/variables.tf and terraform/modules/lambda/variables.tf.
+      - name: Build Lambda layer
+        run: scripts/build_lambda_layer.sh parser/requirements-lambda.txt terraform/modules/lambda/build/layer 3.12 x86_64
+
+      # No separate packaging step for the function code itself: an
+      # archive_file resource zips parser/ (source_dir) directly, content-
+      # hashed via source_code_hash so `terraform apply` only redeploys what
+      # changed.
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

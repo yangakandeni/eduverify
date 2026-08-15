@@ -13,11 +13,6 @@ variable "source_dir" {
   type        = string
 }
 
-variable "requirements_file" {
-  description = "Path to the requirements file listing the function's runtime (non-stdlib) dependencies, installed into a Lambda layer."
-  type        = string
-}
-
 variable "runtime" {
   description = "Lambda Python runtime."
   type        = string

@@ -116,7 +116,12 @@ This checks, in order:
    actually reachable.
 3. `pytest` passes in `parser/` (regex extraction, Pydantic model validation,
    bogus-institution filtering — all fully local, no AWS calls).
-4. `terraform init -backend-config=environments/<env>.backend.hcl` +
+4. `scripts/build_lambda_layer.sh` cross-compiles `parser/requirements-lambda.txt`
+   into `terraform/modules/lambda/build/layer` — must run before `plan`, since
+   `data.archive_file.layer` reads that directory during the refresh below
+   and can't populate it itself on a fresh checkout (see that script's header
+   comment for why this isn't a Terraform-internal step).
+5. `terraform init -backend-config=environments/<env>.backend.hcl` +
    `terraform plan -var-file=environments/<env>.tfvars -out=tfplan`.
 
 If the state bucket / lock table don't exist yet (first-ever deploy of a
