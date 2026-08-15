@@ -96,11 +96,11 @@ Deploying staging for the first time also needs a `staging` branch to exist
 in the GitHub repo (Amplify's `aws_amplify_branch` resource points at it by
 name — it doesn't create the branch itself).
 
-Secrets (`clerk_secret_key`, `github_access_token`) are deliberately absent
-from the committed `environments/*.tfvars` files. Supply them either via
-`TF_VAR_clerk_secret_key` / `TF_VAR_github_access_token` env vars, or a
-gitignored `environments/<env>.secrets.tfvars` — `verify_deployment.sh` picks
-it up automatically if present (layered on top with a second `-var-file`).
+Secrets (`clerk_secret_key`) are deliberately absent from the committed
+`environments/*.tfvars` files. Supply them either via `TF_VAR_clerk_secret_key`
+env vars, or a gitignored `environments/<env>.secrets.tfvars` —
+`verify_deployment.sh` picks it up automatically if present (layered on top
+with a second `-var-file`).
 
 ## 1. Pre-flight
 
