@@ -8,6 +8,7 @@ from extraction import (
     extract_registration_number,
     extract_website,
     extract_phones,
+    has_cancellation_notice,
     split_qualifications,
 )
 
@@ -173,3 +174,24 @@ def test_extract_registration_number_none_when_missing():
     assert extract_registration_number("") is None
     assert extract_registration_number(None) is None
     assert extract_registration_number("Gauteng") is None
+
+
+CANCELLATION_NOTICE_BLOCK = (
+    "Damelin (Pty) Ltd\nCONTACT PERSON:\nMs R Reddy\n(086) 181 9220 (T)\n"
+    "2 Maryvale Road\nWestville\nDurban\n3629\nReasons for cancellation of\n"
+    "registration in terms of the\nAct and the Regulations\nceased to meet "
+    "the eligibility\ncriteria for registration"
+)
+
+
+def test_has_cancellation_notice_detects_wrapped_phrase():
+    assert has_cancellation_notice(CANCELLATION_NOTICE_BLOCK) is True
+
+
+def test_has_cancellation_notice_false_for_ordinary_block():
+    assert has_cancellation_notice(NAME_CONTACT_BLOCK_2) is False
+
+
+def test_has_cancellation_notice_false_for_blank_input():
+    assert has_cancellation_notice("") is False
+    assert has_cancellation_notice(None) is False

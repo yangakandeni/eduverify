@@ -79,7 +79,7 @@ export default function SavedInstitutionsList({ records }: SavedInstitutionsList
 
               <span
                 className={`mt-2 inline-flex w-fit items-center rounded-lg px-2 py-1 text-xs font-semibold uppercase tracking-wide ${
-                  badge.verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                  badge.cancelled ? "bg-rose-50 text-rose-700" : badge.verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
                 }`}
               >
                 {badge.label}

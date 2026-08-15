@@ -113,6 +113,41 @@ describe("filterInstitutionsForBrowse status filter", () => {
   });
 });
 
+describe("filterInstitutionsForBrowse status filter with a cancelled institution", () => {
+  const institutions = [
+    makeInstitution({ id: "1", status: "Registered" }),
+    makeInstitution({ id: "2", status: "Provisionally Registered" }),
+    makeInstitution({ id: "3", status: "Cancelled" }),
+  ];
+
+  it("still shows the cancelled institution when no status filter is applied", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: ALL_STATUSES_VALUE,
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["1", "2", "3"]);
+  });
+
+  it("excludes the cancelled institution from the 'Provisionally Registered' filter", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: "provisional",
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["2"]);
+  });
+
+  it("excludes the cancelled institution from the 'Registered' filter", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: "registered",
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["1"]);
+  });
+});
+
 describe("getResultCountLabel", () => {
   it("pluralizes for zero and multiple results", () => {
     expect(getResultCountLabel(0)).toBe("0 institutions found");

@@ -64,7 +64,7 @@ export default function BrowseInstitutionCard({
 
       <div
         className={`mt-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wide ${
-          badge.verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+          badge.cancelled ? "bg-rose-50 text-rose-700" : badge.verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
         }`}
       >
         <BadgeCheck className="h-3.5 w-3.5" />

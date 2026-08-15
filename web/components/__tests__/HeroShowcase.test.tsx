@@ -38,3 +38,17 @@ describe("HeroShowcase main card primary action button", () => {
     expect(onExplore).toHaveBeenCalledWith(institution);
   });
 });
+
+describe("HeroShowcase main card status pill", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
+  });
+
+  it("shows 'Cancelled', not 'Provisionally Registered', for an institution whose registration was cancelled", () => {
+    render(<HeroShowcase institutions={[makeInstitution({ status: "Cancelled" })]} onExplore={vi.fn()} />);
+
+    const badge = screen.getByText("Cancelled");
+    expect(screen.queryByText("Provisionally Registered")).not.toBeInTheDocument();
+    expect(badge.closest("span")).toHaveClass("bg-rose-50", "text-rose-600");
+  });
+});
