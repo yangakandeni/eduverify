@@ -136,7 +136,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
     actions = [
       "s3:GetEncryptionConfiguration", "s3:GetBucketPublicAccessBlock",
       "s3:GetBucketOwnershipControls", "s3:GetBucketTagging",
-      "s3:GetBucketPolicy",
+      "s3:GetBucketPolicy", "s3:GetBucketAcl",
     ]
     resources = [local.tf_state_bucket_arn]
   }
@@ -166,10 +166,11 @@ data "aws_iam_policy_document" "deploy_permissions" {
       "s3:PutBucketOwnershipControls", "s3:GetBucketOwnershipControls",
       "s3:PutBucketNotification", "s3:GetBucketNotification",
       "s3:PutBucketTagging", "s3:GetBucketTagging",
-      # aws_s3_bucket's Read still populates its deprecated `policy` attribute
-      # on every refresh, so this is needed even though no aws_s3_bucket_policy
-      # resource is declared anywhere in this project.
-      "s3:GetBucketPolicy",
+      # aws_s3_bucket's Read still populates its deprecated `policy` and `acl`
+      # attributes on every refresh, so these are needed even though no
+      # aws_s3_bucket_policy/aws_s3_bucket_acl resource is declared anywhere
+      # in this project.
+      "s3:GetBucketPolicy", "s3:GetBucketAcl",
     ]
     resources = ["arn:aws:s3:::${local.project_resource}"]
   }
@@ -229,6 +230,9 @@ data "aws_iam_policy_document" "deploy_permissions_app" {
       "lambda:AddPermission", "lambda:RemovePermission", "lambda:GetPolicy",
       "lambda:PublishLayerVersion", "lambda:GetLayerVersion", "lambda:DeleteLayerVersion",
       "lambda:ListVersionsByFunction", "lambda:TagResource", "lambda:ListTags",
+      # aws_lambda_function's Read always calls GetFunctionCodeSigningConfig,
+      # even though this project has no code signing config attached.
+      "lambda:GetFunctionCodeSigningConfig",
     ]
     resources = [
       "arn:aws:lambda:*:${local.account_id}:function:${local.project_resource}",
