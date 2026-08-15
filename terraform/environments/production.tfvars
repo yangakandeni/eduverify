@@ -6,7 +6,7 @@
 #   AWS_PROFILE=eduverify-prod terraform init -backend-config=environments/production.backend.hcl
 #   AWS_PROFILE=eduverify-prod terraform plan -var-file=environments/production.tfvars
 #
-# Secrets (clerk_secret_key, github_access_token) are deliberately absent
+# Secrets (clerk_secret_key) are deliberately absent
 # here — supply them via TF_VAR_* env vars or a gitignored
 # environments/production.secrets.tfvars layered on top with a second
 # -var-file flag. See docs/DEPLOYMENT.md.
