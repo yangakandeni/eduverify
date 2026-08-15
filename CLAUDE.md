@@ -70,7 +70,15 @@ First-ever deploy needs the Terraform remote-state backend bootstrapped once bef
 
 One-way, composable stages, each independently unit-tested and side-effect-free where possible:
 
-1. `pdf_extract.iter_status_rows` — walks the PDF via `pdfplumber`, tagging every table row with the registration-status section it's under (Registered / Provisionally Registered), and dropping rows from incompatible sections (lapsed/cancelled/bogus-colleges lists) before they can get merged into a real record.
+1. `pdf_extract.iter_status_rows` — walks the PDF via `pdfplumber`, tagging every table row with the registration-status section it's under. The Annexure A register has 6 numbered sections; the pipeline only targets sections 1-2 and must drop the rest before they can get merged into a real record as a false "continuation":
+   1. **REGISTERED INSTITUTIONS** — tabular (NAME/ADDRESS/REG-NO/PROVINCE/QUALIFICATIONS), parsed as status `"Registered"`.
+   2. **PROVISIONALLY REGISTERED INSTITUTIONS** — same tabular layout, parsed as status `"Provisionally Registered"`.
+   3. **THE REGISTRATION OF THE FOLLOWING INSTITUTIONS ARE CANCELLED...** — tabular, but its header text isn't matched by any regex in `pdf_extract.py` (not `_REGISTERED_RE`/`_PROVISIONAL_RE`, and not `_EXCLUDED_SECTION_RE`), so rows under it silently inherit whatever status was carried forward from section 2 instead of being tagged or excluded. In practice DHET usually lists cancelled institutions inside section 2 with a cancellation-notice phrase instead of using this section (see the cancelled-institutions memory), which is why this gap hasn't surfaced yet — but it's a latent bug if a register ever populates section 3 directly.
+   4. **INSTITUTIONS FOR WHICH CANCELLATION OR LAPSE OF REGISTRATION HAS COME INTO EFFECT** — a numbered list of institution *names only*, not a table; excluded outright via `_EXCLUDED_SECTION_RE`.
+   5. **INSTITUTIONS WHICH HAVE REQUESTED THAT THE REGISTRAR DISCONTINUE THEIR REGISTRATION** — same numbered-list-of-names format as section 4, not a table; excluded outright.
+   6. **WARNING: ILLEGAL COLLEGES ALSO KNOWN AS BOGUS COLLEGES** — its tabular data doesn't start until several pages after the header row, so the "carry forward last header until the next one" logic in `iter_status_rows` must keep excluding everything in between; excluded outright.
+
+   Sections 4-6 use table schemas incompatible with the 6-column layout of sections 1-2, and their row-numbering ("1. Some College ...") doesn't start a new record for `grouping.group_table_rows` — left unfiltered, their rows would get silently merged as "continuations" onto the last real institution parsed before them.
 2. `grouping.group_table_rows` — the DHET table wraps one institution across multiple physical rows (and page breaks); a new record starts only when the leading index column ("1.", "2.", ...) is populated, everything else is a continuation appended to the current record.
 3. `extraction.py` — pure regex helpers that pull structured fields (name, phones, emails, website, registration number, address, qualification list) out of a grouped record's raw multi-line cell text.
 4. `build.record_to_institution` — assembles a validated `models.Institution` (pydantic) from a grouped record, returning `None` for unparseable rows rather than raising.
