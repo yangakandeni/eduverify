@@ -20,6 +20,15 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
   };
 }
 
+describe("InstitutionDetailModal location label", () => {
+  it("labels the province/campus field as Locations, not Province", () => {
+    render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);
+
+    expect(screen.getByText("Locations")).toBeInTheDocument();
+    expect(screen.queryByText("Province")).not.toBeInTheDocument();
+  });
+});
+
 describe("InstitutionDetailModal contact pill buttons", () => {
   it("renders Email, Call, and Website pill buttons with correct link schemes", () => {
     render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);
