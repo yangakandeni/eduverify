@@ -112,3 +112,15 @@ variable "hosted_zone_id" {
   type        = string
   default     = ""
 }
+
+variable "github_repo" {
+  description = "GitHub repository (\"owner/repo\") allowed to assume the CI deploy role via OIDC — see modules/ci_oidc."
+  type        = string
+  default     = "yangakandeni/eduverify"
+}
+
+variable "github_deploy_refs" {
+  description = "Git refs whose GitHub Actions runs may assume this environment's CI deploy role, e.g. [\"refs/heads/main\"]. Matched against the OIDC token's sub claim — see modules/ci_oidc."
+  type        = list(string)
+  default     = ["refs/heads/main"]
+}
