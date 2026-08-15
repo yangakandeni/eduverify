@@ -338,7 +338,7 @@ function SmallCard({ institution, onSelect }: { institution: InstitutionRecord; 
         }`}
       >
         <BadgeCheck className="h-3 w-3" />
-        {badge.cancelled ? "Cancelled" : badge.verified ? "Registered" : "Provisional"}
+        {badge.cancelled ? badge.label : badge.verified ? "Registered" : "Provisional"}
       </span>
     </button>
   );

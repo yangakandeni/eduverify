@@ -148,6 +148,51 @@ describe("filterInstitutionsForBrowse status filter with a cancelled institution
   });
 });
 
+describe("filterInstitutionsForBrowse status filter for cancelled/discontinued/bogus", () => {
+  const institutions = [
+    makeInstitution({ id: "1", status: "Registered" }),
+    makeInstitution({ id: "2", status: "Cancelled" }),
+    makeInstitution({ id: "3", status: "Discontinued" }),
+    makeInstitution({ id: "4", status: "Bogus" }),
+  ];
+
+  it("filters to only cancelled institutions", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: "cancelled",
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["2"]);
+  });
+
+  it("filters to only discontinued institutions", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: "discontinued",
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["3"]);
+  });
+
+  it("filters to only bogus institutions", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: "bogus",
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["4"]);
+  });
+
+  it("still shows all four when no status filter is applied", () => {
+    const result = filterInstitutionsForBrowse(institutions, {
+      province: ALL_PROVINCES_VALUE,
+      institutionType: ALL_TYPES_VALUE,
+      status: ALL_STATUSES_VALUE,
+    });
+    expect(result.map((institution) => institution.id)).toEqual(["1", "2", "3", "4"]);
+  });
+});
+
 describe("getResultCountLabel", () => {
   it("pluralizes for zero and multiple results", () => {
     expect(getResultCountLabel(0)).toBe("0 institutions found");

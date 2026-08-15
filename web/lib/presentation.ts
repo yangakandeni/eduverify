@@ -164,13 +164,24 @@ export interface StatusBadge {
 
 /** Derives a display badge from the raw register status; provisional institutions are
  * called out explicitly rather than folded into "Registered" — this is a verification
- * tool, so overstating a provisional status would defeat its purpose. Cancelled
- * institutions are checked first: DHET lists some cancelled registrations under the
- * Registered/Provisionally Registered sections rather than a separate section (see
+ * tool, so overstating a provisional status would defeat its purpose. Cancelled/
+ * Discontinued/Bogus are checked first: DHET lists some cancelled registrations under
+ * the Registered/Provisionally Registered sections rather than a separate section (see
  * parser/extraction.py's has_cancellation_notice), so a raw status of "Provisionally
- * Registered" doesn't always mean the registration is still active. */
+ * Registered" doesn't always mean the registration is still active. `cancelled` is
+ * reused as a general "not a real active registration" flag for all three, since every
+ * consumer (browse filter, card styling) treats them identically — only the label text
+ * (and getVerificationDescription's copy) differs between them. */
 export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
   const rawStatus = (institution.status ?? "").toLowerCase();
+
+  if (rawStatus.includes("bogus")) {
+    return { label: "Bogus", verified: false, cancelled: true };
+  }
+
+  if (rawStatus.includes("discontinued")) {
+    return { label: "Discontinued", verified: false, cancelled: true };
+  }
 
   if (rawStatus.includes("cancelled")) {
     return { label: "Cancelled", verified: false, cancelled: true };
@@ -189,6 +200,12 @@ export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
  * elsewhere (grid cards, hero cards). */
 export function getVerificationDescription(institution: InstitutionRecord): string {
   const badge = getStatusBadge(institution);
+  if (badge.label === "Bogus") {
+    return "This is not a registered institution. The Department of Higher Education and Training has published it on its warning list of bogus, unregistered providers.";
+  }
+  if (badge.label === "Discontinued") {
+    return "This institution requested that the Department of Higher Education and Training discontinue its registration.";
+  }
   if (badge.cancelled) {
     return "This institution's registration with the Department of Higher Education and Training has been cancelled.";
   }

@@ -52,3 +52,18 @@ describe("HeroShowcase main card status pill", () => {
     expect(badge.closest("span")).toHaveClass("bg-rose-50", "text-rose-600");
   });
 });
+
+describe("HeroShowcase supporting card status pill", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
+  });
+
+  it("shows 'Discontinued', not the hardcoded 'Cancelled', for a discontinued institution in the supporting list", () => {
+    const main = makeInstitution({ id: "aaa", name: "Aaa University" });
+    const supporting = makeInstitution({ id: "zzz", name: "Zzz Discontinued College", status: "Discontinued" });
+    render(<HeroShowcase institutions={[main, supporting]} onExplore={vi.fn()} />);
+
+    expect(screen.getByText("Discontinued")).toBeInTheDocument();
+    expect(screen.queryByText("Cancelled")).not.toBeInTheDocument();
+  });
+});

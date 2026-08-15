@@ -5,7 +5,7 @@ pages 7-9 of the real DHET register (institutions #1 AAA School of
 Advertising, spanning a page break, and #2 Academy for Facility Management).
 """
 
-from grouping import group_table_rows
+from grouping import group_bogus_rows, group_table_rows
 
 HEADER_ROWS = [
     ("Registered", ["", "", ""]),
@@ -115,3 +115,105 @@ def test_status_tag_carried_from_start_row():
     )
     records = group_table_rows([provisional_row])
     assert records[0]["status"] == "Provisionally Registered"
+
+
+# --- group_bogus_rows -------------------------------------------------------
+# Fixture rows below are copied verbatim from extract_tables() output on
+# pages 177-179 of the real DHET register's section 6 ("WARNING: ... BOGUS
+# COLLEGES"). Unlike sections 1-3, the "N." index lives inside the NAME cell
+# itself, and the column count varies row to row.
+
+BOGUS_ROW_1 = (
+    "Bogus",
+    [
+        "1. Abidan Bybel\n“Collage” (Sic)\nCollege and\nUniversity",
+        "Physical Address: Roodepoort",
+        "Gauteng",
+        "1) Diplomas and Degrees in Theology",
+    ],
+)
+
+BOGUS_ROW_2 = (
+    "Bogus",
+    [
+        "2. Aboriginal\nCollege of\nSouth Africa",
+        "Physical Address: Cannot be located.\nPostal address: Unknown.",
+        "Globally",
+        "1) Bachelor of Education",
+    ],
+)
+
+BOGUS_HEADER_REPEAT_ROW = (
+    "Bogus",
+    ["NAME", "PHYSICAL ADDRESS AND\nCONTACT DETAILS", "", "COUNT", "", "PROGRAMME/S OFFERED"],
+)
+
+BOGUS_HEADER_FRAGMENT_ROWS = [
+    ("Bogus", [None, None, None, "RY/", None, None]),
+    ("Bogus", ["PHYSICAL ADDRESS AND"]),
+    ("Bogus", ["CONTACT DETAILS"]),
+]
+
+BOGUS_ROW_10_START = (
+    "Bogus",
+    [
+        "10. Back to the\nBible Training\nCollege in\nassociation",
+        "Physical Address: Valley of Mercy, Barberton.",
+        "Mpumalanga",
+        "1) Bachelor of Ministry Degree",
+    ],
+)
+
+BOGUS_ROW_10_NAME_CONTINUATION = (
+    "Bogus",
+    [
+        "with Calvary\nUniversity and\nTeam Impact\nChristian\nUniversity",
+        "Phone: 027 013 719 8000",
+        "",
+        "Offer degrees on behalf of Calvary University in the UK.",
+    ],
+)
+
+NON_BOGUS_ROW = (
+    "Registered",
+    ["1.", "Some Real College (Pty) Ltd", "A) Gauteng", "2000/HE07/001", "Gauteng", "1) Higher Certificate"],
+)
+
+
+def test_groups_bogus_entries_by_embedded_index():
+    records = group_bogus_rows([BOGUS_ROW_1, BOGUS_ROW_2])
+    assert [r["name_block"] for r in records] == [
+        "Abidan Bybel “Collage” (Sic) College and University",
+        "Aboriginal College of South Africa",
+    ]
+    assert all(r["status"] == "Bogus" for r in records)
+
+
+def test_repeated_table_header_row_is_skipped_not_appended():
+    records = group_bogus_rows([BOGUS_ROW_1, BOGUS_HEADER_REPEAT_ROW, BOGUS_ROW_2])
+    assert records[0]["name_block"] == "Abidan Bybel “Collage” (Sic) College and University"
+    assert len(records) == 2
+
+
+def test_header_fragment_rows_are_skipped():
+    records = group_bogus_rows([BOGUS_ROW_1] + BOGUS_HEADER_FRAGMENT_ROWS + [BOGUS_ROW_2])
+    assert len(records) == 2
+
+
+def test_name_continuation_row_without_index_extends_current_entry():
+    records = group_bogus_rows([BOGUS_ROW_10_START, BOGUS_ROW_10_NAME_CONTINUATION])
+    assert len(records) == 1
+    assert records[0]["name_block"] == (
+        "Back to the Bible Training College in association with Calvary "
+        "University and Team Impact Christian University"
+    )
+
+
+def test_ignores_rows_not_tagged_bogus():
+    records = group_bogus_rows([NON_BOGUS_ROW, BOGUS_ROW_1])
+    assert len(records) == 1
+    assert records[0]["name_block"] == "Abidan Bybel “Collage” (Sic) College and University"
+
+
+def test_no_bogus_rows_returns_empty_list():
+    assert group_bogus_rows([NON_BOGUS_ROW]) == []
