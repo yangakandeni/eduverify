@@ -9,6 +9,8 @@ import {
   STATUS_OPTIONS,
   getBrowseTitle,
   getResultCountLabel,
+  isProvinceFilterDisabled,
+  isStatusOptionValidForType,
 } from "@/lib/browse";
 import { CANONICAL_PROVINCES } from "@/lib/normalize";
 
@@ -67,7 +69,8 @@ export default function BrowseHeader({
             <select
               value={province}
               onChange={(event) => onProvinceChange(event.target.value)}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              disabled={isProvinceFilterDisabled(status)}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value={ALL_PROVINCES_VALUE}>All Provinces</option>
               {CANONICAL_PROVINCES.map((option) => (
@@ -107,7 +110,11 @@ export default function BrowseHeader({
             >
               <option value={ALL_STATUSES_VALUE}>All Statuses</option>
               {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
+                <option
+                  key={option.value}
+                  value={option.value}
+                  disabled={!isStatusOptionValidForType(option.value, institutionType)}
+                >
                   {option.label}
                 </option>
               ))}

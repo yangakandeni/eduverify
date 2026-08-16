@@ -70,3 +70,16 @@ export const INSTITUTION_TYPE_OPTIONS: { value: InstitutionType; label: string }
   { value: "Private Higher Education Institution", label: "Private Institution" },
   { value: "TVET College", label: "TVET College" },
 ];
+
+export function isProvinceFilterDisabled(status: string): boolean {
+  return status === "bogus";
+}
+
+/** Public University and TVET College records are never given a status other than
+ * "Registered" by any data path (see web/lib/publicUniversities.ts, publicTvets.ts,
+ * dynamodb.ts, and getStatusBadge's fallthrough in presentation.ts) — the other status
+ * options can never match one of these types, so they're disabled rather than offered. */
+export function isStatusOptionValidForType(statusValue: string, institutionType: string): boolean {
+  if (institutionType !== "Public University" && institutionType !== "TVET College") return true;
+  return statusValue === "registered";
+}

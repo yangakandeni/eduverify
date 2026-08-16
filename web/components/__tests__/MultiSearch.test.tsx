@@ -69,6 +69,36 @@ describe("MultiSearch qualification suggestions", () => {
   });
 });
 
+describe("MultiSearch dropdown overlay", () => {
+  it("does not clip the suggestions dropdown behind the hero section, and caps its height with an internal scroll", async () => {
+    const manyInstitutions = Array.from({ length: 20 }, (_, index) =>
+      makeInstitution({ id: `inst-${index}`, name: `Institution ${index}` }),
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ query: "institution", results: manyInstitutions, qualificationHits: [] }),
+      }),
+    );
+
+    const { container } = render(
+      <MultiSearch institutions={[]} value="institution" onValueChange={noop} onSearch={noop} onClear={noop} />,
+    );
+
+    fireEvent.focus(screen.getByPlaceholderText(/search by institution/i));
+
+    await waitFor(() => expect(screen.getByText("Institution 0")).toBeInTheDocument(), { timeout: 1000 });
+
+    const heroSection = container.querySelector("section");
+    expect(heroSection?.className).not.toMatch(/overflow-hidden/);
+
+    const dropdown = screen.getByRole("list");
+    expect(dropdown.className).toMatch(/overflow-y-auto/);
+    expect(dropdown.className).toMatch(/max-h-/);
+  });
+});
+
 describe("MultiSearch hero subheading", () => {
   it("mentions both DHET and SAQA as the registers institutions are checked against", () => {
     render(<MultiSearch institutions={[]} value="" onValueChange={noop} onSearch={noop} onClear={noop} />);

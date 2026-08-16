@@ -12,6 +12,8 @@ import {
   filterInstitutionsForBrowse,
   getEmptyStateDetail,
   getEmptyStateHeading,
+  isProvinceFilterDisabled,
+  isStatusOptionValidForType,
 } from "@/lib/browse";
 import { useSavedInstitutions } from "@/lib/savedInstitutions";
 import type { InstitutionRecord } from "@/lib/types";
@@ -30,7 +32,7 @@ export default function BrowseSection({ institutions, query, loading, onVerify, 
   const [province, setProvince] = useState(ALL_PROVINCES_VALUE);
   const [institutionType, setInstitutionType] = useState(ALL_TYPES_VALUE);
   const [status, setStatus] = useState(ALL_STATUSES_VALUE);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [page, setPage] = useState(1);
   const [savedIds, toggleSaved] = useSavedInstitutions();
   const sectionTopRef = useRef<HTMLDivElement>(null);
@@ -57,11 +59,13 @@ export default function BrowseSection({ institutions, query, loading, onVerify, 
 
   function handleInstitutionTypeChange(value: string) {
     setInstitutionType(value);
+    if (!isStatusOptionValidForType(status, value)) setStatus(ALL_STATUSES_VALUE);
     setPage(1);
   }
 
   function handleStatusChange(value: string) {
     setStatus(value);
+    if (isProvinceFilterDisabled(value)) setProvince(ALL_PROVINCES_VALUE);
     setPage(1);
   }
 

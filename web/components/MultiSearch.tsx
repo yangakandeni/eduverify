@@ -85,7 +85,7 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
   }
 
   return (
-    <section className="relative overflow-hidden bg-primary px-6 py-16 sm:py-20">
+    <section className="relative bg-primary px-6 py-16 sm:py-20">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
         style={{
@@ -147,7 +147,7 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
           </div>
 
           {showSuggestions && (suggestions.length > 0 || qualificationSuggestions.length > 0) && (
-            <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
+            <ul className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-border bg-card text-foreground shadow-xl">
               {suggestions.map((institution) => (
                 <li key={institution.id}>
                   <button
