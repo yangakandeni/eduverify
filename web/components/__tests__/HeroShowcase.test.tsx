@@ -21,19 +21,19 @@ describe("HeroShowcase main card primary action button", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
   });
 
-  it("labels the primary action 'More Info', not 'Verify Institution'", () => {
+  it("labels the primary action 'Contact Info', not 'Verify Institution'", () => {
     render(<HeroShowcase institutions={[makeInstitution()]} onExplore={vi.fn()} />);
 
-    expect(screen.getByRole("button", { name: /more info/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contact info/i })).toBeInTheDocument();
     expect(screen.queryByText(/verify institution/i)).not.toBeInTheDocument();
   });
 
-  it("invokes onExplore when the 'More Info' button is clicked", () => {
+  it("invokes onExplore when the 'Contact Info' button is clicked", () => {
     const onExplore = vi.fn();
     const institution = makeInstitution();
     render(<HeroShowcase institutions={[institution]} onExplore={onExplore} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /more info/i }));
+    fireEvent.click(screen.getByRole("button", { name: /contact info/i }));
 
     expect(onExplore).toHaveBeenCalledWith(institution);
   });
@@ -50,6 +50,34 @@ describe("HeroShowcase main card status pill", () => {
     const badge = screen.getByText("Cancelled");
     expect(screen.queryByText("Provisionally Registered")).not.toBeInTheDocument();
     expect(badge.closest("span")).toHaveClass("bg-rose-50", "text-rose-600");
+  });
+});
+
+describe("HeroShowcase main card for a bogus/fake institution warning listing", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
+  });
+
+  it("shows 'Fake - Not Registered' and disables both 'Contact Info' and 'Visit Website'", () => {
+    const onExplore = vi.fn();
+    const institution = makeInstitution({
+      status: "Bogus",
+      address: "",
+      province: null,
+      qualifications: [],
+      contacts: { email: [], phone: [], website: "example.com" },
+    });
+    render(<HeroShowcase institutions={[institution]} onExplore={onExplore} />);
+
+    expect(screen.getByText("Fake - Not Registered")).toBeInTheDocument();
+
+    const contactInfoButton = screen.getByRole("button", { name: /contact info/i });
+    expect(contactInfoButton).toBeDisabled();
+    fireEvent.click(contactInfoButton);
+    expect(onExplore).not.toHaveBeenCalled();
+
+    expect(screen.queryByRole("link", { name: /visit website/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /visit website/i })).toBeDisabled();
   });
 });
 

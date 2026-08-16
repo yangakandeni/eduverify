@@ -164,7 +164,9 @@ export interface StatusBadge {
 
 /** Derives a display badge from the raw register status; provisional institutions are
  * called out explicitly rather than folded into "Registered" — this is a verification
- * tool, so overstating a provisional status would defeat its purpose. Cancelled/
+ * tool, so overstating a provisional status would defeat its purpose. The raw "Bogus"
+ * status is relabeled "Fake - Not Registered" for the badge text since "Bogus" reads as
+ * unclear/informal for a warning meant to stop someone enrolling. Cancelled/
  * Discontinued/Bogus are checked first: DHET lists some cancelled registrations under
  * the Registered/Provisionally Registered sections rather than a separate section (see
  * parser/extraction.py's has_cancellation_notice), so a raw status of "Provisionally
@@ -176,7 +178,7 @@ export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
   const rawStatus = (institution.status ?? "").toLowerCase();
 
   if (rawStatus.includes("bogus")) {
-    return { label: "Bogus", verified: false, cancelled: true };
+    return { label: "Fake - Not Registered", verified: false, cancelled: true };
   }
 
   if (rawStatus.includes("discontinued")) {
@@ -210,7 +212,7 @@ export function hasNoFurtherDetails(institution: InstitutionRecord): boolean {
  * elsewhere (grid cards, hero cards). */
 export function getVerificationDescription(institution: InstitutionRecord): string {
   const badge = getStatusBadge(institution);
-  if (badge.label === "Bogus") {
+  if (badge.label === "Fake - Not Registered") {
     return "This is not a registered institution. The Department of Higher Education and Training has published it on its warning list of bogus, unregistered providers.";
   }
   if (badge.label === "Discontinued") {

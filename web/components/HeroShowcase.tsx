@@ -16,7 +16,7 @@ import { buildCollections, chunk, type Collection } from "@/lib/collections";
 import { PRIMARY_CATEGORY_KEYS, getCategory, institutionMatchesCategory } from "@/lib/categories";
 import { useUserProvince } from "@/lib/location";
 import { CANONICAL_PROVINCES } from "@/lib/normalize";
-import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge, type StatusBadge } from "@/lib/presentation";
+import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge, hasNoFurtherDetails, type StatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const FADE_TRANSITION = { duration: 0.2, ease: "easeInOut" as const };
@@ -230,6 +230,7 @@ function MainCard({
 }) {
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
+  const noFurtherDetails = hasNoFurtherDetails(institution);
   const categories = PRIMARY_CATEGORY_KEYS.filter((key) => institutionMatchesCategory(institution, key))
     .map((key) => getCategory(key))
     .filter((category): category is NonNullable<typeof category> => Boolean(category));
@@ -277,21 +278,39 @@ function MainCard({
           <button
             type="button"
             onClick={() => onExplore(institution)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            disabled={noFurtherDetails}
+            title={noFurtherDetails ? "No further information is available for this institution" : undefined}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              noFurtherDetails
+                ? "cursor-not-allowed bg-secondary text-muted-foreground opacity-60"
+                : "bg-primary text-primary-foreground hover:bg-primary/90"
+            }`}
           >
             <ShieldCheck className="h-4 w-4" />
-            More Info
+            Contact Info
           </button>
-          {website && (
-            <a
-              href={websiteHref(website)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary"
+          {noFurtherDetails ? (
+            <button
+              type="button"
+              disabled
+              title="No website is available for this institution"
+              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-muted-foreground opacity-60"
             >
               <ExternalLink className="h-4 w-4" />
               Visit Website
-            </a>
+            </button>
+          ) : (
+            website && (
+              <a
+                href={websiteHref(website)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Visit Website
+              </a>
+            )
           )}
         </div>
       </div>

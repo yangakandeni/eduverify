@@ -102,7 +102,7 @@ export default function BrowseInstitutionCard({
           }`}
         >
           <ShieldCheck className="h-4 w-4" />
-          More Info
+          Contact Info
         </button>
         {noFurtherDetails ? (
           <button
