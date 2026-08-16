@@ -174,6 +174,22 @@ BOGUS_ROW_10_NAME_CONTINUATION = (
     ],
 )
 
+BOGUS_ROW_30_DAMELIN = (
+    "Bogus",
+    ["30. Damelin Corresondence College"],
+)
+
+BOGUS_ORPHAN_ADDRESS_FRAGMENTS = [
+    ("Bogus", ["Physical Address: Presidia Building,"]),
+    ("Bogus", ["197 Pretorius St, Pretoria Central,"]),
+    ("Bogus", ["Pretoria, 0001"]),
+]
+
+BOGUS_ROW_32_DURBAN = (
+    "Bogus",
+    ["32. Durban Christian Centre Bible Institute"],
+)
+
 NON_BOGUS_ROW = (
     "Registered",
     ["1.", "Some Real College (Pty) Ltd", "A) Gauteng", "2000/HE07/001", "Gauteng", "1) Higher Certificate"],
@@ -207,6 +223,22 @@ def test_name_continuation_row_without_index_extends_current_entry():
         "Back to the Bible Training College in association with Calvary "
         "University and Team Impact Christian University"
     )
+
+
+def test_orphaned_single_cell_overflow_row_is_dropped_not_appended():
+    """Reproduces a real DHET PDF artifact: pdfplumber sometimes splits one
+    logical table into several table objects when a cell's text is long, so
+    a preceding entry's overflow address text reappears later in the row
+    stream as a bare single-cell row, after the next entry has already
+    become current_name. That orphaned fragment must be dropped, not glued
+    onto the wrong (unrelated) institution's name."""
+    records = group_bogus_rows(
+        [BOGUS_ROW_30_DAMELIN, BOGUS_ROW_32_DURBAN] + BOGUS_ORPHAN_ADDRESS_FRAGMENTS
+    )
+    assert [r["name_block"] for r in records] == [
+        "Damelin Corresondence College",
+        "Durban Christian Centre Bible Institute",
+    ]
 
 
 def test_ignores_rows_not_tagged_bogus():

@@ -57,6 +57,13 @@ const TRAILING_SLASH_ABBR_RE = /\s*\/[A-Za-z][A-Za-z0-9&.-]{1,20}\s*$/;
  * text instead, e.g. "... Pty Ltd /GIFSPHEI Previously Katapult Business School (Pty) Ltd". */
 const BARE_PREVIOUSLY_CUTOFF_RE = /(?<!\()\s*previously\b.*$/i;
 
+/** A trailing "with company registration number ..." clause — DHET's own dedicated
+ * registration-number column doesn't exist for the "bogus colleges" warning-list
+ * section, so at least one entry has it typed directly into the wrapped name text
+ * instead, e.g. "... International (Pty) Ltd with company registration number
+ * 2018/288825/ 07". */
+const COMPANY_REGISTRATION_NUMBER_CUTOFF_RE = /\s*with company registration number\b.*$/i;
+
 /** An inline "t/a X" or "trading as X" marker — DHET's own dedicated trading-name field is
  * never actually populated in practice, so a registered entity's trading name instead shows
  * up appended to the legal name in plain text, e.g. "Cat Group (Pty) Ltd t/a CAT Academy".
@@ -80,6 +87,7 @@ export function cleanLegalName(raw: string): string {
     result = result
       .replace(DESCRIPTIVE_PARENTHETICAL_RE, "")
       .replace(BARE_PREVIOUSLY_CUTOFF_RE, "")
+      .replace(COMPANY_REGISTRATION_NUMBER_CUTOFF_RE, "")
       .replace(TRAILING_ACRONYM_RE, "")
       .replace(TRAILING_THE_RE, "")
       .replace(TRAILING_SLASH_ABBR_RE, "")
