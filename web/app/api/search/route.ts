@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchInstitutions } from "@/lib/institutions";
+import { searchQualificationsGlobal } from "@/lib/qualificationsData";
 import { searchLocal } from "@/lib/search";
 import type { InstitutionType } from "@/lib/types";
 
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
   const mode = searchParams.get("mode");
 
   if (!query.trim()) {
-    return NextResponse.json({ query, results: [], notFound: false });
+    return NextResponse.json({ query, results: [], qualificationHits: [], notFound: false });
   }
 
   const filters = { province, institutionType };
@@ -20,9 +21,11 @@ export async function GET(request: NextRequest) {
   // consulted for the full search a user triggers on submit.
   if (mode === "typeahead") {
     const results = searchLocal(query, filters, 8);
-    return NextResponse.json({ query, results, notFound: results.length === 0 });
+    const qualificationHits = searchQualificationsGlobal(query, 5);
+    return NextResponse.json({ query, results, qualificationHits, notFound: results.length === 0 });
   }
 
   const { results, notFound } = await searchInstitutions(query, filters);
-  return NextResponse.json({ query, results, notFound });
+  const qualificationHits = searchQualificationsGlobal(query, 10);
+  return NextResponse.json({ query, results, qualificationHits, notFound });
 }

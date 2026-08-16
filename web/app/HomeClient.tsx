@@ -6,8 +6,10 @@ import HeroShowcase from "@/components/HeroShowcase";
 import InstitutionDetailModal from "@/components/InstitutionDetailModal";
 import MultiSearch from "@/components/MultiSearch";
 import QualificationBrowser from "@/components/QualificationBrowser";
+import QualificationSearchResults from "@/components/qualifications/QualificationSearchResults";
 import Modal from "@/components/ui/Modal";
 import { filterByCategory } from "@/lib/categories";
+import type { QualificationSearchHit } from "@/lib/qualificationsData";
 import type { InstitutionRecord } from "@/lib/types";
 
 interface SearchState {
@@ -15,9 +17,10 @@ interface SearchState {
   status: "idle" | "loading" | "done";
   query: string;
   results: InstitutionRecord[];
+  qualificationHits: QualificationSearchHit[];
 }
 
-const IDLE_SEARCH: SearchState = { active: false, status: "idle", query: "", results: [] };
+const IDLE_SEARCH: SearchState = { active: false, status: "idle", query: "", results: [], qualificationHits: [] };
 
 interface HomeClientProps {
   initialInstitutions: InstitutionRecord[];
@@ -40,14 +43,20 @@ export default function HomeClient({ initialInstitutions }: HomeClientProps) {
     const trimmed = rawQuery.trim();
     if (!trimmed) return;
 
-    setSearch({ active: true, status: "loading", query: trimmed, results: [] });
+    setSearch({ active: true, status: "loading", query: trimmed, results: [], qualificationHits: [] });
 
     try {
       const response = await fetch(`/api/search?${new URLSearchParams({ q: trimmed })}`);
       const data = await response.json();
-      setSearch({ active: true, status: "done", query: trimmed, results: data.results ?? [] });
+      setSearch({
+        active: true,
+        status: "done",
+        query: trimmed,
+        results: data.results ?? [],
+        qualificationHits: data.qualificationHits ?? [],
+      });
     } catch {
-      setSearch({ active: true, status: "done", query: trimmed, results: [] });
+      setSearch({ active: true, status: "done", query: trimmed, results: [], qualificationHits: [] });
     }
   }
 
@@ -73,6 +82,9 @@ export default function HomeClient({ initialInstitutions }: HomeClientProps) {
 
       <HeroShowcase institutions={initialInstitutions} onExplore={setExploreInstitution} />
       <QualificationBrowser activeCategory={activeCategory} onChange={setActiveCategory} />
+      {search.active && search.status === "done" && (
+        <QualificationSearchResults hits={search.qualificationHits} />
+      )}
       <div ref={resultsRef} className="scroll-mt-16">
         <BrowseSection
           institutions={browseInstitutions}

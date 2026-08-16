@@ -6,10 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Always use the `graphify` skill first when answering questions about this codebase's architecture, file relationships, or project content — treat it as the primary tool for codebase exploration, not a fallback. If `graphify-out/` exists, query it before searching the repo manually.
 
-## Designing UI
-
-Always use the `ui-ux-pro-max` skill for any UI design work in `web/` — colors, typography, spacing, layout, component styling, accessibility. Treat it as the source of truth over ad-hoc styling choices.
-
 ## Coding style
 
 Every new feature, change, or bug fix must be built test-driven (TDD): write or update the automated test that covers the behavior before touching implementation code, and don't call the work done until it passes. See "Core Development Philosophy: Test-Driven Development (TDD)" below for the full policy.
@@ -18,107 +14,9 @@ Every new feature, change, or bug fix must be built test-driven (TDD): write or 
 
 EduVerify is a lookup tool for South African higher-education institutions (public universities, TVET colleges, and DHET-registered private institutions), so people can verify a qualification/provider is legitimate. The repo has three independent parts that share data through `data/institutions.json`:
 
-- `parser/` — Python pipeline that scrapes the DHET "Annexure A" register PDF into structured institution records.
-- `web/` — Next.js app (the product): search/browse UI, dashboard, API routes.
-- `terraform/` + `scripts/` — AWS infra (S3 → Lambda → DynamoDB) that runs the parser in production and seeds/queries the live table.
-
-## Commands
-
-### Web app (run from `web/`)
-
-```bash
-npm run dev      # dev server
-npm run build
-npm run lint      # eslint
-npm run test      # vitest run
-npx vitest run path/to/file.test.ts   # single file
-npx vitest run -t "test name"         # single test by name
-```
-
-Auth (Clerk) needs `web/.env.local` — copy `web/.env.local.example` and fill in `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` from the Clerk dashboard.
-
-**This repo pins a pre-release Next.js whose APIs diverge from training data.** Before writing any Next.js code in `web/`, read the matching guide under `web/node_modules/next/dist/docs/` and heed its deprecation notices (see `web/AGENTS.md`).
-
-### Parser (run from `parser/`, inside its `.venv`)
-
-```bash
-source .venv/bin/activate
-pip install -r requirements.txt
-python -m pytest                                    # all tests
-python -m pytest tests/test_extraction.py           # single file
-python -m pytest tests/test_extraction.py -k name   # single test
-python fetch_and_parse.py                          # download latest DHET PDF, write ../data/institutions.json
-python fetch_and_parse.py --pdf-path FILE          # parse an already-downloaded PDF instead
-```
-
-Tests import modules directly (`from build import ...`, no package prefix) — invoke with `python -m pytest` (not the bare `pytest` script) from `parser/` so cwd is on `sys.path`; running from the repo root, or via the bare `pytest` command, breaks imports.
-
-### Infra
-
-```bash
-./scripts/verify_deployment.sh   # production pre-flight: creds, backend, pytest, terraform plan (see docs/DEPLOYMENT.md)
-cd terraform && terraform plan   # / apply — provisions S3, DynamoDB, Lambda, IAM
-python scripts/seed_dynamodb.py                                   # bulk-load data/institutions.json into DynamoDB
-python scripts/seed_dynamodb.py --endpoint-url http://localhost:8000  # against DynamoDB Local
-```
-
-First-ever deploy needs the Terraform remote-state backend bootstrapped once before `verify_deployment.sh`/`terraform plan` can run — see `docs/DEPLOYMENT.md`'s Pre-flight section.
-
-## Architecture
-
-### Parser pipeline (`parser/`)
-
-One-way, composable stages, each independently unit-tested and side-effect-free where possible:
-
-1. `pdf_extract.iter_status_rows` — walks the PDF via `pdfplumber`, tagging every table row with the registration-status section it's under. The Annexure A register has 6 numbered sections, all of which are now surfaced (none are silently dropped):
-   1. **REGISTERED INSTITUTIONS** — tabular (NAME/ADDRESS/REG-NO/PROVINCE/QUALIFICATIONS), parsed as status `"Registered"`.
-   2. **PROVISIONALLY REGISTERED INSTITUTIONS** — same tabular layout, parsed as status `"Provisionally Registered"`.
-   3. **THE REGISTRATION OF THE FOLLOWING INSTITUTIONS ARE CANCELLED...** — same 6-column tabular layout as sections 1-2, tagged status `"Cancelled"` by `_CANCELLED_RE` and grouped through the same `grouping.group_table_rows` pipeline. (DHET also lists some cancelled institutions inside section 2 with a cancellation-notice phrase instead of using this section — see the cancelled-institutions memory — which is why `build.record_to_institution`'s `has_cancellation_notice` override still matters independently of this section.)
-   4. **INSTITUTIONS FOR WHICH CANCELLATION OR LAPSE OF REGISTRATION HAS COME INTO EFFECT** — a numbered list of institution *names only* ("1) Some College"), not a table row `iter_status_rows` can yield. Read from each page's plain text by `pdf_extract.iter_name_list_entries` / `parse_name_list_lines`, tagged status `"Cancelled"`.
-   5. **INSTITUTIONS WHICH HAVE REQUESTED THAT THE REGISTRAR DISCONTINUE THEIR REGISTRATION** — same numbered-list-of-names format as section 4, also read by `iter_name_list_entries`, tagged status `"Discontinued"`.
-   6. **WARNING: ILLEGAL COLLEGES ALSO KNOWN AS BOGUS COLLEGES** — *is* a real pdfplumber table, but incompatible with the 6-column schema: the "N." index is embedded in the NAME cell itself (not a separate column) and the column count varies page to page. Tagged status `"Bogus"` by `_BOGUS_RE` and grouped separately by `grouping.group_bogus_rows`, which tracks only the NAME column (address/programme detail isn't needed for a warning list and isn't laid out consistently enough to parse).
-2. `grouping.group_table_rows` — the DHET table wraps one institution across multiple physical rows (and page breaks); a new record starts only when the leading index column ("1.", "2.", ...) is populated, everything else is a continuation appended to the current record. Handles sections 1-3.
-3. `extraction.py` — pure regex helpers that pull structured fields (name, phones, emails, website, registration number, address, qualification list) out of a grouped record's raw multi-line cell text.
-4. `build.record_to_institution` — assembles a validated `models.Institution` (pydantic) from a grouped record, returning `None` for unparseable rows rather than raising. A section 4-6 record has only `name_block` populated (no address/reg-no/qualifications), which is fine since `Institution` only requires a name.
-5. `build.build_institutions(pdf_path)` — the single entry point that assembles all 6 sections: filters `iter_status_rows` by status to route sections 1-3 through `group_table_rows` and section 6 through `group_bogus_rows`, appends sections 4-5 from `iter_name_list_entries`, then runs every record through `record_to_institution`. Both `fetch_and_parse.py` (CLI, writes `data/institutions.json`) and `lambda_handler.py` (S3-triggered production ingestion, writes to DynamoDB via `dynamo_item.to_item` and drops a JSON backup to S3) call this one function rather than duplicating the assembly logic.
-
-`dynamo_item.to_item`/`institution_key` is the single source of truth for how an institution is keyed (`INST#<registration_number>`, or `INST#NAME#<slug>` when no registration number exists) — both `lambda_handler.py` and `scripts/seed_dynamodb.py` import it so live ingestion and bulk seeding key records identically. **`web/lib/keys.ts` reimplements the same slugify/key logic in TypeScript** — if one changes, the other must too, or web lookups by ID will miss DynamoDB rows.
-
-### Web app (`web/`)
-
-Data layer (`web/lib/`) has two institution sources merged at the API boundary:
-
-- **Local seed data** (`web/lib/localData.ts`): bundles `data/institutions.json` (private institutions, scraped) plus `web/lib/data/public_universities.json` (hand-maintained public universities/TVETs, via `publicUniversities.ts`) into one deduped, always-available in-memory list (`ALL_INSTITUTIONS`). Powers instant typeahead and the browse/discovery homepage — no network call.
-- **DynamoDB** (`web/lib/dynamodb.ts`): the live register, single-table design with `PK` = institution key, `GSI1PK` = uppercased status, `GSI1SK` = name (enables prefix search per status partition). Only reachable server-side.
-- **`web/lib/institutions.ts`** is where they combine: `searchInstitutions` queries DynamoDB (exact registration-number + name-prefix) and always also runs local fuzzy search (`search.ts`) in parallel — local search is both the offline fallback and the only way to catch partial/lowercase queries, since DynamoDB's `GSI1SK` matching is exact-prefix and case-sensitive. Results are deduped by id and merged. Any DynamoDB error is caught and logged, falling back to local-only silently (never surfaced as a user-facing error).
-
-Route split in `app/api/`:
-- `GET /api/search?q=&mode=typeahead` — local-only, instant, for the search-as-you-type UI.
-- `GET /api/search?q=` (no mode) — full search, hits DynamoDB + local.
-- `GET /api/institutions` — local seed list only, powers the homepage grid/hero.
-- `GET /api/institutions/[id]` — DynamoDB first, local fallback.
-
-Qualification strings are parsed twice from the same raw format (once in Python at scrape time is *not* done — the raw string is kept as-is in `data/institutions.json`; structuring into `{title, nqfLevel, credits, mode, saqaId, campuses}` happens client/server-side in TS): `web/lib/qualifications.ts` (seed data path) and inline in `dynamodb.ts`'s `toRecord` (DynamoDB path) both call the same `parseQualification`.
-
-Province names are inconsistent/OCR-noisy in the source register; `web/lib/normalize.ts` maps free text to one of `CANONICAL_PROVINCES` (or `"Unknown"`), and is the single place province-matching logic lives (used by search, filters, and the location-based hero).
-
-`web/lib/location.ts` does best-effort client-side IP geolocation (via a public, unauthenticated API, 2.5s timeout) to pick a default province for the homepage hero; any failure — network, timeout, non-SA region — resolves to `null` and callers fall back to `DEFAULT_PROVINCE` ("Gauteng", the province with the most institutions). A manual province pick by the user always wins over a late-arriving geolocation result.
-
-`web/lib/collections.ts` builds the homepage hero's tabs (Recommended/Featured/Recently Added) from `ALL_INSTITUTIONS` plus a province, ranking institutions by sponsorship/type tier then qualification count; Featured/Recently Added tabs are omitted entirely when empty rather than rendered blank.
-
-Auth is Clerk, wired via `web/proxy.ts` (Next middleware): only `/dashboard(.*)` is protected. `web/lib/dashboardData.ts` (saved/recently-viewed institutions) is currently stubbed to return empty arrays — no per-user DynamoDB table exists yet.
-
-### Infra (`terraform/`)
-
-`main.tf` wires four modules: `s3` (raw PDF uploads under `raw/`), `dynamodb` (the institutions table + GSI1), `iam` (Lambda execution role), `lambda` (packages `parser/` using `requirements-lambda.txt`, a trimmed dependency set for cold-start size). An S3 `ObjectCreated` notification on `raw/*.pdf` invokes the Lambda, which is `parser/lambda_handler.py`.
-
-`backend_state.tf` provisions the S3 bucket + DynamoDB lock table backing the `backend "s3" {}` block in `main.tf` (config supplied via `backend.hcl`, gitignored-secret-free since bucket/table names aren't sensitive). Chicken-and-egg: it has to be applied with **local** state first, before the S3 backend it creates can be pointed at — see the bootstrap steps in `docs/DEPLOYMENT.md`.
-
-`eventbridge.tf` schedules a weekly `aws_cloudwatch_event_rule` to invoke the ingestion Lambda directly (no S3 upload). **Currently a no-op**: `lambda_handler.handler` only reads `event["Records"]` (the S3 trigger shape), so the EventBridge-invoked payload (`{"source": "aws.events", ...}`) has no matching handling and returns `{"processed": []}` every time — the schedule doesn't yet fetch or ingest anything.
-
-`monitoring.tf` adds an SNS topic (`eduverify-alerts`, optional email subscription via `var.alert_email`) and two CloudWatch alarms (Lambda `Errors` / `Throttles`) that publish to it.
-
-Production deploys go through `scripts/verify_deployment.sh` (credentials → backend reachability → `pytest` → `terraform plan`) per the runbook in `docs/DEPLOYMENT.md`, which also covers the manual apply and post-deploy smoke test.
+- `parser/` — Python pipeline that scrapes the DHET "Annexure A" register PDF into structured institution records. See `parser/CLAUDE.md`.
+- `web/` — Next.js app (the product): search/browse UI, dashboard, API routes. See `web/CLAUDE.md`.
+- `terraform/` + `scripts/` — AWS infra (S3 → Lambda → DynamoDB) that runs the parser in production and seeds/queries the live table. See `terraform/CLAUDE.md`.
 
 # EduVerify - Claude Code Engineering Guidelines
 
