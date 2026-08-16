@@ -1,5 +1,6 @@
 "use client";
 
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import BrowsePagination from "@/components/BrowsePagination";
 import FacultySidebar from "@/components/qualifications/FacultySidebar";
@@ -11,12 +12,11 @@ import type { FacultyQualificationGroup } from "@/lib/types";
 interface QualificationsExplorerProps {
   facultyGroups: FacultyQualificationGroup[];
   initialFaculty?: string;
-  brandColor: string;
 }
 
 const ITEMS_PER_PAGE = 12;
 
-export default function QualificationsExplorer({ facultyGroups, initialFaculty, brandColor }: QualificationsExplorerProps) {
+export default function QualificationsExplorer({ facultyGroups, initialFaculty }: QualificationsExplorerProps) {
   const [selectedFaculty, setSelectedFaculty] = useState(
     () => resolveInitialFaculty(facultyGroups, initialFaculty) ?? facultyGroups[0].faculty,
   );
@@ -59,18 +59,20 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty, 
           faculties={facultyGroups.map(({ faculty, count }) => ({ faculty, count }))}
           selectedFaculty={selectedFaculty}
           onSelect={handleSelectFaculty}
-          brandColor={brandColor}
         />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <input
-          type="search"
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder={`Search ${selectedFaculty} qualifications...`}
-          aria-label={`Search ${selectedFaculty} qualifications`}
-          className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
-        />
+        <div className="relative w-full max-w-xs self-end sm:max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search qualifications..."
+            aria-label="Search qualifications"
+            className="w-full rounded-lg border border-border bg-card py-2.5 pl-9 pr-3.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
+          />
+        </div>
         <QualificationsGrid qualifications={pageItems} />
         <BrowsePagination page={page} totalPages={totalPages} onGoToPage={handleGoToPage} />
       </div>

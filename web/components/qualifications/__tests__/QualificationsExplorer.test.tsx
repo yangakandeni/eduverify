@@ -37,27 +37,27 @@ const GROUPS: FacultyQualificationGroup[] = [
 
 describe("QualificationsExplorer", () => {
   it("defaults to the first faculty when no initial faculty is given", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} />);
 
     expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /arts/i })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("selects the requested initial faculty when it matches a group", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
 
     expect(screen.getByRole("button", { name: /commerce/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("Commerce Qualification 1")).toBeInTheDocument();
   });
 
   it("falls back to the first faculty when the requested initial faculty doesn't exist", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Medicine" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Medicine" />);
 
     expect(screen.getByRole("button", { name: /arts/i })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("switches the visible qualifications when a different faculty is clicked", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} />);
 
     fireEvent.click(screen.getByRole("button", { name: /commerce/i }));
 
@@ -66,7 +66,7 @@ describe("QualificationsExplorer", () => {
   });
 
   it("filters the grid by search text within the selected faculty only", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
 
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Qualification 5" } });
 
@@ -75,7 +75,7 @@ describe("QualificationsExplorer", () => {
   });
 
   it("does not match a search query against a title that only exists in a different faculty", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
 
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Commerce" } });
 
@@ -83,7 +83,7 @@ describe("QualificationsExplorer", () => {
   });
 
   it("paginates at 12 items per page and advances on click", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
 
     expect(screen.getByText("Commerce Qualification 1")).toBeInTheDocument();
     expect(screen.queryByText("Commerce Qualification 13")).not.toBeInTheDocument();
@@ -96,7 +96,7 @@ describe("QualificationsExplorer", () => {
   });
 
   it("resets pagination to page 1 when switching faculty", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
 
     const pagination = screen.getByRole("navigation", { name: /pagination/i });
     fireEvent.click(within(pagination).getByRole("button", { name: "2" }));
@@ -109,7 +109,7 @@ describe("QualificationsExplorer", () => {
   });
 
   it("resets pagination to page 1 when the search query changes", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
 
     const pagination = screen.getByRole("navigation", { name: /pagination/i });
     fireEvent.click(within(pagination).getByRole("button", { name: "2" }));
@@ -124,7 +124,7 @@ describe("QualificationsExplorer", () => {
   });
 
   it("does not clear the search box when the faculty selection changes", () => {
-    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" brandColor="#123456" />);
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
 
     const search = screen.getByRole("searchbox");
     fireEvent.change(search, { target: { value: "keep me" } });
@@ -132,5 +132,16 @@ describe("QualificationsExplorer", () => {
     fireEvent.click(screen.getByRole("button", { name: /commerce/i }));
 
     expect(search).toHaveValue("keep me");
+  });
+
+  it("keeps a fixed search placeholder regardless of which faculty is selected", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+    expect(search).toHaveAttribute("placeholder", "Search qualifications...");
+
+    fireEvent.click(screen.getByRole("button", { name: /commerce/i }));
+
+    expect(search).toHaveAttribute("placeholder", "Search qualifications...");
   });
 });

@@ -42,6 +42,12 @@ describe("QualificationsGrid", () => {
     expect(screen.queryByText(/credits/i)).not.toBeInTheDocument();
   });
 
+  it("explains the min-credits pill via a hover tooltip", () => {
+    render(<QualificationsGrid qualifications={[makeQualification({ credits: 120 })]} />);
+
+    expect(screen.getByText("You need a minimum of 120 credits to apply")).toBeInTheDocument();
+  });
+
   it("shows a helpful empty state when there are no qualifications to display", () => {
     render(<QualificationsGrid qualifications={[]} />);
 

@@ -45,9 +45,22 @@ function QualificationCard({ qualification }: { qualification: SaqaQualification
 
       {qualification.credits !== undefined && (
         <div className="mt-auto border-t border-border pt-3">
-          <span className="inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent-foreground">
-            Min. Credits: {qualification.credits}
-          </span>
+          <div className="group relative inline-flex">
+            <span
+              tabIndex={0}
+              aria-describedby={`credits-tooltip-${qualification.qualId}`}
+              className="inline-flex cursor-help items-center rounded-full border border-border bg-transparent px-2.5 py-1 text-xs font-medium text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Min. Credits: {qualification.credits}
+            </span>
+            <span
+              id={`credits-tooltip-${qualification.qualId}`}
+              role="tooltip"
+              className="pointer-events-none absolute top-full left-0 z-10 mt-2 w-max max-w-64 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100"
+            >
+              You need a minimum of {qualification.credits} credits to apply
+            </span>
+          </div>
         </div>
       )}
     </div>
