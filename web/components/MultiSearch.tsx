@@ -2,6 +2,7 @@
 
 import { ArrowRight, GraduationCap, Loader2, MapPin, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getDisplayName } from "@/lib/presentation";
 import { normalizeProvince } from "@/lib/normalize";
 import type { QualificationSearchHit } from "@/lib/qualificationsData";
 import type { InstitutionRecord } from "@/lib/types";
@@ -150,10 +151,10 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
                 <li key={institution.id}>
                   <button
                     type="button"
-                    onClick={() => runSearch(institution.name)}
+                    onClick={() => runSearch(getDisplayName(institution.name, institution.tradingName))}
                     className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary"
                   >
-                    <span className="font-medium">{institution.name}</span>
+                    <span className="font-medium">{getDisplayName(institution.name, institution.tradingName)}</span>
                     {institution.province && institution.province !== "Unknown" && (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3" />
@@ -180,7 +181,9 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
                       <GraduationCap className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                       {qualification.title}
                     </span>
-                    <span className="flex-shrink-0 text-xs text-muted-foreground">{institution.name}</span>
+                    <span className="flex-shrink-0 text-xs text-muted-foreground">
+                      {getDisplayName(institution.name, institution.tradingName)}
+                    </span>
                   </a>
                 </li>
               ))}

@@ -143,4 +143,53 @@ describe("MultiSearch institution suggestions", () => {
 
     await waitFor(() => expect(screen.getByText("Gauteng")).toBeInTheDocument(), { timeout: 1000 });
   });
+
+  it("shows the clean display name, not the raw legal name, for a suggestion", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          query: "cat",
+          results: [makeInstitution({ id: "cat-academy", name: "Cat Group (Pty) Ltd t/a CAT Academy" })],
+          qualificationHits: [],
+        }),
+      }),
+    );
+
+    render(<MultiSearch institutions={[]} value="cat" onValueChange={noop} onSearch={noop} onClear={noop} />);
+
+    fireEvent.focus(screen.getByPlaceholderText(/search by institution/i));
+
+    await waitFor(() => expect(screen.getByText("CAT Academy")).toBeInTheDocument(), { timeout: 1000 });
+    expect(screen.queryByText("Cat Group (Pty) Ltd t/a CAT Academy")).not.toBeInTheDocument();
+  });
+
+  it("searches using the clean display name, not the raw legal name, when a suggestion is clicked", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          query: "cat",
+          results: [makeInstitution({ id: "cat-academy", name: "Cat Group (Pty) Ltd t/a CAT Academy" })],
+          qualificationHits: [],
+        }),
+      }),
+    );
+
+    const onSearch = vi.fn();
+    const onValueChange = vi.fn();
+    render(
+      <MultiSearch institutions={[]} value="cat" onValueChange={onValueChange} onSearch={onSearch} onClear={noop} />,
+    );
+
+    fireEvent.focus(screen.getByPlaceholderText(/search by institution/i));
+    await waitFor(() => expect(screen.getByText("CAT Academy")).toBeInTheDocument(), { timeout: 1000 });
+
+    fireEvent.click(screen.getByText("CAT Academy"));
+
+    expect(onValueChange).toHaveBeenCalledWith("CAT Academy");
+    expect(onSearch).toHaveBeenCalledWith("CAT Academy");
+  });
 });
