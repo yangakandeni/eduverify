@@ -1,7 +1,7 @@
 import { getAllProgrammes } from "./facultiesAndProgrammes";
 import { ALL_INSTITUTIONS, findLocalById } from "./localData";
 import { normalizeText } from "./normalize";
-import type { FacultyGroup, InstitutionRecord, SaqaQualification } from "./types";
+import type { FacultyGroup, FacultyQualificationGroup, InstitutionRecord, SaqaQualification } from "./types";
 
 export function getFacultiesForInstitution(institutionId: string): FacultyGroup[] {
   const institution = findLocalById(institutionId);
@@ -20,6 +20,28 @@ export function getQualificationsForInstitutionFaculty(
   if (!institution) return [];
   if (!faculty) return getAllProgrammes(institution);
   return institution.faculties_and_programmes.find((f) => f.faculty === faculty)?.programmes ?? [];
+}
+
+/** Each faculty paired with its own qualifications, for pages that need both up front
+ * (e.g. client-side faculty switching with no per-selection refetch). Composes the two
+ * functions above rather than re-deriving from findLocalById/getAllProgrammes directly, so
+ * ordering and matching stay in one place. */
+export function getFacultyQualificationGroups(institutionId: string): FacultyQualificationGroup[] {
+  return getFacultiesForInstitution(institutionId).map((group) => ({
+    ...group,
+    qualifications: getQualificationsForInstitutionFaculty(institutionId, group.faculty),
+  }));
+}
+
+/** Picks the faculty a qualifications explorer should show initially: the requested one if
+ * it actually exists among the groups, otherwise the first (alphabetically, per
+ * getFacultiesForInstitution's ordering) — there's no more "all faculties" fallback. */
+export function resolveInitialFaculty(
+  groups: FacultyQualificationGroup[],
+  requested?: string,
+): string | undefined {
+  if (requested && groups.some((group) => group.faculty === requested)) return requested;
+  return groups[0]?.faculty;
 }
 
 export interface QualificationSearchHit {

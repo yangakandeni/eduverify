@@ -7,6 +7,7 @@ import {
   getVerificationDescription,
   hasNoAddress,
   hasNoFurtherDetails,
+  hasNoQualifications,
 } from "./presentation";
 import type { InstitutionRecord } from "./types";
 
@@ -360,5 +361,38 @@ describe("hasNoFurtherDetails", () => {
       ],
     });
     expect(hasNoFurtherDetails(institution)).toBe(false);
+  });
+});
+
+describe("hasNoQualifications", () => {
+  it("is true when there are no matched SAQA qualifications, even with an address on file", () => {
+    const institution = makeInstitution({
+      address: "1 Sturdee Avenue, Rosebank",
+      faculties_and_programmes: [],
+    });
+    expect(hasNoQualifications(institution)).toBe(true);
+  });
+
+  it("is true for a faculty with an empty programmes list", () => {
+    const institution = makeInstitution({
+      address: "1 Sturdee Avenue, Rosebank",
+      faculties_and_programmes: [{ faculty: "General", programmes: [] }],
+    });
+    expect(hasNoQualifications(institution)).toBe(true);
+  });
+
+  it("is false when at least one qualification is matched, regardless of address", () => {
+    const institution = makeInstitution({
+      address: "",
+      faculties_and_programmes: [
+        {
+          faculty: "General",
+          programmes: [
+            { qualId: 1, title: "Diploma in Somewhere", nqfLevelRaw: "", subfield: "General", originator: "" },
+          ],
+        },
+      ],
+    });
+    expect(hasNoQualifications(institution)).toBe(false);
   });
 });

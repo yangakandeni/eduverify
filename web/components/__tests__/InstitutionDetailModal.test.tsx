@@ -70,7 +70,7 @@ describe("InstitutionDetailModal accredited qualifications block", () => {
     expect(screen.queryByText("Accredited Qualifications")).not.toBeInTheDocument();
   });
 
-  it("shows the 'Accredited Qualifications' block with the institution's actual faculty name as a pill when faculties_and_programmes has matched programmes", () => {
+  it("does not show the 'Accredited Qualifications' block even when faculties_and_programmes has matched programmes, since qualifications are shown on the institution's qualifications page instead", () => {
     render(
       <InstitutionDetailModal
         institution={makeInstitution({
@@ -93,8 +93,7 @@ describe("InstitutionDetailModal accredited qualifications block", () => {
       />,
     );
 
-    expect(screen.getByText("Accredited Qualifications")).toBeInTheDocument();
-    expect(screen.getByText("Business and Management Studies")).toBeInTheDocument();
+    expect(screen.queryByText("Accredited Qualifications")).not.toBeInTheDocument();
   });
 });
 

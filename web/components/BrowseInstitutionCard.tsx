@@ -9,7 +9,7 @@ import {
   getPrimaryLocation,
   getStatusBadge,
   hasNoAddress,
-  hasNoFurtherDetails,
+  hasNoQualifications,
 } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
@@ -28,7 +28,7 @@ export default function BrowseInstitutionCard({
 }: BrowseInstitutionCardProps) {
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
-  const noFurtherDetails = hasNoFurtherDetails(institution);
+  const noQualifications = hasNoQualifications(institution);
   const noAddress = hasNoAddress(institution);
   const location = getPrimaryLocation(institution);
 
@@ -90,11 +90,11 @@ export default function BrowseInstitutionCard({
           <ShieldCheck className="h-4 w-4" />
           Contact Info
         </button>
-        {noFurtherDetails ? (
+        {noQualifications ? (
           <button
             type="button"
             disabled
-            title="No further information is available for this institution"
+            title="No qualifications listed"
             className="flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground opacity-60"
           >
             <GraduationCap className="h-4 w-4" />

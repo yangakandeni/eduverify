@@ -225,6 +225,7 @@ flowchart TB
     subgraph Pages["app/"]
         HOME["/ — search & browse"]
         DASH["/dashboard — saved institutions"]
+        QUALS["/institutions/[id]/qualifications\nfaculty browse, search, pagination"]
         STATIC["/about /contact /privacy /terms"]
     end
 
@@ -237,13 +238,14 @@ flowchart TB
     R5 --> META
     CLERK --> DASH
     R1 & R2 & R3 & R4 --> HOME
+    LOCAL --> QUALS
     R5 --> DASH
 ```
 
 - **`web/lib/localData.ts`** — bundles `data/institutions.json` (private institutions, scraped) plus `web/lib/data/public_universities.json` (hand-maintained public universities/TVETs, via `publicUniversities.ts`) into one deduped list, `ALL_INSTITUTIONS`.
 - **`web/lib/dynamodb.ts`** — the live register; single-table design, `PK` = institution key, `GSI1PK` = uppercased status, `GSI1SK` = name. Server-side only.
 - **`web/lib/institutions.ts`** — the merge point: `searchInstitutions` queries DynamoDB (exact registration-number + name-prefix) and always also runs local fuzzy search in parallel, deduping by id. Any DynamoDB error falls back to local-only, silently.
-- **Qualification parsing** happens client/server-side in TS (not at scrape time) — `web/lib/qualifications.ts` (seed path) and `dynamodb.ts`'s `toRecord` (DynamoDB path) both call the same `parseQualification`, turning the raw scraped string into `{title, nqfLevel, credits, mode, saqaId, campuses}`.
+- **Qualifications** are pre-matched against SAQA's NLRD register (`data/qualifications.json`) and baked directly into `data/institutions.json`/`public_universities.json`/`public_tvets.json` as `faculties_and_programmes` by `web/scripts/bakeFacultiesAndProgrammes.ts` — `web/lib/facultiesAndProgrammes.ts`'s `getAllProgrammes` is the one place to read "every qualification for an institution" from, and `web/lib/qualificationsData.ts` groups/paginates them per faculty for the `/institutions/[id]/qualifications` page (client-side faculty switching, in-faculty search, 12-per-page pagination — no per-selection page reload).
 - **`web/lib/normalize.ts`** maps OCR-noisy/inconsistent province names in the source register to `CANONICAL_PROVINCES` (or `"Unknown"`) — the single place province-matching logic lives (search, filters, homepage hero).
 - **`web/lib/location.ts`** does best-effort client-side IP geolocation (public, unauthenticated API, 2.5s timeout) to pick a default province for the homepage hero; any failure resolves to `null` and falls back to `DEFAULT_PROVINCE` ("Gauteng"). A manual province pick always wins over a late geolocation result.
 - **`web/lib/collections.ts`** builds the homepage hero's Recommended/Featured/Recently Added tabs from `ALL_INSTITUTIONS` plus a province; Featured/Recently Added are omitted entirely when empty.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ALL_INSTITUTIONS } from "./localData";
 import {
   getFacultiesForInstitution,
+  getFacultyQualificationGroups,
   getQualificationsForInstitutionFaculty,
   searchQualificationsGlobal,
 } from "./qualificationsData";
@@ -58,6 +59,28 @@ describe("getQualificationsForInstitutionFaculty", () => {
     const visualArts = getQualificationsForInstitutionFaculty(stellenbosch.id, "Visual Arts");
 
     expect(all.length).toBeGreaterThanOrEqual(visualArts.length);
+  });
+});
+
+describe("getFacultyQualificationGroups", () => {
+  it("attaches each faculty's own qualifications alongside its count, matching getFacultiesForInstitution's ordering", () => {
+    const stellenbosch = requireInstitutionByName("Stellenbosch University");
+    const groups = getFacultyQualificationGroups(stellenbosch.id);
+    const faculties = getFacultiesForInstitution(stellenbosch.id);
+
+    expect(groups.map((g) => g.faculty)).toEqual(faculties.map((f) => f.faculty));
+
+    for (const group of groups) {
+      expect(group.qualifications.length).toBe(group.count);
+      for (const qualification of group.qualifications) {
+        expect(qualification.subfield).toBe(group.faculty);
+      }
+    }
+  });
+
+  it("returns an empty list for an institution with no matched SAQA qualifications", () => {
+    const tvet = requireInstitutionByType("TVET College");
+    expect(getFacultyQualificationGroups(tvet.id)).toEqual([]);
   });
 });
 
