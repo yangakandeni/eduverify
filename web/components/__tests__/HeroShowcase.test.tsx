@@ -58,7 +58,7 @@ describe("HeroShowcase main card for a bogus/fake institution warning listing", 
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
   });
 
-  it("shows 'Fake - Not Registered' and disables both 'Contact Info' and 'Visit Website'", () => {
+  it("shows 'Fake - Not Registered' and disables both 'Contact Info' and 'Qualifications'", () => {
     const onExplore = vi.fn();
     const institution = makeInstitution({
       status: "Bogus",
@@ -76,8 +76,33 @@ describe("HeroShowcase main card for a bogus/fake institution warning listing", 
     fireEvent.click(contactInfoButton);
     expect(onExplore).not.toHaveBeenCalled();
 
-    expect(screen.queryByRole("link", { name: /visit website/i })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /visit website/i })).toBeDisabled();
+    expect(screen.queryByRole("link", { name: /qualifications/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /qualifications/i })).toBeDisabled();
+  });
+
+  it("shows an enabled 'Qualifications' link pointing at the institution's qualifications page", () => {
+    render(<HeroShowcase institutions={[makeInstitution()]} onExplore={vi.fn()} />);
+
+    const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
+    expect(qualificationsLink).toHaveAttribute("href", "/institutions/uct/qualifications");
+  });
+});
+
+describe("HeroShowcase main card location", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
+  });
+
+  it("shows the first campus name instead of 'Unknown' for a multi-campus institution with an unresolved province", () => {
+    const institution = makeInstitution({
+      province: "Unknown",
+      address:
+        "A) Sandton: Main Site, ADvTECH House, 54 Wierda Road West, Sandton, 2196. B) Randburg: 8 Rustenburg Road, Randburg.",
+    });
+    render(<HeroShowcase institutions={[institution]} onExplore={vi.fn()} />);
+
+    expect(screen.getByText("Sandton")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
   });
 });
 

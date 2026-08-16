@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, Bookmark, ExternalLink, MapPin, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Bookmark, GraduationCap, MapPin, ShieldCheck } from "lucide-react";
 import { institutionCategoryLabels } from "@/lib/categories";
 import {
   TYPE_LABEL,
@@ -14,10 +14,6 @@ import {
 import type { InstitutionRecord } from "@/lib/types";
 
 const MAX_VISIBLE_CATEGORY_TAGS = 3;
-
-function websiteHref(website: string): string {
-  return website.startsWith("http") ? website : `https://${website}`;
-}
 
 interface BrowseInstitutionCardProps {
   institution: InstitutionRecord;
@@ -116,24 +112,20 @@ export default function BrowseInstitutionCard({
           <button
             type="button"
             disabled
-            title="No website is available for this institution"
+            title="No further information is available for this institution"
             className="flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground opacity-60"
           >
-            <ExternalLink className="h-4 w-4" />
-            Visit Website
+            <GraduationCap className="h-4 w-4" />
+            Qualifications
           </button>
         ) : (
-          institution.contacts.website && (
-            <a
-              href={websiteHref(institution.contacts.website)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:bg-secondary"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Visit Website
-            </a>
-          )
+          <a
+            href={`/institutions/${institution.id}/qualifications`}
+            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:bg-secondary"
+          >
+            <GraduationCap className="h-4 w-4" />
+            Qualifications
+          </a>
         )}
       </div>
     </div>

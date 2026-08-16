@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, Clock, GraduationCap, Mail, Phone, X, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Globe, Mail, Phone, X, XCircle } from "lucide-react";
 import {
   TYPE_LABEL,
   getBrandColor,
@@ -18,6 +18,10 @@ import {
   parseInstitutionAddresses,
 } from "@/lib/normalize";
 import type { InstitutionRecord } from "@/lib/types";
+
+function websiteHref(website: string): string {
+  return website.startsWith("http") ? website : `https://${website}`;
+}
 
 const PILL_BUTTON_CLASS =
   "inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm";
@@ -153,10 +157,17 @@ export default function InstitutionDetailModal({
               Call
             </a>
           ))}
-          <a href={`/institutions/${institution.id}/qualifications`} className={PILL_BUTTON_CLASS}>
-            <GraduationCap className="w-3.5 h-3.5 text-slate-500" />
-            Qualifications
-          </a>
+          {contacts.website && (
+            <a
+              href={websiteHref(contacts.website)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={PILL_BUTTON_CLASS}
+            >
+              <Globe className="w-3.5 h-3.5 text-slate-500" />
+              Website
+            </a>
+          )}
         </div>
 
         {qualifications.length > 0 && (
