@@ -2,7 +2,15 @@
 
 import { BadgeCheck, Bookmark, ExternalLink, MapPin, ShieldCheck } from "lucide-react";
 import { institutionCategoryLabels } from "@/lib/categories";
-import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge, hasNoFurtherDetails } from "@/lib/presentation";
+import {
+  TYPE_LABEL,
+  getBrandColor,
+  getDisplayName,
+  getInitials,
+  getPrimaryLocation,
+  getStatusBadge,
+  hasNoFurtherDetails,
+} from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const MAX_VISIBLE_CATEGORY_TAGS = 3;
@@ -60,7 +68,7 @@ export default function BrowseInstitutionCard({
         <div className="mt-2 space-y-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <MapPin className="h-3 w-3" />
-            {institution.province}
+            {getPrimaryLocation(institution)}
           </div>
         </div>
       )}

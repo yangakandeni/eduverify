@@ -1,3 +1,4 @@
+import { CANONICAL_PROVINCES, parseInstitutionAddresses } from "./normalize";
 import type { InstitutionRecord, InstitutionType } from "./types";
 
 const STOPWORDS = new Set(["of", "the", "and", "for", "a", "an", "in"]);
@@ -242,6 +243,21 @@ export function getVerificationDescription(institution: InstitutionRecord): stri
     return "This institution is officially registered with the Department of Higher Education and Training.";
   }
   return "This institution is provisionally registered with the Department of Higher Education and Training, pending full accreditation.";
+}
+
+/** Location shown on browse/search cards next to the MapPin icon. When the province
+ * couldn't be resolved (garbled/OCR'd DHET source text, common for multi-campus private
+ * institutions), falls back to the first parsed campus name (e.g. "Sandton") rather than
+ * the literal "Unknown" — but only when the address actually lists multiple lettered
+ * campuses; a single plain address with no markers has nothing more specific to offer. */
+export function getPrimaryLocation(institution: InstitutionRecord): string {
+  const province = institution.province;
+  if (province && province !== "Unknown") return province;
+
+  const locations = parseInstitutionAddresses(institution.address, CANONICAL_PROVINCES);
+  if (locations.length > 1) return locations[0].label;
+
+  return province ?? "Unknown";
 }
 
 export function getShortDescription(institution: InstitutionRecord): string {

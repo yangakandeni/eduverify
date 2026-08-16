@@ -76,4 +76,23 @@ describe("SavedInstitutionsList", () => {
     expect(screen.queryByText("Provisionally Registered")).not.toBeInTheDocument();
     expect(badge).toHaveClass("bg-rose-50", "text-rose-700");
   });
+
+  it("shows the first campus name instead of 'Unknown' for a multi-campus institution with an unresolved province", () => {
+    render(
+      <SavedInstitutionsList
+        records={[
+          makeRecord({
+            institution: makeInstitution({
+              province: "Unknown",
+              address:
+                "A) Sandton: Main Site, ADvTECH House, 54 Wierda Road West, Sandton, 2196. B) Randburg: 8 Rustenburg Road, Randburg.",
+            }),
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Sandton")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
 });
