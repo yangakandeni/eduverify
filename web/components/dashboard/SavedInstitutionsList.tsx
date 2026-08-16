@@ -5,7 +5,7 @@ import { useState } from "react";
 import InstitutionDetailModal from "@/components/InstitutionDetailModal";
 import Modal from "@/components/ui/Modal";
 import type { SavedInstitutionRecord } from "@/lib/dashboardData";
-import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge } from "@/lib/presentation";
+import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getPrimaryLocation, getStatusBadge } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 interface SavedInstitutionsListProps {
@@ -73,7 +73,7 @@ export default function SavedInstitutionsList({ records }: SavedInstitutionsList
               <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
-                  {institution.province}
+                  {getPrimaryLocation(institution)}
                 </span>
               </div>
 

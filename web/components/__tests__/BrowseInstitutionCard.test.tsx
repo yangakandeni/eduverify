@@ -148,6 +148,26 @@ describe("BrowseInstitutionCard for a bogus/fake institution warning listing", (
   });
 });
 
+describe("BrowseInstitutionCard for a multi-campus institution with an unresolved province", () => {
+  it("shows the first campus name instead of 'Unknown'", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({
+          province: "Unknown",
+          address:
+            "A) Sandton: Main Site, ADvTECH House, 54 Wierda Road West, Sandton, 2196. B) Randburg: 8 Rustenburg Road, Randburg.",
+        })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Sandton")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
+});
+
 describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
   it("still shows the location row and keeps 'Contact Info' enabled", () => {
     render(

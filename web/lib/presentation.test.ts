@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getDisplayName,
+  getPrimaryLocation,
   getRegistrationDetails,
   getStatusBadge,
   getVerificationDescription,
@@ -258,6 +259,35 @@ describe("getStatusBadge", () => {
   it("labels a bogus institution as Fake - Not Registered", () => {
     const institution = makeInstitution({ status: "Bogus" });
     expect(getStatusBadge(institution)).toEqual({ label: "Fake - Not Registered", verified: false, cancelled: true });
+  });
+});
+
+describe("getPrimaryLocation", () => {
+  it("returns the province directly when it's a real, resolved value", () => {
+    const institution = makeInstitution({ province: "Gauteng", address: "1 Sturdee Avenue, Rosebank" });
+    expect(getPrimaryLocation(institution)).toBe("Gauteng");
+  });
+
+  it("returns the first campus name for a multi-campus institution whose province is Unknown", () => {
+    const institution = makeInstitution({
+      province: "Unknown",
+      address:
+        "A) Sandton: Main Site, ADvTECH House, 54 Wierda Road West, Sandton, 2196. B) Randburg: 8 Rustenburg Road, Randburg. C) Rosebank: 20 Baker Street, Rosebank.",
+    });
+    expect(getPrimaryLocation(institution)).toBe("Sandton");
+  });
+
+  it("returns the first campus name for a multi-campus institution with no province set at all", () => {
+    const institution = makeInstitution({
+      province: null,
+      address: "A) Sandton: Main Site, ADvTECH House. B) Randburg: 8 Rustenburg Road, Randburg.",
+    });
+    expect(getPrimaryLocation(institution)).toBe("Sandton");
+  });
+
+  it("still returns Unknown for a single-campus address with no letter markers, rather than an unrelated fallback province", () => {
+    const institution = makeInstitution({ province: "Unknown", address: "1 Sturdee Avenue, Rosebank" });
+    expect(getPrimaryLocation(institution)).toBe("Unknown");
   });
 });
 
