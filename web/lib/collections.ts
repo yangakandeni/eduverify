@@ -1,3 +1,4 @@
+import { getAllProgrammes } from "./facultiesAndProgrammes";
 import type { InstitutionRecord } from "./types";
 
 export interface Collection {
@@ -11,7 +12,7 @@ function isPublicType(institution: InstitutionRecord): boolean {
 }
 
 function byQualificationCount(a: InstitutionRecord, b: InstitutionRecord): number {
-  return b.qualifications.length - a.qualifications.length || a.name.localeCompare(b.name);
+  return getAllProgrammes(b).length - getAllProgrammes(a).length || a.name.localeCompare(b.name);
 }
 
 function byName(a: InstitutionRecord, b: InstitutionRecord): number {

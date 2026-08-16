@@ -1,7 +1,6 @@
 import raw from "../../data/institutions.json";
 import { institutionKey } from "./keys";
 import { normalizeProvince } from "./normalize";
-import { parseQualification } from "./qualifications";
 import { loadPublicUniversities } from "./publicUniversities";
 import { loadPublicTvets } from "./publicTvets";
 import type { InstitutionRecord, RawInstitution } from "./types";
@@ -13,7 +12,6 @@ const privateInstitutions: InstitutionRecord[] = institutions.map((institution) 
   id: institutionKey(institution),
   province: normalizeProvince(institution.province),
   institutionType: "Private Higher Education Institution",
-  qualifications: institution.qualifications.map(parseQualification),
 }));
 
 /** The DHET scrape occasionally repeats an entire row verbatim (same registration

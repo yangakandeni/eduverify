@@ -12,9 +12,22 @@ python -m pytest tests/test_extraction.py           # single file
 python -m pytest tests/test_extraction.py -k name   # single test
 python fetch_and_parse.py                          # download latest DHET PDF, write ../data/institutions.json
 python fetch_and_parse.py --pdf-path FILE          # parse an already-downloaded PDF instead
+python fetch_and_parse_qualifications.py           # download latest SAQA NLRD register, write ../data/qualifications.json
 ```
 
 Tests import modules directly (`from build import ...`, no package prefix) — invoke with `python -m pytest` (not the bare `pytest` script) from `parser/` so cwd is on `sys.path`; running from the repo root, or via the bare `pytest` command, breaks imports.
+
+**After re-running `fetch_and_parse.py`, `../data/institutions.json`'s `qualifications` field is raw,
+unmatched scraped strings again — SAQA-matched `faculties_and_programmes` must be re-baked in before the
+file is used or seeded.** From `web/`, run `npm run bake:faculties` (a Node/TS script,
+`web/scripts/bakeFacultiesAndProgrammes.ts`, that reuses `web/lib/qualificationsMatching.ts`'s existing
+name-matching logic rather than reimplementing it in Python). This enriches `../data/institutions.json`
+*and* `web/lib/data/public_universities.json`/`public_tvets.json` in place, replacing their ad-hoc
+`qualifications`/`degrees` fields with `faculties_and_programmes: {faculty, programmes}[]` matched against
+`../data/qualifications.json`. Run this before `python scripts/seed_dynamodb.py`, or the seeded DynamoDB
+table will carry stale/absent `faculties_and_programmes`. Note: the live S3→Lambda ingestion path
+(`lambda_handler.py`) does **not** run this bake step — institutions ingested that way will lack
+`faculties_and_programmes` until the next manual reseed.
 
 ## Architecture
 

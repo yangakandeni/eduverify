@@ -10,7 +10,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
     address: "1 Sturdee Avenue, Rosebank",
     province: "Gauteng",
     institutionType: "Private Higher Education Institution",
-    qualifications: [],
+    faculties_and_programmes: [],
     contacts: { email: [], phone: [] },
     ...overrides,
   };
@@ -53,7 +53,7 @@ describe("BrowseInstitutionCard status badge", () => {
   it("shows 'Discontinued', not 'Cancelled', for an institution that requested its own registration be discontinued", () => {
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ status: "Discontinued", address: "", province: null, qualifications: [] })}
+        institution={makeInstitution({ status: "Discontinued", address: "", province: null, faculties_and_programmes: [] })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
@@ -69,7 +69,7 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
   it("does not show a location row (which would otherwise read 'Unknown')", () => {
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ status: "Discontinued", address: "", province: null, qualifications: [] })}
+        institution={makeInstitution({ status: "Discontinued", address: "", province: null, faculties_and_programmes: [] })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
@@ -83,7 +83,7 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
     const onVerify = vi.fn();
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ status: "Discontinued", address: "", province: null, qualifications: [] })}
+        institution={makeInstitution({ status: "Discontinued", address: "", province: null, faculties_and_programmes: [] })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={onVerify}
@@ -100,7 +100,7 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
   it("shows a disabled 'Qualifications' button instead of hiding it, when there's no further information available", () => {
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ status: "Cancelled", address: "", province: null, qualifications: [] })}
+        institution={makeInstitution({ status: "Cancelled", address: "", province: null, faculties_and_programmes: [] })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
@@ -116,7 +116,7 @@ describe("BrowseInstitutionCard for a bogus/fake institution warning listing", (
   it("shows 'Fake - Not Registered' instead of the unclear 'Bogus' label", () => {
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ status: "Bogus", address: "", province: null, qualifications: [] })}
+        institution={makeInstitution({ status: "Bogus", address: "", province: null, faculties_and_programmes: [] })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
@@ -131,7 +131,7 @@ describe("BrowseInstitutionCard for a bogus/fake institution warning listing", (
     const onVerify = vi.fn();
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ status: "Bogus", address: "", province: null, qualifications: [] })}
+        institution={makeInstitution({ status: "Bogus", address: "", province: null, faculties_and_programmes: [] })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={onVerify}
@@ -165,6 +165,49 @@ describe("BrowseInstitutionCard for a multi-campus institution with an unresolve
 
     expect(screen.getByText("Sandton")).toBeInTheDocument();
     expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
+});
+
+describe("BrowseInstitutionCard faculty pills", () => {
+  it("does not show any faculty pills, since they don't correspond to why a search matched", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({
+          faculties_and_programmes: [
+            {
+              faculty: "Design Studies",
+              programmes: [
+                {
+                  qualId: 101589,
+                  title: "Higher Certificate in Visual Communication",
+                  nqfLevelRaw: "NQF Level 05",
+                  subfield: "Design Studies",
+                  originator: "AAA School of Advertising",
+                },
+              ],
+            },
+            {
+              faculty: "Marketing",
+              programmes: [
+                {
+                  qualId: 117964,
+                  title: "Bachelor of Arts in Creative Brand Communication",
+                  nqfLevelRaw: "NQF Level 07",
+                  subfield: "Marketing",
+                  originator: "AAA School of Advertising",
+                },
+              ],
+            },
+          ],
+        })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText("Design Studies")).not.toBeInTheDocument();
+    expect(screen.queryByText("Marketing")).not.toBeInTheDocument();
   });
 });
 

@@ -17,7 +17,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord>): InstitutionReco
     name: "Test Institution",
     address: "",
     contacts: { email: [], phone: [] },
-    qualifications: [],
+    faculties_and_programmes: [],
     institutionType: "Private Higher Education Institution",
     province: "Gauteng",
     ...overrides,

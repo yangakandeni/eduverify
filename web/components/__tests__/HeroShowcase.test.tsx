@@ -10,7 +10,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
     address: "Rondebosch",
     province: "Gauteng",
     institutionType: "Public University",
-    qualifications: [],
+    faculties_and_programmes: [],
     contacts: { email: [], phone: [] },
     ...overrides,
   };
@@ -64,7 +64,7 @@ describe("HeroShowcase main card for a bogus/fake institution warning listing", 
       status: "Bogus",
       address: "",
       province: null,
-      qualifications: [],
+      faculties_and_programmes: [],
       contacts: { email: [], phone: [], website: "example.com" },
     });
     render(<HeroShowcase institutions={[institution]} onExplore={onExplore} />);
@@ -103,6 +103,92 @@ describe("HeroShowcase main card location", () => {
 
     expect(screen.getByText("Sandton")).toBeInTheDocument();
     expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
+});
+
+describe("HeroShowcase main card faculty pills", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
+  });
+
+  it("shows the institution's actual faculty names, not a keyword-guessed category", () => {
+    const institution = makeInstitution({
+      faculties_and_programmes: [
+        {
+          faculty: "Design Studies",
+          programmes: [
+            {
+              qualId: 101589,
+              title: "Higher Certificate in Visual Communication",
+              nqfLevelRaw: "NQF Level 05",
+              subfield: "Design Studies",
+              originator: "AAA School of Advertising",
+            },
+          ],
+        },
+        {
+          faculty: "Marketing",
+          programmes: [
+            {
+              qualId: 117964,
+              title: "Bachelor of Arts in Creative Brand Communication",
+              nqfLevelRaw: "NQF Level 07",
+              subfield: "Marketing",
+              originator: "AAA School of Advertising",
+            },
+          ],
+        },
+      ],
+    });
+    render(<HeroShowcase institutions={[institution]} onExplore={vi.fn()} />);
+
+    expect(screen.getByText("Design Studies")).toBeInTheDocument();
+    expect(screen.getByText("Marketing")).toBeInTheDocument();
+    expect(screen.queryByText("Business")).not.toBeInTheDocument();
+    expect(screen.queryByText("Arts")).not.toBeInTheDocument();
+  });
+
+  it("caps visible faculty pills at 9 and aggregates the rest into a '+N' pill", () => {
+    const facultyNames = [
+      "Faculty A",
+      "Faculty B",
+      "Faculty C",
+      "Faculty D",
+      "Faculty E",
+      "Faculty F",
+      "Faculty G",
+      "Faculty H",
+      "Faculty I",
+      "Faculty J",
+      "Faculty K",
+      "Faculty L",
+    ];
+    const institution = makeInstitution({
+      faculties_and_programmes: facultyNames.map((faculty, index) => ({
+        faculty,
+        programmes: [
+          {
+            qualId: index,
+            title: `${faculty} Diploma`,
+            nqfLevelRaw: "NQF Level 06",
+            subfield: faculty,
+            originator: "Test Institution",
+          },
+        ],
+      })),
+    });
+    render(<HeroShowcase institutions={[institution]} onExplore={vi.fn()} />);
+
+    const visibleFaculties = facultyNames.slice(0, 9);
+    const overflowFaculties = facultyNames.slice(9);
+
+    for (const faculty of visibleFaculties) {
+      expect(screen.getByText(faculty)).toBeInTheDocument();
+    }
+    for (const faculty of overflowFaculties) {
+      expect(screen.queryByText(faculty)).not.toBeInTheDocument();
+    }
+    expect(screen.getByText("+3")).toBeInTheDocument();
   });
 });
 

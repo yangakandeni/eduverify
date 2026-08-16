@@ -3,22 +3,23 @@ export type InstitutionType =
   | "Private Higher Education Institution"
   | "TVET College";
 
-export interface Qualification {
-  title: string;
-  nqfLevel?: number;
-  credits?: number;
-  mode?: string;
-  saqaId?: string;
-  campuses?: string;
-}
-
 export interface Contacts {
   email: string[];
   phone: string[];
   website?: string | null;
 }
 
-/** Shape of the raw scraped DHET seed data, before qualification strings are parsed. */
+/** An institution's SAQA-matched qualifications, grouped by subfield ("faculty"). Baked
+ * into data/institutions.json / public_universities.json / public_tvets.json by
+ * web/scripts/bakeFacultiesAndProgrammes.ts — an institution/faculty with no SAQA match
+ * gets an empty array, never omitted or null. */
+export interface FacultyProgrammes {
+  faculty: string;
+  programmes: SaqaQualification[];
+}
+
+/** Shape of the seed data — already enriched with SAQA-matched faculties_and_programmes
+ * by the bake script, so no client-side parsing is needed. */
 export interface RawInstitution {
   name: string;
   registration_number?: string | null;
@@ -26,7 +27,7 @@ export interface RawInstitution {
   address: string;
   province?: string | null;
   contacts: Contacts;
-  qualifications: string[];
+  faculties_and_programmes: FacultyProgrammes[];
   cancellation_reason?: string | null;
 }
 
@@ -40,7 +41,7 @@ export interface Institution {
   address: string;
   province?: string | null;
   contacts: Contacts;
-  qualifications: Qualification[];
+  faculties_and_programmes: FacultyProgrammes[];
   cancellation_reason?: string | null;
   institutionType: InstitutionType;
   isFeatured?: boolean;

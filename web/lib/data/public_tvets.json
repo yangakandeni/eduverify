@@ -5,13 +5,7 @@
     "address": "Corner Lukin Road & King Street, Southernwood, East London",
     "province": "Eastern Cape",
     "website": "www.bccollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "East Cape Midlands TVET College",
@@ -19,13 +13,7 @@
     "address": "Corner Cuyler and Durban Street, Kariega (Uitenhage)",
     "province": "Eastern Cape",
     "website": "www.emcol.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Ikhala TVET College",
@@ -33,13 +21,7 @@
     "address": "Zone D, Gwadana Drive, Ezibeleni, Queenstown",
     "province": "Eastern Cape",
     "website": "www.ikhala.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Ingwe TVET College",
@@ -47,13 +29,7 @@
     "address": "Badibanise Village, Mount Frere",
     "province": "Eastern Cape",
     "website": "www.ingwecollege.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "King Hintsa TVET College",
@@ -61,13 +37,7 @@
     "address": "218 Mthatha Road (N2), Butterworth",
     "province": "Eastern Cape",
     "website": "www.khc.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "King Sabata Dalindyebo TVET College",
@@ -75,13 +45,7 @@
     "address": "R61 Queenstown Road, Cicira Village, Mthatha",
     "province": "Eastern Cape",
     "website": "www.ksdcollege.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Lovedale TVET College",
@@ -89,13 +53,7 @@
     "address": "1 Amatola Row, King William's Town",
     "province": "Eastern Cape",
     "website": "www.lovedale.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Port Elizabeth TVET College",
@@ -103,13 +61,7 @@
     "address": "139 Russell Road, Gqeberha Central",
     "province": "Eastern Cape",
     "website": "www.pecollege.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Boland TVET College",
@@ -117,13 +69,7 @@
     "address": "85 Bird Street, Stellenbosch",
     "province": "Western Cape",
     "website": "www.bolandcollege.com",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "College of Cape Town",
@@ -131,13 +77,7 @@
     "address": "334 Albert Road, Salt River, Cape Town",
     "province": "Western Cape",
     "website": "www.cct.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "False Bay TVET College",
@@ -145,13 +85,7 @@
     "address": "131 Main Road, Muizenberg, Cape Town",
     "province": "Western Cape",
     "website": "www.falsebaycollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Northlink TVET College",
@@ -159,13 +93,7 @@
     "address": "80 Voortrekker Road, Bellville, Cape Town",
     "province": "Western Cape",
     "website": "www.northlink.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "South Cape TVET College",
@@ -173,13 +101,7 @@
     "address": "46 Hibernia Street, George",
     "province": "Western Cape",
     "website": "www.sccollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "West Coast TVET College",
@@ -187,13 +109,7 @@
     "address": "2 Loedolf Street, Malmesbury",
     "province": "Western Cape",
     "website": "www.westcoastcollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Northern Cape Rural TVET College",
@@ -201,13 +117,7 @@
     "address": "1 Steve Naude Street, Blydeville, Upington",
     "province": "Northern Cape",
     "website": "www.ncrtvet.com",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Northern Cape Urban TVET College",
@@ -215,13 +125,7 @@
     "address": "37-41 Long Street, Kimberley",
     "province": "Northern Cape",
     "website": "www.ncutvet.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Flavius Mareka TVET College",
@@ -229,13 +133,7 @@
     "address": "Corner Hertzog Road & Fraser Street, Sasolburg",
     "province": "Free State",
     "website": "www.flaviusmareka.net",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Goldfields TVET College",
@@ -243,13 +141,7 @@
     "address": "Flamingo Park, Welkom",
     "province": "Free State",
     "website": "www.goldfieldstvet.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Maluti TVET College",
@@ -257,13 +149,7 @@
     "address": "Bethlehem",
     "province": "Free State",
     "website": "www.malutitvet.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Motheo TVET College",
@@ -271,13 +157,7 @@
     "address": "Central Bloemfontein",
     "province": "Free State",
     "website": "www.motheotvet.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Coastal KZN TVET College",
@@ -285,13 +165,7 @@
     "address": "KwaMakhutha, Amanzimtoti",
     "province": "KwaZulu-Natal",
     "website": "www.coastalkzn.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Elangeni TVET College",
@@ -299,13 +173,7 @@
     "address": "Pinetown",
     "province": "KwaZulu-Natal",
     "website": "www.elangeni.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Esayidi TVET College",
@@ -313,13 +181,7 @@
     "address": "Port Shepstone",
     "province": "KwaZulu-Natal",
     "website": "www.esayiditvet.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Majuba TVET College",
@@ -327,13 +189,7 @@
     "address": "Newcastle",
     "province": "KwaZulu-Natal",
     "website": "www.majuba.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Mnambithi TVET College",
@@ -341,13 +197,7 @@
     "address": "Ladysmith",
     "province": "KwaZulu-Natal",
     "website": "www.mnambithicollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Mthashana TVET College",
@@ -355,13 +205,7 @@
     "address": "Vryheid",
     "province": "KwaZulu-Natal",
     "website": "www.mthashanacollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Thekwini TVET College",
@@ -369,13 +213,7 @@
     "address": "Asherville, Durban",
     "province": "KwaZulu-Natal",
     "website": "www.thekwini.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Umfolozi TVET College",
@@ -383,13 +221,7 @@
     "address": "Arboretum, Richards Bay",
     "province": "KwaZulu-Natal",
     "website": "www.umfolozicollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Umgungundlovu TVET College",
@@ -397,13 +229,7 @@
     "address": "Pietermaritzburg",
     "province": "KwaZulu-Natal",
     "website": "www.utvet.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Orbit TVET College",
@@ -411,13 +237,7 @@
     "address": "Rustenburg",
     "province": "North West",
     "website": "www.orbitcollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Taletso TVET College",
@@ -425,13 +245,7 @@
     "address": "Montshiwa, Mahikeng",
     "province": "North West",
     "website": "www.taletso.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Vuselela TVET College",
@@ -439,13 +253,7 @@
     "address": "Klerksdorp",
     "province": "North West",
     "website": "www.vuselelacollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Central Johannesburg TVET College",
@@ -453,13 +261,7 @@
     "address": "Parktown, Johannesburg",
     "province": "Gauteng",
     "website": "www.cjc.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Ekurhuleni East TVET College",
@@ -467,13 +269,7 @@
     "address": "Kwa-Thema, Springs",
     "province": "Gauteng",
     "website": "www.eec.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Ekurhuleni West TVET College",
@@ -481,13 +277,7 @@
     "address": "Corner Driehoek & Sol Roads, Germiston",
     "province": "Gauteng",
     "website": "www.ewc.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Sedibeng TVET College",
@@ -495,13 +285,7 @@
     "address": "37 Voortrekker Street, Vereeniging",
     "province": "Gauteng",
     "website": "www.sedcol.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "South West Gauteng TVET College",
@@ -509,13 +293,7 @@
     "address": "1822A Molele Street, Molapo, Soweto",
     "province": "Gauteng",
     "website": "www.swgc.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Tshwane North TVET College",
@@ -523,13 +301,7 @@
     "address": "Corner Kgosi Mampuru & Pretorius Streets, Arcadia, Pretoria",
     "province": "Gauteng",
     "website": "www.tnc.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Tshwane South TVET College",
@@ -537,13 +309,7 @@
     "address": "85 Frances Baard Street, Pretoria",
     "province": "Gauteng",
     "website": "www.tsc.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Western College for TVET",
@@ -551,13 +317,7 @@
     "address": "42 Johnstone Street, Randfontein",
     "province": "Gauteng",
     "website": "www.westcol.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Ehlanzeni TVET College",
@@ -565,13 +325,7 @@
     "address": "29 Bell Street, Nelspruit",
     "province": "Mpumalanga",
     "website": "www.ehlanzenicollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Gert Sibande TVET College",
@@ -579,13 +333,7 @@
     "address": "18A Beyers Naude Street, Standerton",
     "province": "Mpumalanga",
     "website": "www.gscollege.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Nkangala TVET College",
@@ -593,13 +341,7 @@
     "address": "Corner Frans & Susanna Streets, Witbank (eMalahleni)",
     "province": "Mpumalanga",
     "website": "www.ntc.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Capricorn TVET College",
@@ -607,13 +349,7 @@
     "address": "16 Market Street, Polokwane",
     "province": "Limpopo",
     "website": "www.capricorncollege.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Lephalale TVET College",
@@ -621,13 +357,7 @@
     "address": "Corner Nelson Mandela & Ngwako Ramatlhodi Streets, Onverwacht, Lephalale",
     "province": "Limpopo",
     "website": "www.leptvetcol.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Letaba TVET College",
@@ -635,13 +365,7 @@
     "address": "1 Claude Wheatley Street, Tzaneen",
     "province": "Limpopo",
     "website": "www.letcol.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Mopani South East TVET College",
@@ -649,13 +373,7 @@
     "address": "Corner Combretum & Haarlem Streets, Phalaborwa",
     "province": "Limpopo",
     "website": "www.mopanicollege.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Sekhukhune TVET College",
@@ -663,13 +381,7 @@
     "address": "Stand No 676, Motetema, Groblersdal",
     "province": "Limpopo",
     "website": "www.sekhukhunetvet.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Vhembe TVET College",
@@ -677,13 +389,7 @@
     "address": "Stand No. 203 Unit A, Sibasa, Thohoyandou",
     "province": "Limpopo",
     "website": "www.vhembecollege.edu.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   },
   {
     "name": "Waterberg TVET College",
@@ -691,12 +397,6 @@
     "address": "Mokopane",
     "province": "Limpopo",
     "website": "www.waterbergcollege.co.za",
-    "qualifications": [
-      { "title": "National Certificate (Vocational) NQF Level 2", "nqfLevel": 2 },
-      { "title": "National Certificate (Vocational) NQF Level 3", "nqfLevel": 3 },
-      { "title": "National Certificate (Vocational) NQF Level 4", "nqfLevel": 4 },
-      { "title": "National Certificate (N4-N6): Engineering Studies", "nqfLevel": 5 },
-      { "title": "National Certificate (N4-N6): Business Studies", "nqfLevel": 5 }
-    ]
+    "faculties_and_programmes": []
   }
 ]

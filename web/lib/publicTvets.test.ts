@@ -29,4 +29,9 @@ describe("loadPublicTvets", () => {
     const ids = institutions.map((i) => i.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  it("has an empty faculties_and_programmes for every TVET, since no SAQA matches exist for them", () => {
+    const institutions = loadPublicTvets();
+    expect(institutions.every((i) => i.faculties_and_programmes.length === 0)).toBe(true);
+  });
 });

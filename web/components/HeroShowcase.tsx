@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { buildCollections, chunk, type Collection } from "@/lib/collections";
-import { PRIMARY_CATEGORY_KEYS, getCategory, institutionMatchesCategory } from "@/lib/categories";
+import { getFacultyLabels } from "@/lib/facultiesAndProgrammes";
 import { useUserProvince } from "@/lib/location";
 import { CANONICAL_PROVINCES } from "@/lib/normalize";
 import {
@@ -30,6 +30,7 @@ import type { InstitutionRecord } from "@/lib/types";
 
 const FADE_TRANSITION = { duration: 0.2, ease: "easeInOut" as const };
 const SLIDE_SIZE = 5;
+const MAX_VISIBLE_FACULTY_PILLS = 9;
 
 interface HeroShowcaseProps {
   institutions: InstitutionRecord[];
@@ -78,13 +79,6 @@ export default function HeroShowcase({ institutions, onExplore }: HeroShowcasePr
           <div>
             <p className="font-mono text-xs uppercase tracking-widest text-accent">Curated Collections</p>
             <h2 className="font-display text-2xl font-bold text-foreground">Explore Institutions</h2>
-            {safeActiveKey === "recommended" && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {hasLocalMatches
-                  ? `Showing institutions local to ${province}`
-                  : `No local matches yet in ${province} — showing institutions nationwide`}
-              </p>
-            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -236,9 +230,9 @@ function MainCard({
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
   const noFurtherDetails = hasNoFurtherDetails(institution);
-  const categories = PRIMARY_CATEGORY_KEYS.filter((key) => institutionMatchesCategory(institution, key))
-    .map((key) => getCategory(key))
-    .filter((category): category is NonNullable<typeof category> => Boolean(category));
+  const facultyLabels = getFacultyLabels(institution);
+  const visibleFacultyLabels = facultyLabels.slice(0, MAX_VISIBLE_FACULTY_PILLS);
+  const remainingFacultyCount = facultyLabels.length - visibleFacultyLabels.length;
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
@@ -266,13 +260,18 @@ function MainCard({
           </span>
         </div>
 
-        {categories.length > 0 && (
+        {facultyLabels.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <span key={category.key} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-                {category.label}
+            {visibleFacultyLabels.map((label) => (
+              <span key={label} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                {label}
               </span>
             ))}
+            {remainingFacultyCount > 0 && (
+              <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                +{remainingFacultyCount}
+              </span>
+            )}
           </div>
         )}
 
