@@ -154,10 +154,12 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
                     className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary"
                   >
                     <span className="font-medium">{institution.name}</span>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-                      {institution.province}
-                    </span>
+                    {institution.province && institution.province !== "Unknown" && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        {institution.province}
+                      </span>
+                    )}
                   </button>
                 </li>
               ))}

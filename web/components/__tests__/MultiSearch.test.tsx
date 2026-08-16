@@ -68,3 +68,79 @@ describe("MultiSearch qualification suggestions", () => {
     expect(link).toHaveAttribute("href", "/institutions/stellenbosch/qualifications?faculty=Performing+Arts");
   });
 });
+
+describe("MultiSearch institution suggestions", () => {
+  it("does not show a location badge (which would otherwise read 'Unknown') when province is 'Unknown'", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          query: "fashion",
+          results: [makeInstitution({ name: "The Online Fashion Design Institute", province: "Unknown" })],
+          qualificationHits: [],
+        }),
+      }),
+    );
+
+    render(
+      <MultiSearch institutions={[]} value="fashion" onValueChange={noop} onSearch={noop} onClear={noop} />,
+    );
+
+    fireEvent.focus(screen.getByPlaceholderText(/search by institution/i));
+
+    await waitFor(() => expect(screen.getByText("The Online Fashion Design Institute")).toBeInTheDocument(), {
+      timeout: 1000,
+    });
+
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
+
+  it("does not show a location badge when province is missing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          query: "fashion",
+          results: [makeInstitution({ name: "The Online Fashion Design Institute", province: undefined })],
+          qualificationHits: [],
+        }),
+      }),
+    );
+
+    render(
+      <MultiSearch institutions={[]} value="fashion" onValueChange={noop} onSearch={noop} onClear={noop} />,
+    );
+
+    fireEvent.focus(screen.getByPlaceholderText(/search by institution/i));
+
+    await waitFor(() => expect(screen.getByText("The Online Fashion Design Institute")).toBeInTheDocument(), {
+      timeout: 1000,
+    });
+
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
+
+  it("still shows the province when it is known", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          query: "milpark",
+          results: [makeInstitution({ province: "Gauteng" })],
+          qualificationHits: [],
+        }),
+      }),
+    );
+
+    render(
+      <MultiSearch institutions={[]} value="milpark" onValueChange={noop} onSearch={noop} onClear={noop} />,
+    );
+
+    fireEvent.focus(screen.getByPlaceholderText(/search by institution/i));
+
+    await waitFor(() => expect(screen.getByText("Gauteng")).toBeInTheDocument(), { timeout: 1000 });
+  });
+});
