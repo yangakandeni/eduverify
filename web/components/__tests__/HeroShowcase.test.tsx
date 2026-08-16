@@ -86,6 +86,16 @@ describe("HeroShowcase main card for a bogus/fake institution warning listing", 
     const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
     expect(qualificationsLink).toHaveAttribute("href", "/institutions/uct/qualifications");
   });
+
+  it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", () => {
+    render(<HeroShowcase institutions={[makeInstitution({ id: "INST#2000/HE07/015" })]} onExplore={vi.fn()} />);
+
+    const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
+    expect(qualificationsLink).toHaveAttribute(
+      "href",
+      "/institutions/INST%232000%2FHE07%2F015/qualifications",
+    );
+  });
 });
 
 describe("HeroShowcase main card location", () => {

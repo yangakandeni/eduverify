@@ -54,4 +54,17 @@ describe("FacultySidebar", () => {
       "/institutions/ufs/qualifications?faculty=Hospitality%2C+Tourism%2C+Travel%2C+Gaming+and+Leisure",
     );
   });
+
+  it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", () => {
+    render(<FacultySidebar institutionId="INST#2000/HE07/015" faculties={FACULTIES} />);
+
+    expect(screen.getByRole("link", { name: /all faculties/i })).toHaveAttribute(
+      "href",
+      "/institutions/INST%232000%2FHE07%2F015/qualifications",
+    );
+    expect(screen.getByRole("link", { name: /music/i })).toHaveAttribute(
+      "href",
+      "/institutions/INST%232000%2FHE07%2F015/qualifications?faculty=Music",
+    );
+  });
 });

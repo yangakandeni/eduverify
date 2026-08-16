@@ -67,6 +67,41 @@ describe("MultiSearch qualification suggestions", () => {
     const link = screen.getByRole("link", { name: /bachelor of drama and theatre studies/i });
     expect(link).toHaveAttribute("href", "/institutions/stellenbosch/qualifications?faculty=Performing+Arts");
   });
+
+  it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          query: "theatre",
+          results: [makeInstitution()],
+          qualificationHits: [
+            {
+              ...QUALIFICATION_HIT,
+              institution: { ...QUALIFICATION_HIT.institution, id: "INST#2000/HE07/015" },
+            },
+          ],
+        }),
+      }),
+    );
+
+    render(
+      <MultiSearch institutions={[]} value="theatre" onValueChange={noop} onSearch={noop} onClear={noop} />,
+    );
+
+    fireEvent.focus(screen.getByPlaceholderText(/search by institution/i));
+
+    await waitFor(() => expect(screen.getByText("Bachelor of Drama and Theatre Studies")).toBeInTheDocument(), {
+      timeout: 1000,
+    });
+
+    const link = screen.getByRole("link", { name: /bachelor of drama and theatre studies/i });
+    expect(link).toHaveAttribute(
+      "href",
+      "/institutions/INST%232000%2FHE07%2F015/qualifications?faculty=Performing+Arts",
+    );
+  });
 });
 
 describe("MultiSearch dropdown overlay", () => {

@@ -102,7 +102,7 @@ export default function BrowseInstitutionCard({
           </button>
         ) : (
           <a
-            href={`/institutions/${institution.id}/qualifications`}
+            href={`/institutions/${encodeURIComponent(institution.id)}/qualifications`}
             className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:bg-secondary"
           >
             <GraduationCap className="h-4 w-4" />

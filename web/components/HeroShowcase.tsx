@@ -307,7 +307,7 @@ function MainCard({
             </button>
           ) : (
             <a
-              href={`/institutions/${institution.id}/qualifications`}
+              href={`/institutions/${encodeURIComponent(institution.id)}/qualifications`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary"
             >
               <GraduationCap className="h-4 w-4" />
