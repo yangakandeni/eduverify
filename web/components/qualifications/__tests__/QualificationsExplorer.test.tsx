@@ -25,8 +25,16 @@ const MANY_COMMERCE_QUALIFICATIONS: SaqaQualification[] = Array.from({ length: 1
 const GROUPS: FacultyQualificationGroup[] = [
   {
     faculty: "Arts",
-    count: 1,
-    qualifications: [makeQualification({ qualId: 1, title: "Diploma in Fine Art", subfield: "Arts" })],
+    count: 7,
+    qualifications: [
+      makeQualification({ qualId: 1, title: "Diploma in Fine Art", subfield: "Arts" }),
+      makeQualification({ qualId: 2, title: "Diploma in Education", subfield: "Arts" }),
+      makeQualification({ qualId: 3, title: "Bachelor of Architecture", subfield: "Arts" }),
+      makeQualification({ qualId: 4, title: "National Diploma in Engineering", subfield: "Arts" }),
+      makeQualification({ qualId: 5, title: "Doctor of Philosophy in Education", subfield: "Arts" }),
+      makeQualification({ qualId: 6, title: "Diploma: 3-D Design and Digital Animation", subfield: "Arts" }),
+      makeQualification({ qualId: 7, title: "Bachelor of Science in Physics", subfield: "Arts" }),
+    ],
   },
   {
     faculty: "Commerce",
@@ -75,12 +83,123 @@ describe("QualificationsExplorer", () => {
     expect(screen.queryByText("Commerce Qualification 1")).not.toBeInTheDocument();
   });
 
-  it("does not match a search query against a title that only exists in a different faculty", () => {
+  it("keeps showing the previous results when a search query matches nothing in the selected faculty", () => {
     render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
 
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Commerce" } });
 
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+    expect(screen.queryByText(/no qualifications/i)).not.toBeInTheDocument();
+  });
+
+  it("freezes the grid on the last non-empty results while typing produces no new matches, then updates once a new match appears", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+
+    fireEvent.change(search, { target: { value: "a" } });
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+    expect(screen.getByText("Bachelor of Architecture")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "ar" } });
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+    expect(screen.getByText("Bachelor of Architecture")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "arc" } });
+    expect(screen.getByText("Bachelor of Architecture")).toBeInTheDocument();
+    expect(screen.queryByText("Diploma in Fine Art")).not.toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "ar" } });
+    expect(screen.getByText("Bachelor of Architecture")).toBeInTheDocument();
+    expect(screen.queryByText("Diploma in Fine Art")).not.toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "art" } });
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+    expect(screen.queryByText("Bachelor of Architecture")).not.toBeInTheDocument();
+  });
+
+  it("shows no 'Results for' heading before any search is entered", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    expect(screen.queryByText(/results for/i)).not.toBeInTheDocument();
+  });
+
+  it("shows a 'Results for \"<query>\"' heading above the matches once a search applies", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "art" } });
+
+    expect(screen.getByText('Results for "art"')).toBeInTheDocument();
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+  });
+
+  it("shows a 'Results for \"moooo\"' heading alongside the no-qualifications-found state when a forced search matches nothing, mirroring the homepage's search-with-no-results treatment", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+    fireEvent.change(search, { target: { value: "moooo" } });
+    fireEvent.keyDown(search, { key: "Enter" });
+
+    expect(screen.getByText('Results for "moooo"')).toBeInTheDocument();
+    expect(screen.getByText(/no qualifications found/i)).toBeInTheDocument();
+  });
+
+  it("keeps the 'Results for' heading pinned to the applied query, not the frozen live input, while typing produces no new matches", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+    fireEvent.change(search, { target: { value: "art" } });
+    expect(screen.getByText('Results for "art"')).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "ar" } });
+
+    expect(screen.getByText('Results for "art"')).toBeInTheDocument();
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+  });
+
+  it("lets Enter override the freeze and force a search with the current input, showing the no-results state when it matches nothing", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+
+    fireEvent.change(search, { target: { value: "art" } });
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "ar" } });
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+
+    fireEvent.keyDown(search, { key: "Enter" });
+
+    expect(screen.queryByText("Diploma in Fine Art")).not.toBeInTheDocument();
     expect(screen.getByText(/no qualifications/i)).toBeInTheDocument();
+  });
+
+  it("shows fresh matches immediately once typing after an Enter-forced no-results state produces a match", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+
+    fireEvent.change(search, { target: { value: "art" } });
+    fireEvent.change(search, { target: { value: "ar" } });
+    fireEvent.keyDown(search, { key: "Enter" });
+    expect(screen.getByText(/no qualifications/i)).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "arc" } });
+
+    expect(screen.getByText("Bachelor of Architecture")).toBeInTheDocument();
+    expect(screen.queryByText(/no qualifications/i)).not.toBeInTheDocument();
+  });
+
+  it("does not freeze across a faculty switch, even when the current search term matches nothing there", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Commerce" } });
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /commerce/i }));
+
+    expect(screen.getByText("Commerce Qualification 1")).toBeInTheDocument();
+    expect(screen.queryByText("Diploma in Fine Art")).not.toBeInTheDocument();
   });
 
   it("paginates at 12 items per page and advances on click", () => {
@@ -133,6 +252,53 @@ describe("QualificationsExplorer", () => {
     fireEvent.click(screen.getByRole("button", { name: /commerce/i }));
 
     expect(search).toHaveValue("keep me");
+  });
+
+  it("matches a title regardless of search-term word order", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+
+    fireEvent.change(search, { target: { value: "diploma education" } });
+    expect(screen.getByText("Diploma in Education")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "education diploma" } });
+    expect(screen.getByText("Diploma in Education")).toBeInTheDocument();
+  });
+
+  it("tolerates a minor spelling mistake in the search query", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "diploma eucation" } });
+
+    expect(screen.getByText("Diploma in Education")).toBeInTheDocument();
+  });
+
+  it("expands degree abbreviations to match their spelled-out qualification titles", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    const search = screen.getByRole("searchbox");
+
+    fireEvent.change(search, { target: { value: "phd" } });
+    expect(screen.getByText("Doctor of Philosophy in Education")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "bsc" } });
+    expect(screen.getByText("Bachelor of Science in Physics")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "ba" } });
+    expect(screen.getByText("Bachelor of Architecture")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "nd" } });
+    expect(screen.getByText("National Diploma in Engineering")).toBeInTheDocument();
+  });
+
+  it("does not let an abbreviation query match an unrelated title with a stray matching character", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
+
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "phd" } });
+
+    expect(screen.getByText("Doctor of Philosophy in Education")).toBeInTheDocument();
+    expect(screen.queryByText("Diploma: 3-D Design and Digital Animation")).not.toBeInTheDocument();
   });
 
   it("keeps a fixed search placeholder regardless of which faculty is selected", () => {

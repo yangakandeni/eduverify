@@ -1,13 +1,14 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type KeyboardEvent } from "react";
 import BrowsePagination from "@/components/BrowsePagination";
 import FacultySidebar from "@/components/qualifications/FacultySidebar";
 import QualificationsGrid from "@/components/qualifications/QualificationsGrid";
 import { normalizeText } from "@/lib/normalize";
 import { ALL_QUALIFICATIONS_FACULTY, resolveInitialFaculty } from "@/lib/qualificationsData";
-import type { FacultyQualificationGroup } from "@/lib/types";
+import { matchesQualificationSearch } from "@/lib/qualificationSearch";
+import type { FacultyQualificationGroup, SaqaQualification } from "@/lib/types";
 
 interface QualificationsExplorerProps {
   facultyGroups: FacultyQualificationGroup[];
@@ -16,41 +17,70 @@ interface QualificationsExplorerProps {
 
 const ITEMS_PER_PAGE = 12;
 
+function filterQualifications(qualifications: SaqaQualification[], query: string): SaqaQualification[] {
+  const normalized = normalizeText(query);
+  if (!normalized) return qualifications;
+  return qualifications.filter(
+    (qualification) => matchesQualificationSearch(qualification.title, query) || String(qualification.qualId).includes(normalized),
+  );
+}
+
+function resolveActiveGroup(
+  facultyGroups: FacultyQualificationGroup[],
+  allQualifications: SaqaQualification[],
+  faculty: string,
+): FacultyQualificationGroup {
+  if (faculty === ALL_QUALIFICATIONS_FACULTY) {
+    return { faculty: ALL_QUALIFICATIONS_FACULTY, count: allQualifications.length, qualifications: allQualifications };
+  }
+  return facultyGroups.find((group) => group.faculty === faculty) ?? facultyGroups[0];
+}
+
 export default function QualificationsExplorer({ facultyGroups, initialFaculty }: QualificationsExplorerProps) {
   const [selectedFaculty, setSelectedFaculty] = useState(
     () => resolveInitialFaculty(facultyGroups, initialFaculty) ?? facultyGroups[0].faculty,
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [appliedQuery, setAppliedQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
   const allQualifications = useMemo(() => facultyGroups.flatMap((group) => group.qualifications), [facultyGroups]);
 
-  const activeGroup =
-    selectedFaculty === ALL_QUALIFICATIONS_FACULTY
-      ? { faculty: ALL_QUALIFICATIONS_FACULTY, count: allQualifications.length, qualifications: allQualifications }
-      : facultyGroups.find((group) => group.faculty === selectedFaculty) ?? facultyGroups[0];
+  const activeGroup = resolveActiveGroup(facultyGroups, allQualifications, selectedFaculty);
 
-  const filteredQualifications = useMemo(() => {
-    const query = normalizeText(searchQuery);
-    if (!query) return activeGroup.qualifications;
-    return activeGroup.qualifications.filter(
-      (qualification) =>
-        normalizeText(qualification.title).includes(query) || String(qualification.qualId).includes(query),
-    );
-  }, [activeGroup, searchQuery]);
+  // Freezes on the last non-empty result set while the user types, rather than flashing to an
+  // empty grid on every keystroke that doesn't (yet) match anything — see plan for rationale.
+  const [displayedQualifications, setDisplayedQualifications] = useState(() =>
+    filterQualifications(activeGroup.qualifications, ""),
+  );
 
-  const totalPages = Math.max(1, Math.ceil(filteredQualifications.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(displayedQualifications.length / ITEMS_PER_PAGE));
   const page = Math.min(currentPage, totalPages);
-  const pageItems = filteredQualifications.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const pageItems = displayedQualifications.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   function handleSelectFaculty(faculty: string) {
     setSelectedFaculty(faculty);
     setCurrentPage(1);
+    const nextGroup = resolveActiveGroup(facultyGroups, allQualifications, faculty);
+    setDisplayedQualifications(filterQualifications(nextGroup.qualifications, searchQuery));
+    setAppliedQuery(searchQuery);
   }
 
   function handleSearchChange(value: string) {
     setSearchQuery(value);
     setCurrentPage(1);
+    const candidate = filterQualifications(activeGroup.qualifications, value);
+    if (candidate.length > 0) {
+      setDisplayedQualifications(candidate);
+      setAppliedQuery(value);
+    }
+  }
+
+  function handleSearchKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    setCurrentPage(1);
+    setDisplayedQualifications(filterQualifications(activeGroup.qualifications, searchQuery));
+    setAppliedQuery(searchQuery);
   }
 
   function handleGoToPage(target: number) {
@@ -76,11 +106,15 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty }
             type="search"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search qualifications..."
             aria-label="Search qualifications"
             className="w-full rounded-lg border border-border bg-card py-2.5 pl-9 pr-3.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
           />
         </div>
+        {appliedQuery.trim() && (
+          <p className="font-display text-base font-semibold text-foreground">Results for &quot;{appliedQuery}&quot;</p>
+        )}
         <QualificationsGrid qualifications={pageItems} />
         <BrowsePagination page={page} totalPages={totalPages} onGoToPage={handleGoToPage} />
       </div>
