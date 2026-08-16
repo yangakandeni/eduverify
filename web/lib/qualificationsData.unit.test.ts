@@ -14,6 +14,12 @@ function makeQualification(overrides: Partial<SaqaQualification> = {}): SaqaQual
 
 const lawQualification = makeQualification({ qualId: 1, title: "Diploma in Something", subfield: "Law" });
 const artsQualification = makeQualification({ qualId: 2, title: "Certificate in Art", subfield: "Arts" });
+const hospitalityQualification = makeQualification({
+  qualId: 3,
+  title: "Diploma in Hospitality Management",
+  subfield: "Hospitality",
+  originator: "Other Institution",
+});
 
 const fixtureInstitution: InstitutionRecord = {
   id: "fixture-institution",
@@ -27,9 +33,18 @@ const fixtureInstitution: InstitutionRecord = {
   ],
 };
 
+const otherInstitution: InstitutionRecord = {
+  id: "other-institution",
+  name: "Other Institution",
+  address: "",
+  contacts: { email: [], phone: [] },
+  institutionType: "Private Higher Education Institution",
+  faculties_and_programmes: [{ faculty: "Hospitality", programmes: [hospitalityQualification] }],
+};
+
 vi.mock("./localData", () => ({
-  ALL_INSTITUTIONS: [fixtureInstitution],
-  findLocalById: (id: string) => (id === fixtureInstitution.id ? fixtureInstitution : undefined),
+  ALL_INSTITUTIONS: [fixtureInstitution, otherInstitution],
+  findLocalById: (id: string) => [fixtureInstitution, otherInstitution].find((i) => i.id === id),
 }));
 
 describe("qualificationsData (unit, mocked localData)", () => {
@@ -60,6 +75,14 @@ describe("qualificationsData (unit, mocked localData)", () => {
     expect(hits).toHaveLength(1);
     expect(hits[0].qualification).toEqual(artsQualification);
     expect(hits[0].institution.id).toBe(fixtureInstitution.id);
+  });
+
+  it("does not surface a qualification whose title merely contains the query as a bare mid-word substring", async () => {
+    const { searchQualificationsGlobal } = await import("./qualificationsData");
+
+    const hits = searchQualificationsGlobal("IT");
+
+    expect(hits.some((hit) => hit.qualification.qualId === hospitalityQualification.qualId)).toBe(false);
   });
 
   it("getFacultyQualificationGroups attaches each faculty's own qualifications to its count", async () => {

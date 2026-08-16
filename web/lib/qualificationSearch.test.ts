@@ -78,4 +78,9 @@ describe("matchesQualificationSearch", () => {
   it("does not give a mistyped abbreviation special expansion treatment", () => {
     expect(matchesQualificationSearch("Doctor of Philosophy", "phdd")).toBe(false);
   });
+
+  it("expands 'it' to require both 'information' and 'technology'", () => {
+    expect(matchesQualificationSearch("Bachelor of Science in Information Technology", "it")).toBe(true);
+    expect(matchesQualificationSearch("Diploma in Business", "it")).toBe(false);
+  });
 });

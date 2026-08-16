@@ -32,6 +32,16 @@ describe("searchLocal qualification-title fallback", () => {
     expect(results.some((r) => r.name === "Stellenbosch University")).toBe(true);
   });
 
+  it("does not surface an institution whose name merely contains the query as a bare mid-word substring", () => {
+    const results = searchLocal("IT");
+    expect(results.some((r) => r.name === "Bible Institute of South Africa NPC (The)")).toBe(false);
+  });
+
+  it("surfaces an institution offering an Information Technology qualification via the 'IT' alias", () => {
+    const results = searchLocal("IT");
+    expect(results.some((r) => r.name === "MANCOSA (Pty) Ltd")).toBe(true);
+  });
+
   it("matches a qualification title regardless of search-term word order", () => {
     const results = searchLocal("science computer");
     expect(results.some((r) => r.name === "Akademia NPC")).toBe(true);

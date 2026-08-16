@@ -71,7 +71,7 @@ export function searchQualificationsGlobal(query: string, limit = 20): Qualifica
       if (title === q) score = 100;
       else if (title.startsWith(q)) score = 70;
       else if (title.split(" ").some((word) => word.startsWith(q))) score = 55;
-      else if (title.includes(q)) score = 40;
+      else if (q.length >= 3 && title.includes(q)) score = 40;
 
       if (score > 0) scored.push({ hit: { qualification, institution }, score });
     }
