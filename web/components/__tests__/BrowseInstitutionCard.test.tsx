@@ -97,7 +97,7 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
     expect(onVerify).not.toHaveBeenCalled();
   });
 
-  it("shows a disabled 'Visit Website' button instead of hiding it, even though there's no website", () => {
+  it("shows a disabled 'Qualifications' button instead of hiding it, when there's no further information available", () => {
     render(
       <BrowseInstitutionCard
         institution={makeInstitution({ status: "Cancelled", address: "", province: null, qualifications: [] })}
@@ -107,7 +107,7 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
       />,
     );
 
-    const button = screen.getByRole("button", { name: /visit website/i });
+    const button = screen.getByRole("button", { name: /qualifications/i });
     expect(button).toBeDisabled();
   });
 });
@@ -127,7 +127,7 @@ describe("BrowseInstitutionCard for a bogus/fake institution warning listing", (
     expect(screen.queryByText("Bogus")).not.toBeInTheDocument();
   });
 
-  it("disables both the 'Contact Info' and 'Visit Website' buttons", () => {
+  it("disables both the 'Contact Info' and 'Qualifications' buttons", () => {
     const onVerify = vi.fn();
     render(
       <BrowseInstitutionCard
@@ -139,9 +139,9 @@ describe("BrowseInstitutionCard for a bogus/fake institution warning listing", (
     );
 
     const contactInfoButton = screen.getByRole("button", { name: /contact info/i });
-    const visitWebsiteButton = screen.getByRole("button", { name: /visit website/i });
+    const qualificationsButton = screen.getByRole("button", { name: /qualifications/i });
     expect(contactInfoButton).toBeDisabled();
-    expect(visitWebsiteButton).toBeDisabled();
+    expect(qualificationsButton).toBeDisabled();
 
     fireEvent.click(contactInfoButton);
     expect(onVerify).not.toHaveBeenCalled();
@@ -183,7 +183,7 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
     expect(screen.getByRole("button", { name: /contact info/i })).not.toBeDisabled();
   });
 
-  it("still hides 'Visit Website' entirely (rather than disabling it) when there's simply no website on file", () => {
+  it("shows an enabled 'Qualifications' link pointing at the institution's qualifications page, regardless of whether a website is on file", () => {
     render(
       <BrowseInstitutionCard
         institution={makeInstitution({ status: "Registered" })}
@@ -193,7 +193,7 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
       />,
     );
 
-    expect(screen.queryByRole("button", { name: /visit website/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /visit website/i })).not.toBeInTheDocument();
+    const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
+    expect(qualificationsLink).toHaveAttribute("href", "/institutions/milpark/qualifications");
   });
 });

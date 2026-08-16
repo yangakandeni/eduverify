@@ -73,7 +73,7 @@ describe("InstitutionDetailModal location label", () => {
 });
 
 describe("InstitutionDetailModal contact pill buttons", () => {
-  it("renders Email, Call, and Qualifications pill buttons with correct link schemes", () => {
+  it("renders Email, Call, and Website pill buttons with correct link schemes", () => {
     render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);
 
     const emailLink = screen.getByRole("link", { name: /email/i });
@@ -82,8 +82,10 @@ describe("InstitutionDetailModal contact pill buttons", () => {
     const callLink = screen.getByRole("link", { name: /call/i });
     expect(callLink).toHaveAttribute("href", "tel:0869990001");
 
-    const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
-    expect(qualificationsLink).toHaveAttribute("href", "/institutions/milpark/qualifications");
+    const websiteLink = screen.getByRole("link", { name: /website/i });
+    expect(websiteLink).toHaveAttribute("href", "https://www.milpark.ac.za");
+    expect(websiteLink).toHaveAttribute("target", "_blank");
+    expect(websiteLink).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("omits the Email button when there is no email", () => {
@@ -96,6 +98,7 @@ describe("InstitutionDetailModal contact pill buttons", () => {
 
     expect(screen.queryByRole("link", { name: /email/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /call/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /website/i })).toBeInTheDocument();
   });
 
   it("omits the Call button when there is no phone", () => {
@@ -111,7 +114,20 @@ describe("InstitutionDetailModal contact pill buttons", () => {
     expect(screen.queryByRole("link", { name: /call/i })).not.toBeInTheDocument();
   });
 
-  it("always renders the Qualifications button, regardless of contact info", () => {
+  it("omits the Website button when there is no website", () => {
+    render(
+      <InstitutionDetailModal
+        institution={makeInstitution({
+          contacts: { email: ["jennifer.blake@milpark.ac.za"], phone: ["086 999 0001"], website: null },
+        })}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("link", { name: /website/i })).not.toBeInTheDocument();
+  });
+
+  it("renders none of the pill buttons when all contact info is missing", () => {
     render(
       <InstitutionDetailModal
         institution={makeInstitution({ contacts: { email: [], phone: [], website: null } })}
@@ -121,12 +137,6 @@ describe("InstitutionDetailModal contact pill buttons", () => {
 
     expect(screen.queryByRole("link", { name: /email/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /call/i })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /qualifications/i })).toBeInTheDocument();
-  });
-
-  it("no longer renders a direct Website link from the modal", () => {
-    render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);
-
-    expect(screen.queryByRole("link", { name: /^website$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /website/i })).not.toBeInTheDocument();
   });
 });

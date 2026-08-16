@@ -6,7 +6,7 @@ import {
   BadgePercent,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
+  GraduationCap,
   MapPin,
   ShieldCheck,
   Sparkles,
@@ -16,7 +16,16 @@ import { buildCollections, chunk, type Collection } from "@/lib/collections";
 import { PRIMARY_CATEGORY_KEYS, getCategory, institutionMatchesCategory } from "@/lib/categories";
 import { useUserProvince } from "@/lib/location";
 import { CANONICAL_PROVINCES } from "@/lib/normalize";
-import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge, hasNoFurtherDetails, type StatusBadge } from "@/lib/presentation";
+import {
+  TYPE_LABEL,
+  getBrandColor,
+  getDisplayName,
+  getInitials,
+  getPrimaryLocation,
+  getStatusBadge,
+  hasNoFurtherDetails,
+  type StatusBadge,
+} from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const FADE_TRANSITION = { duration: 0.2, ease: "easeInOut" as const };
@@ -217,10 +226,6 @@ function StatusPill({ badge }: { badge: StatusBadge }) {
   );
 }
 
-function websiteHref(website: string): string {
-  return website.startsWith("http") ? website : `https://${website}`;
-}
-
 function MainCard({
   institution,
   onExplore,
@@ -234,7 +239,6 @@ function MainCard({
   const categories = PRIMARY_CATEGORY_KEYS.filter((key) => institutionMatchesCategory(institution, key))
     .map((key) => getCategory(key))
     .filter((category): category is NonNullable<typeof category> => Boolean(category));
-  const website = institution.contacts.website;
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
@@ -258,9 +262,7 @@ function MainCard({
           <StatusPill badge={badge} />
           <span className="inline-flex min-w-0 items-center gap-1.5">
             <MapPin className="h-4 w-4 flex-shrink-0" />
-            <span className="line-clamp-1">
-              {institution.province && institution.province !== "Unknown" ? institution.province : institution.address}
-            </span>
+            <span className="line-clamp-1">{getPrimaryLocation(institution)}</span>
           </span>
         </div>
 
@@ -293,24 +295,20 @@ function MainCard({
             <button
               type="button"
               disabled
-              title="No website is available for this institution"
+              title="No further information is available for this institution"
               className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-muted-foreground opacity-60"
             >
-              <ExternalLink className="h-4 w-4" />
-              Visit Website
+              <GraduationCap className="h-4 w-4" />
+              Qualifications
             </button>
           ) : (
-            website && (
-              <a
-                href={websiteHref(website)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary"
-              >
-                <ExternalLink className="h-4 w-4" />
-                Visit Website
-              </a>
-            )
+            <a
+              href={`/institutions/${institution.id}/qualifications`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary"
+            >
+              <GraduationCap className="h-4 w-4" />
+              Qualifications
+            </a>
           )}
         </div>
       </div>
@@ -343,9 +341,7 @@ function SmallCard({ institution, onSelect }: { institution: InstitutionRecord; 
         <p className="line-clamp-1 text-sm font-semibold text-foreground">
           {getDisplayName(institution.name, institution.tradingName)}
         </p>
-        <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-          {institution.province && institution.province !== "Unknown" ? institution.province : TYPE_LABEL[institution.institutionType]}
-        </p>
+        <p className="mt-0.5 font-mono text-xs text-muted-foreground">{getPrimaryLocation(institution)}</p>
       </div>
       <span
         className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide ${
