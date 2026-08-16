@@ -18,6 +18,8 @@ interface BrowseInstitutionCardProps {
   saved: boolean;
   onToggleSaved: () => void;
   onVerify: () => void;
+  query?: string;
+  page?: number;
 }
 
 export default function BrowseInstitutionCard({
@@ -25,12 +27,24 @@ export default function BrowseInstitutionCard({
   saved,
   onToggleSaved,
   onVerify,
+  query,
+  page,
 }: BrowseInstitutionCardProps) {
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
   const noQualifications = hasNoQualifications(institution);
   const noAddress = hasNoAddress(institution);
   const location = getPrimaryLocation(institution);
+  const trimmedQuery = query?.trim();
+  const qualificationsParams = new URLSearchParams();
+  if (trimmedQuery) {
+    qualificationsParams.set("q", trimmedQuery);
+    if (page && page > 1) qualificationsParams.set("page", String(page));
+  }
+  const qualificationsHref = qualificationsParams.size
+    ? `/institutions/${encodeURIComponent(institution.id)}/qualifications?${qualificationsParams}`
+    : `/institutions/${encodeURIComponent(institution.id)}/qualifications`;
+  const qualificationsLabel = trimmedQuery ? "View Qualification" : "Qualifications";
 
   return (
     <div className="flex flex-col rounded-2xl border border-border bg-card p-5">
@@ -102,11 +116,11 @@ export default function BrowseInstitutionCard({
           </button>
         ) : (
           <a
-            href={`/institutions/${encodeURIComponent(institution.id)}/qualifications`}
+            href={qualificationsHref}
             className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:bg-secondary"
           >
             <GraduationCap className="h-4 w-4" />
-            Qualifications
+            {qualificationsLabel}
           </a>
         )}
       </div>

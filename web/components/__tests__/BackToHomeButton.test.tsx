@@ -17,4 +17,11 @@ describe("BackToHomeButton", () => {
     expect(link).not.toHaveTextContent("Back");
     expect(link.className).not.toMatch(/\bborder\b/);
   });
+
+  it("uses a custom href when provided, to restore a prior search", () => {
+    render(<BackToHomeButton href="/?q=chemical" />);
+
+    const link = screen.getByRole("link", { name: /back/i });
+    expect(link).toHaveAttribute("href", "/?q=chemical");
+  });
 });

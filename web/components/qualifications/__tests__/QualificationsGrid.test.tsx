@@ -54,6 +54,19 @@ describe("QualificationsGrid", () => {
     expect(screen.getByText(/no qualifications/i)).toBeInTheDocument();
   });
 
+  it("names the search term and faculty in the empty state when both are given", () => {
+    render(<QualificationsGrid qualifications={[]} searchTerm="Computer" facultyName="Cultural Studies" />);
+
+    expect(screen.getByText('No qualifications found for "Computer" in Cultural Studies faculty')).toBeInTheDocument();
+  });
+
+  it("names the search term without a faculty clause when no faculty name is given", () => {
+    render(<QualificationsGrid qualifications={[]} searchTerm="Computer" />);
+
+    expect(screen.getByText('No qualifications found for "Computer"')).toBeInTheDocument();
+    expect(screen.queryByText(/in .* faculty/i)).not.toBeInTheDocument();
+  });
+
   it("renders no decorative icons on the SAQA ID or NQF pills", () => {
     const { container } = render(<QualificationsGrid qualifications={[makeQualification({ credits: undefined })]} />);
 

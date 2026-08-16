@@ -1,10 +1,14 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function BackToHomeButton() {
+interface BackToHomeButtonProps {
+  href?: string;
+}
+
+export default function BackToHomeButton({ href = "/" }: BackToHomeButtonProps) {
   return (
     <Link
-      href="/"
+      href={href}
       aria-label="Back to home"
       className="group inline-flex self-start items-center justify-center rounded-full p-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >

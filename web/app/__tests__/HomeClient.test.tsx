@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import HomeClient from "@/app/HomeClient";
 import type { InstitutionRecord } from "@/lib/types";
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
+
 vi.mock("@/components/HeroShowcase", () => ({
   default: ({ institutions }: { institutions: InstitutionRecord[] }) => (
     <div data-testid="hero">{institutions.map((institution) => institution.name).join(",")}</div>

@@ -23,6 +23,39 @@ describe("QualificationsPage", () => {
     expect(screen.getByRole("link", { name: /back/i })).toHaveAttribute("href", "/");
   });
 
+  it("carries the 'q' search term forward on the 'Back' link, so returning restores the matching search", async () => {
+    render(
+      await QualificationsPage({
+        params: Promise.resolve({ id: stellenbosch.id }),
+        searchParams: Promise.resolve({ q: "chemical" }),
+      }),
+    );
+
+    expect(screen.getByRole("link", { name: /back/i })).toHaveAttribute("href", "/?q=chemical");
+  });
+
+  it("carries the 'page' param forward on the 'Back' link alongside 'q', so returning lands on the same results page", async () => {
+    render(
+      await QualificationsPage({
+        params: Promise.resolve({ id: stellenbosch.id }),
+        searchParams: Promise.resolve({ q: "chemical", page: "10" }),
+      }),
+    );
+
+    expect(screen.getByRole("link", { name: /back/i })).toHaveAttribute("href", "/?q=chemical&page=10");
+  });
+
+  it("omits the 'page' param on the 'Back' link when there is no active search, even if a page value is somehow present", async () => {
+    render(
+      await QualificationsPage({
+        params: Promise.resolve({ id: stellenbosch.id }),
+        searchParams: Promise.resolve({ page: "10" }),
+      }),
+    );
+
+    expect(screen.getByRole("link", { name: /back/i })).toHaveAttribute("href", "/");
+  });
+
   it("renders the institution's display name as a larger, more prominent heading", async () => {
     render(await QualificationsPage({ params: Promise.resolve({ id: stellenbosch.id }), searchParams: Promise.resolve({}) }));
 
@@ -42,6 +75,18 @@ describe("QualificationsPage", () => {
 
     expect(screen.getByRole("button", { name: /all qualifications/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: /adult learning/i })).toBeInTheDocument();
+  });
+
+  it("pre-filters qualifications by the 'q' search param when provided", async () => {
+    render(
+      await QualificationsPage({
+        params: Promise.resolve({ id: stellenbosch.id }),
+        searchParams: Promise.resolve({ q: "drama" }),
+      }),
+    );
+
+    expect(screen.getByRole("searchbox")).toHaveValue("drama");
+    expect(screen.getByText("Master of Arts in Drama and Theatre Studies")).toBeInTheDocument();
   });
 
   it("calls notFound when the institution doesn't exist", async () => {

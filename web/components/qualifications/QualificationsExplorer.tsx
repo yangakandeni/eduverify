@@ -13,6 +13,7 @@ import type { FacultyQualificationGroup, SaqaQualification } from "@/lib/types";
 interface QualificationsExplorerProps {
   facultyGroups: FacultyQualificationGroup[];
   initialFaculty?: string;
+  initialSearchTerm?: string;
 }
 
 const ITEMS_PER_PAGE = 12;
@@ -36,12 +37,12 @@ function resolveActiveGroup(
   return facultyGroups.find((group) => group.faculty === faculty) ?? facultyGroups[0];
 }
 
-export default function QualificationsExplorer({ facultyGroups, initialFaculty }: QualificationsExplorerProps) {
+export default function QualificationsExplorer({ facultyGroups, initialFaculty, initialSearchTerm }: QualificationsExplorerProps) {
   const [selectedFaculty, setSelectedFaculty] = useState(
     () => resolveInitialFaculty(facultyGroups, initialFaculty) ?? facultyGroups[0].faculty,
   );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [appliedQuery, setAppliedQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearchTerm ?? "");
+  const [appliedQuery, setAppliedQuery] = useState(initialSearchTerm ?? "");
   const [currentPage, setCurrentPage] = useState(1);
 
   const allQualifications = useMemo(() => facultyGroups.flatMap((group) => group.qualifications), [facultyGroups]);
@@ -51,7 +52,7 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty }
   // Freezes on the last non-empty result set while the user types, rather than flashing to an
   // empty grid on every keystroke that doesn't (yet) match anything — see plan for rationale.
   const [displayedQualifications, setDisplayedQualifications] = useState(() =>
-    filterQualifications(activeGroup.qualifications, ""),
+    filterQualifications(activeGroup.qualifications, initialSearchTerm ?? ""),
   );
 
   const totalPages = Math.max(1, Math.ceil(displayedQualifications.length / ITEMS_PER_PAGE));
@@ -115,7 +116,11 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty }
         {appliedQuery.trim() && (
           <p className="font-display text-base font-semibold text-foreground">Results for &quot;{appliedQuery}&quot;</p>
         )}
-        <QualificationsGrid qualifications={pageItems} />
+        <QualificationsGrid
+          qualifications={pageItems}
+          searchTerm={appliedQuery.trim() || undefined}
+          facultyName={selectedFaculty !== ALL_QUALIFICATIONS_FACULTY ? selectedFaculty : undefined}
+        />
         <BrowsePagination page={page} totalPages={totalPages} onGoToPage={handleGoToPage} />
       </div>
     </div>
