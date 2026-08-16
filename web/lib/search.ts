@@ -57,9 +57,9 @@ export function searchLocal(query: string, filters: SearchFilters = {}, limit = 
     else if (name.startsWith(q)) score = 70;
     else if (abbreviation && q.length >= 2 && abbreviation.startsWith(q)) score = 65;
     else if (name.split(" ").some((word) => word.startsWith(q))) score = 55;
-    else if (name.includes(q)) score = 40;
+    else if (q.length >= 3 && name.includes(q)) score = 40;
 
-    if (score === 0 && q.length >= 3) {
+    if (score === 0 && q.length >= 2) {
       const qualMatches = getAllProgrammes(institution).filter((qualification) =>
         matchesQualificationSearch(qualification.title, query)
       ).length;

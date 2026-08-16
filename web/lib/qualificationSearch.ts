@@ -29,6 +29,7 @@ const ABBREVIATION_EXPANSIONS: Record<string, string[][]> = {
   hnd: [["national", "diploma"]],
   ma: [["master", "arts"]],
   msc: [["master", "science"]],
+  it: [["information", "technology"]],
 };
 
 function maxAllowedDistance(length: number): number {
