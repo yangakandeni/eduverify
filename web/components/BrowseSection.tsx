@@ -110,6 +110,15 @@ export default function BrowseSection({ institutions, query, loading, onVerify, 
                     className="underline hover:text-foreground"
                   >
                     www.dhet.gov.za
+                  </a>{" "}
+                  or SAQA at{" "}
+                  <a
+                    href="https://www.saqa.org.za"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    www.saqa.org.za
                   </a>
                   .
                 </>

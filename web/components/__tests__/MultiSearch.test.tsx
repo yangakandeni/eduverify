@@ -69,6 +69,15 @@ describe("MultiSearch qualification suggestions", () => {
   });
 });
 
+describe("MultiSearch hero subheading", () => {
+  it("mentions both DHET and SAQA as the registers institutions are checked against", () => {
+    render(<MultiSearch institutions={[]} value="" onValueChange={noop} onSearch={noop} onClear={noop} />);
+
+    expect(screen.getByText(/DHET/)).toBeInTheDocument();
+    expect(screen.getByText(/SAQA/)).toBeInTheDocument();
+  });
+});
+
 describe("MultiSearch institution suggestions", () => {
   it("does not show a location badge (which would otherwise read 'Unknown') when province is 'Unknown'", async () => {
     vi.stubGlobal(

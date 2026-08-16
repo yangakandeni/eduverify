@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About — EduVerify",
   description:
-    "EduVerify is an independent discovery platform that turns public DHET registers into an intuitive search and verification tool for prospective students.",
+    "EduVerify is an independent discovery platform that turns public DHET and SAQA registers into an intuitive search and verification tool for prospective students.",
 };
 
 const VALUE_PILLARS = [
@@ -12,7 +12,7 @@ const VALUE_PILLARS = [
     icon: ShieldCheck,
     title: "Instant Verification",
     description:
-      "Easily confirm if an institution is officially registered with DHET before paying tuition or application fees.",
+      "Easily confirm if an institution is officially registered with DHET and SAQA before paying tuition or application fees.",
   },
   {
     icon: Compass,
@@ -58,8 +58,8 @@ export default function AboutPage() {
           <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" />
           <p className="text-sm leading-relaxed text-foreground">
             <strong>EduVerify</strong> is an independent discovery platform. We are not operated by, directly affiliated
-            with, or endorsed by the Department of Higher Education and Training (DHET). Registration data is indexed from
-            official public registers.
+            with, or endorsed by the Department of Higher Education and Training (DHET) or the South African
+            Qualifications Authority (SAQA). Registration data is indexed from official public registers.
           </p>
         </div>
       </section>

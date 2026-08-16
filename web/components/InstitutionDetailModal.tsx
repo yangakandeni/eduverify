@@ -197,6 +197,15 @@ export default function InstitutionDetailModal({
           className="underline hover:text-foreground"
         >
           www.dhet.gov.za
+        </a>{" "}
+        or{" "}
+        <a
+          href="https://www.saqa.org.za"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-foreground"
+        >
+          www.saqa.org.za
         </a>
         .
       </div>
