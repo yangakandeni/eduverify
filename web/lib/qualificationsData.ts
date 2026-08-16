@@ -33,15 +33,20 @@ export function getFacultyQualificationGroups(institutionId: string): FacultyQua
   }));
 }
 
+/** Sentinel faculty name for the "show everything" view in the qualifications explorer's
+ * sidebar — not a real faculty, so it never appears in getFacultiesForInstitution's output. */
+export const ALL_QUALIFICATIONS_FACULTY = "All Qualifications";
+
 /** Picks the faculty a qualifications explorer should show initially: the requested one if
- * it actually exists among the groups, otherwise the first (alphabetically, per
- * getFacultiesForInstitution's ordering) — there's no more "all faculties" fallback. */
+ * it actually exists among the groups, otherwise ALL_QUALIFICATIONS_FACULTY so a user who
+ * doesn't know which faculty a qualification falls under can still search/browse everything. */
 export function resolveInitialFaculty(
   groups: FacultyQualificationGroup[],
   requested?: string,
 ): string | undefined {
+  if (groups.length === 0) return undefined;
   if (requested && groups.some((group) => group.faculty === requested)) return requested;
-  return groups[0]?.faculty;
+  return ALL_QUALIFICATIONS_FACULTY;
 }
 
 export interface QualificationSearchHit {

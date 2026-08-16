@@ -37,9 +37,10 @@ describe("QualificationsPage", () => {
     expect(screen.queryByText(/qualifications & faculties/i)).not.toBeInTheDocument();
   });
 
-  it("shows the first faculty's qualifications by default when no faculty is requested", async () => {
+  it("defaults to 'All Qualifications' selected when no faculty is requested, while still listing individual faculties to browse", async () => {
     render(await QualificationsPage({ params: Promise.resolve({ id: stellenbosch.id }), searchParams: Promise.resolve({}) }));
 
+    expect(screen.getByRole("button", { name: /all qualifications/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: /adult learning/i })).toBeInTheDocument();
   });
 
