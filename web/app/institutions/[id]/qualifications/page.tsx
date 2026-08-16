@@ -10,7 +10,7 @@ import { getFacultyQualificationGroups } from "@/lib/qualificationsData";
 
 interface QualificationsPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ faculty?: string }>;
+  searchParams: Promise<{ faculty?: string; q?: string; page?: string }>;
 }
 
 export async function generateMetadata({ params }: QualificationsPageProps): Promise<Metadata> {
@@ -21,17 +21,23 @@ export async function generateMetadata({ params }: QualificationsPageProps): Pro
 
 export default async function QualificationsPage({ params, searchParams }: QualificationsPageProps) {
   const { id } = await params;
-  const { faculty } = await searchParams;
+  const { faculty, q, page } = await searchParams;
 
   const institution = await getInstitution(decodeURIComponent(id));
   if (!institution) notFound();
 
   const badge = getStatusBadge(institution);
   const facultyGroups = getFacultyQualificationGroups(institution.id);
+  const backParams = new URLSearchParams();
+  if (q) {
+    backParams.set("q", q);
+    if (page) backParams.set("page", page);
+  }
+  const backHref = backParams.size ? `/?${backParams}` : "/";
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-10">
-      <BackToHomeButton />
+      <BackToHomeButton href={backHref} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-bold text-foreground">
@@ -56,7 +62,7 @@ export default async function QualificationsPage({ params, searchParams }: Quali
       {facultyGroups.length === 0 ? (
         <QualificationsGrid qualifications={[]} />
       ) : (
-        <QualificationsExplorer facultyGroups={facultyGroups} initialFaculty={faculty} />
+        <QualificationsExplorer facultyGroups={facultyGroups} initialFaculty={faculty} initialSearchTerm={q} />
       )}
     </main>
   );

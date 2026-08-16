@@ -24,16 +24,26 @@ interface BrowseSectionProps {
   institutions: InstitutionRecord[];
   query?: string;
   loading?: boolean;
+  initialPage?: number;
   onVerify: (institution: InstitutionRecord) => void;
   onClearSearch?: () => void;
+  onPageChange?: (page: number) => void;
 }
 
-export default function BrowseSection({ institutions, query, loading, onVerify, onClearSearch }: BrowseSectionProps) {
+export default function BrowseSection({
+  institutions,
+  query,
+  loading,
+  initialPage,
+  onVerify,
+  onClearSearch,
+  onPageChange,
+}: BrowseSectionProps) {
   const [province, setProvince] = useState(ALL_PROVINCES_VALUE);
   const [institutionType, setInstitutionType] = useState(ALL_TYPES_VALUE);
   const [status, setStatus] = useState(ALL_STATUSES_VALUE);
   const [filtersOpen, setFiltersOpen] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialPage ?? 1);
   const [savedIds, toggleSaved] = useSavedInstitutions();
   const sectionTopRef = useRef<HTMLDivElement>(null);
 
@@ -48,32 +58,39 @@ export default function BrowseSection({ institutions, query, loading, onVerify, 
   const pageInstitutions = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   function goToPage(target: number) {
-    setPage(Math.min(Math.max(target, 1), totalPages));
+    const next = Math.min(Math.max(target, 1), totalPages);
+    setPage(next);
+    onPageChange?.(next);
     sectionTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function resetToFirstPage() {
+    setPage(1);
+    onPageChange?.(1);
   }
 
   function handleProvinceChange(value: string) {
     setProvince(value);
-    setPage(1);
+    resetToFirstPage();
   }
 
   function handleInstitutionTypeChange(value: string) {
     setInstitutionType(value);
     if (!isStatusOptionValidForType(status, value)) setStatus(ALL_STATUSES_VALUE);
-    setPage(1);
+    resetToFirstPage();
   }
 
   function handleStatusChange(value: string) {
     setStatus(value);
     if (isProvinceFilterDisabled(value)) setProvince(ALL_PROVINCES_VALUE);
-    setPage(1);
+    resetToFirstPage();
   }
 
   function clearFilters() {
     setProvince(ALL_PROVINCES_VALUE);
     setInstitutionType(ALL_TYPES_VALUE);
     setStatus(ALL_STATUSES_VALUE);
-    setPage(1);
+    resetToFirstPage();
   }
 
   return (
@@ -148,6 +165,8 @@ export default function BrowseSection({ institutions, query, loading, onVerify, 
                   saved={savedIds.has(institution.id)}
                   onToggleSaved={() => toggleSaved(institution.id)}
                   onVerify={() => onVerify(institution)}
+                  query={query}
+                  page={currentPage}
                 />
               ))}
             </div>

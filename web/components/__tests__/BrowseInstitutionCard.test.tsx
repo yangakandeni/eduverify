@@ -303,6 +303,87 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
   });
 });
 
+describe("BrowseInstitutionCard qualifications button under an active search query", () => {
+  it("reads 'View Qualification' and carries the search term as a 'q' param when a query is active", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: SAMPLE_FACULTIES })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+        query="fine art"
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: /view qualification/i });
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=fine+art");
+    expect(screen.queryByRole("link", { name: /^qualifications$/i })).not.toBeInTheDocument();
+  });
+
+  it("carries the current results page as a 'page' param when on a page beyond the first", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: SAMPLE_FACULTIES })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+        query="fine art"
+        page={10}
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: /view qualification/i });
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=fine+art&page=10");
+  });
+
+  it("omits the 'page' param when on the first page, to keep the URL clean", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: SAMPLE_FACULTIES })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+        query="fine art"
+        page={1}
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: /view qualification/i });
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=fine+art");
+  });
+
+  it("falls back to plain 'Qualifications' with no 'q' param when no query is active", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: SAMPLE_FACULTIES })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: /^qualifications$/i });
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications");
+    expect(screen.queryByRole("link", { name: /view qualification/i })).not.toBeInTheDocument();
+  });
+
+  it("keeps the disabled 'Qualifications' button unchanged when there's nothing to view, even with an active query", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: [] })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+        query="fine art"
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: /^qualifications$/i });
+    expect(button).toBeDisabled();
+    expect(screen.queryByRole("link", { name: /view qualification/i })).not.toBeInTheDocument();
+  });
+});
+
 describe("BrowseInstitutionCard for an institution with an address but no matched qualifications", () => {
   it("disables the 'Qualifications' button with a 'No qualifications listed' tooltip instead of linking to an empty page", () => {
     render(

@@ -202,6 +202,24 @@ describe("QualificationsExplorer", () => {
     expect(screen.queryByText("Diploma in Fine Art")).not.toBeInTheDocument();
   });
 
+  it("names the search term and newly selected faculty when clicking a faculty with no matches for the current search", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
+
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Qualification 5" } });
+    expect(screen.getByText("Commerce Qualification 5")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /arts/i }));
+
+    expect(screen.getByText('No qualifications found for "Qualification 5" in Arts faculty')).toBeInTheDocument();
+  });
+
+  it("names the search term without a faculty clause when nothing matches under 'All Qualifications'", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialSearchTerm="zzz-nonexistent" />);
+
+    expect(screen.getByText('No qualifications found for "zzz-nonexistent"')).toBeInTheDocument();
+    expect(screen.queryByText(/in .* faculty/i)).not.toBeInTheDocument();
+  });
+
   it("paginates at 12 items per page and advances on click", () => {
     render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
 
@@ -299,6 +317,29 @@ describe("QualificationsExplorer", () => {
 
     expect(screen.getByText("Doctor of Philosophy in Education")).toBeInTheDocument();
     expect(screen.queryByText("Diploma: 3-D Design and Digital Animation")).not.toBeInTheDocument();
+  });
+
+  it("pre-fills and applies an initial search term across all faculties when no initial faculty is given", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialSearchTerm="fine art" />);
+
+    expect(screen.getByRole("searchbox")).toHaveValue("fine art");
+    expect(screen.getByText('Results for "fine art"')).toBeInTheDocument();
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+    expect(screen.queryByText("Commerce Qualification 1")).not.toBeInTheDocument();
+  });
+
+  it("shows no pre-filled search and no 'Results for' heading when no initial search term is given", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} />);
+
+    expect(screen.getByRole("searchbox")).toHaveValue("");
+    expect(screen.queryByText(/results for/i)).not.toBeInTheDocument();
+  });
+
+  it("composes an initial faculty and an initial search term together", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" initialSearchTerm="Qualification 5" />);
+
+    expect(screen.getByText("Commerce Qualification 5")).toBeInTheDocument();
+    expect(screen.queryByText("Commerce Qualification 1")).not.toBeInTheDocument();
   });
 
   it("keeps a fixed search placeholder regardless of which faculty is selected", () => {

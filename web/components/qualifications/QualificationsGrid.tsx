@@ -3,19 +3,26 @@ import type { SaqaQualification } from "@/lib/types";
 
 interface QualificationsGridProps {
   qualifications: SaqaQualification[];
+  searchTerm?: string;
+  facultyName?: string;
 }
 
 const PILL_CLASS = "inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground";
 
-export default function QualificationsGrid({ qualifications }: QualificationsGridProps) {
+export default function QualificationsGrid({ qualifications, searchTerm, facultyName }: QualificationsGridProps) {
   if (qualifications.length === 0) {
+    const title = searchTerm
+      ? `No qualifications found for "${searchTerm}"${facultyName ? ` in ${facultyName} faculty` : ""}`
+      : "No qualifications found";
+    const subtext = searchTerm
+      ? `Try a different search term, or clear the search to browse all qualifications ${facultyName ? "in this faculty" : "here"}.`
+      : "This institution has no SAQA-registered qualifications on file for this selection.";
+
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
         <BookOpen className="h-8 w-8 text-muted-foreground/50" />
-        <p className="font-display text-base font-semibold text-foreground">No qualifications found</p>
-        <p className="max-w-sm text-sm text-muted-foreground">
-          This institution has no SAQA-registered qualifications on file for this selection.
-        </p>
+        <p className="font-display text-base font-semibold text-foreground">{title}</p>
+        <p className="max-w-sm text-sm text-muted-foreground">{subtext}</p>
       </div>
     );
   }

@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import BrowseSection from "@/components/BrowseSection";
 import HeroShowcase from "@/components/HeroShowcase";
 import InstitutionDetailModal from "@/components/InstitutionDetailModal";
 import MultiSearch from "@/components/MultiSearch";
 import QualificationBrowser from "@/components/QualificationBrowser";
-import QualificationSearchResults from "@/components/qualifications/QualificationSearchResults";
 import Modal from "@/components/ui/Modal";
 import { filterByCategory } from "@/lib/categories";
-import type { QualificationSearchHit } from "@/lib/qualificationsData";
 import type { InstitutionRecord } from "@/lib/types";
 
 interface SearchState {
@@ -17,21 +16,26 @@ interface SearchState {
   status: "idle" | "loading" | "done";
   query: string;
   results: InstitutionRecord[];
-  qualificationHits: QualificationSearchHit[];
 }
 
-const IDLE_SEARCH: SearchState = { active: false, status: "idle", query: "", results: [], qualificationHits: [] };
+const IDLE_SEARCH: SearchState = { active: false, status: "idle", query: "", results: [] };
 
 interface HomeClientProps {
   initialInstitutions: InstitutionRecord[];
+  initialQuery?: string;
+  initialPage?: number;
 }
 
-export default function HomeClient({ initialInstitutions }: HomeClientProps) {
-  const [query, setQuery] = useState("");
-  const [search, setSearch] = useState<SearchState>(IDLE_SEARCH);
+export default function HomeClient({ initialInstitutions, initialQuery, initialPage }: HomeClientProps) {
+  const [query, setQuery] = useState(initialQuery ?? "");
+  const [search, setSearch] = useState<SearchState>(() =>
+    initialQuery ? { active: true, status: "loading", query: initialQuery, results: [] } : IDLE_SEARCH,
+  );
   const [activeCategory, setActiveCategory] = useState("all");
   const [exploreInstitution, setExploreInstitution] = useState<InstitutionRecord | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const hasRunInitialSearch = useRef(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (search.active) {
@@ -39,11 +43,32 @@ export default function HomeClient({ initialInstitutions }: HomeClientProps) {
     }
   }, [search.active, search.query]);
 
-  async function handleSearch(rawQuery: string) {
+  // Restores the search on a cold load that arrives with a `?q=` (e.g. the browser's Back
+  // button, or the qualifications page's Back link) — see plan for rationale. The ref guard
+  // avoids a duplicate /api/search call from React StrictMode's mount→unmount→mount in dev.
+  useEffect(() => {
+    if (initialQuery && !hasRunInitialSearch.current) {
+      hasRunInitialSearch.current = true;
+      handleSearch(initialQuery, initialPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keeps the address bar (and browser history entry) in sync with the active search, so
+  // either the qualifications page's explicit Back link or the browser's native Back button
+  // can restore these same results — see plan for rationale.
+  function syncSearchUrl(term: string, pageForUrl?: number) {
+    const params = new URLSearchParams({ q: term });
+    if (pageForUrl && pageForUrl > 1) params.set("page", String(pageForUrl));
+    router.replace(`/?${params}`, { scroll: false });
+  }
+
+  async function handleSearch(rawQuery: string, pageForUrl?: number) {
     const trimmed = rawQuery.trim();
     if (!trimmed) return;
 
-    setSearch({ active: true, status: "loading", query: trimmed, results: [], qualificationHits: [] });
+    syncSearchUrl(trimmed, pageForUrl);
+    setSearch({ active: true, status: "loading", query: trimmed, results: [] });
 
     try {
       const response = await fetch(`/api/search?${new URLSearchParams({ q: trimmed })}`);
@@ -53,16 +78,21 @@ export default function HomeClient({ initialInstitutions }: HomeClientProps) {
         status: "done",
         query: trimmed,
         results: data.results ?? [],
-        qualificationHits: data.qualificationHits ?? [],
       });
     } catch {
-      setSearch({ active: true, status: "done", query: trimmed, results: [], qualificationHits: [] });
+      setSearch({ active: true, status: "done", query: trimmed, results: [] });
     }
   }
 
   function handleClear() {
     setQuery("");
     setSearch(IDLE_SEARCH);
+    router.replace("/", { scroll: false });
+  }
+
+  function handlePageChange(nextPage: number) {
+    if (!search.active) return;
+    syncSearchUrl(search.query, nextPage);
   }
 
   const browseInstitutions = search.active
@@ -82,16 +112,15 @@ export default function HomeClient({ initialInstitutions }: HomeClientProps) {
 
       <HeroShowcase institutions={initialInstitutions} onExplore={setExploreInstitution} />
       <QualificationBrowser activeCategory={activeCategory} onChange={setActiveCategory} />
-      {search.active && search.status === "done" && (
-        <QualificationSearchResults hits={search.qualificationHits} />
-      )}
       <div ref={resultsRef} className="scroll-mt-16">
         <BrowseSection
           institutions={browseInstitutions}
           query={search.active ? search.query : undefined}
           loading={search.active && search.status === "loading"}
+          initialPage={initialPage}
           onVerify={setExploreInstitution}
           onClearSearch={handleClear}
+          onPageChange={handlePageChange}
         />
       </div>
 

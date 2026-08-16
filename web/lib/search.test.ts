@@ -31,4 +31,14 @@ describe("searchLocal qualification-title fallback", () => {
     const results = searchLocal("theatre");
     expect(results.some((r) => r.name === "Stellenbosch University")).toBe(true);
   });
+
+  it("matches a qualification title regardless of search-term word order", () => {
+    const results = searchLocal("science computer");
+    expect(results.some((r) => r.name === "Akademia NPC")).toBe(true);
+  });
+
+  it("tolerates a minor spelling mistake against a qualification title", () => {
+    const results = searchLocal("compter scince");
+    expect(results.some((r) => r.name === "Akademia NPC")).toBe(true);
+  });
 });
