@@ -56,3 +56,20 @@ export interface SearchFilters {
   province?: string;
   institutionType?: InstitutionType;
 }
+
+/** A single SAQA NLRD qualification registration (HEQSF sub-framework only),
+ * produced by parser/fetch_and_parse_qualifications.py into data/qualifications.json. */
+export interface SaqaQualification {
+  qualId: number;
+  title: string;
+  nqfLevel?: number;
+  nqfLevelRaw: string;
+  credits?: number;
+  subfield: string;
+  originator: string;
+}
+
+export interface FacultyGroup {
+  faculty: string;
+  count: number;
+}

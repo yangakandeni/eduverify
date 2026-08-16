@@ -6,6 +6,7 @@ __pycache__/
 
 # Data
 data/_annexure_a_register.pdf
+data/*.xlsx
 
 # Terraform
 terraform/.terraform/

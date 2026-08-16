@@ -53,7 +53,7 @@ const BARE_PREVIOUSLY_CUTOFF_RE = /(?<!\()\s*previously\b.*$/i;
 /** Applies the strip rules to a fixed point — order matters (e.g. an acronym bracket can
  * be sitting outside a corporate suffix, so removing it exposes the suffix to strip next)
  * but which rule fires first shouldn't, so we loop until nothing more changes. */
-function cleanLegalName(raw: string): string {
+export function cleanLegalName(raw: string): string {
   let result = raw.replace(PREVIOUS_NAME_CUTOFF_RE, "");
   let previous: string;
   do {

@@ -20,3 +20,15 @@ class Institution(BaseModel):
     contacts: Contacts = Field(default_factory=Contacts)
     qualifications: List[str] = Field(default_factory=list)
     cancellation_reason: Optional[str] = None
+
+
+class SaqaQualification(BaseModel):
+    """A single SAQA NLRD qualification registration row (HEQSF sub-framework only)."""
+
+    qualId: int
+    title: str
+    nqfLevel: Optional[int] = None
+    nqfLevelRaw: str
+    credits: Optional[int] = None
+    subfield: str
+    originator: str

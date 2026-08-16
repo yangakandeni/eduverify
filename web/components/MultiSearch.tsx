@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowRight, Loader2, MapPin, Search, X } from "lucide-react";
+import { ArrowRight, GraduationCap, Loader2, MapPin, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { normalizeProvince } from "@/lib/normalize";
+import type { QualificationSearchHit } from "@/lib/qualificationsData";
 import type { InstitutionRecord } from "@/lib/types";
 
 interface MultiSearchProps {
@@ -18,6 +19,7 @@ const POPULAR_SEARCHES = ["Nursing", "Teaching", "IT", "Engineering", "Accountin
 
 export default function MultiSearch({ institutions, value, onValueChange, onSearch, onClear, loading }: MultiSearchProps) {
   const [suggestions, setSuggestions] = useState<InstitutionRecord[]>([]);
+  const [qualificationSuggestions, setQualificationSuggestions] = useState<QualificationSearchHit[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,13 +42,20 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
     const handle = setTimeout(() => {
       if (!trimmed) {
         setSuggestions([]);
+        setQualificationSuggestions([]);
         return;
       }
 
       fetch(`/api/search?${new URLSearchParams({ q: trimmed, mode: "typeahead" })}`)
         .then((res) => res.json())
-        .then((data) => setSuggestions(data.results ?? []))
-        .catch(() => setSuggestions([]));
+        .then((data) => {
+          setSuggestions(data.results ?? []);
+          setQualificationSuggestions(data.qualificationHits ?? []);
+        })
+        .catch(() => {
+          setSuggestions([]);
+          setQualificationSuggestions([]);
+        });
     }, 200);
 
     return () => clearTimeout(handle);
@@ -135,7 +144,7 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
             </button>
           </div>
 
-          {showSuggestions && suggestions.length > 0 && (
+          {showSuggestions && (suggestions.length > 0 || qualificationSuggestions.length > 0) && (
             <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
               {suggestions.map((institution) => (
                 <li key={institution.id}>
@@ -150,6 +159,27 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
                       {institution.province}
                     </span>
                   </button>
+                </li>
+              ))}
+              {qualificationSuggestions.length > 0 && (
+                <li className="border-t border-border px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Programmes
+                </li>
+              )}
+              {qualificationSuggestions.map(({ qualification, institution }) => (
+                <li key={qualification.qualId}>
+                  <a
+                    href={`/institutions/${institution.id}/qualifications?${new URLSearchParams({
+                      faculty: qualification.subfield,
+                    }).toString()}`}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary"
+                  >
+                    <span className="flex items-center gap-2 font-medium">
+                      <GraduationCap className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                      {qualification.title}
+                    </span>
+                    <span className="flex-shrink-0 text-xs text-muted-foreground">{institution.name}</span>
+                  </a>
                 </li>
               ))}
             </ul>
