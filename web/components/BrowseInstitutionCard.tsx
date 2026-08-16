@@ -8,6 +8,7 @@ import {
   getInitials,
   getPrimaryLocation,
   getStatusBadge,
+  hasNoAddress,
   hasNoFurtherDetails,
 } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
@@ -28,6 +29,8 @@ export default function BrowseInstitutionCard({
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
   const noFurtherDetails = hasNoFurtherDetails(institution);
+  const noAddress = hasNoAddress(institution);
+  const location = getPrimaryLocation(institution);
 
   return (
     <div className="flex flex-col rounded-2xl border border-border bg-card p-5">
@@ -54,11 +57,11 @@ export default function BrowseInstitutionCard({
       </h3>
       <p className="text-sm text-muted-foreground">{TYPE_LABEL[institution.institutionType] ?? institution.institutionType}</p>
 
-      {!noFurtherDetails && (
+      {location && (
         <div className="mt-2 space-y-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <MapPin className="h-3 w-3" />
-            {getPrimaryLocation(institution)}
+            {location}
           </div>
         </div>
       )}
@@ -76,10 +79,10 @@ export default function BrowseInstitutionCard({
         <button
           type="button"
           onClick={onVerify}
-          disabled={noFurtherDetails}
-          title={noFurtherDetails ? "No further information is available for this institution" : undefined}
+          disabled={noAddress}
+          title={noAddress ? "No further information is available for this institution" : undefined}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
-            noFurtherDetails
+            noAddress
               ? "cursor-not-allowed bg-secondary text-muted-foreground opacity-60"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}

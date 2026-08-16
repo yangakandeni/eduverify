@@ -106,6 +106,36 @@ describe("HeroShowcase main card location", () => {
   });
 });
 
+describe("HeroShowcase main card for a name-only entry that still has matched qualifications", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
+  });
+
+  it("disables 'Contact Info' and shows no 'Unknown' location, but keeps 'Qualifications' enabled since real data exists", () => {
+    const institution = makeInstitution({
+      status: "Discontinued",
+      address: "",
+      province: null,
+      faculties_and_programmes: [
+        {
+          faculty: "General",
+          programmes: [
+            { qualId: 1, title: "Diploma in Somewhere", nqfLevelRaw: "NQF Level 06", subfield: "General", originator: "" },
+          ],
+        },
+      ],
+    });
+    render(<HeroShowcase institutions={[institution]} onExplore={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: /contact info/i })).toBeDisabled();
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /qualifications/i })).toHaveAttribute(
+      "href",
+      "/institutions/uct/qualifications",
+    );
+  });
+});
+
 describe("HeroShowcase main card faculty pills", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));

@@ -105,6 +105,12 @@ describe("InstitutionDetailModal location label", () => {
     expect(screen.getByText("Locations")).toBeInTheDocument();
     expect(screen.queryByText("Province")).not.toBeInTheDocument();
   });
+
+  it("shows no 'Unknown' pill for an institution with no address and no province", () => {
+    render(<InstitutionDetailModal institution={makeInstitution({ address: "", province: null })} onClose={vi.fn()} />);
+
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
 });
 
 describe("InstitutionDetailModal verify-directly footer", () => {

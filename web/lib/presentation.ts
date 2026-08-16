@@ -226,6 +226,15 @@ export function hasNoFurtherDetails(institution: InstitutionRecord): boolean {
   return institution.address.trim().length === 0 && getAllProgrammes(institution).length === 0;
 }
 
+/** True when there's no address on file at all — distinct from hasNoFurtherDetails,
+ * which also treats real qualification data as "further details". An institution can
+ * have SAQA-matched qualifications baked in while still being a name-only DHET register
+ * entry with no address/contacts, in which case "Contact Info" has nothing to show even
+ * though "Qualifications" legitimately does. */
+export function hasNoAddress(institution: InstitutionRecord): boolean {
+  return institution.address.trim().length === 0;
+}
+
 /** Longer-form copy for the verification callout in the institution detail modal —
  * distinct from StatusBadge.label, which stays terse for the small pill badges used
  * elsewhere (grid cards, hero cards). */
@@ -250,15 +259,17 @@ export function getVerificationDescription(institution: InstitutionRecord): stri
  * couldn't be resolved (garbled/OCR'd DHET source text, common for multi-campus private
  * institutions), falls back to the first parsed campus name (e.g. "Sandton") rather than
  * the literal "Unknown" — but only when the address actually lists multiple lettered
- * campuses; a single plain address with no markers has nothing more specific to offer. */
-export function getPrimaryLocation(institution: InstitutionRecord): string {
+ * campuses; a single plain address with no markers has nothing more specific to offer.
+ * Returns null (never the literal "Unknown") when no real location can be resolved —
+ * callers should omit the location row entirely rather than render a placeholder. */
+export function getPrimaryLocation(institution: InstitutionRecord): string | null {
   const province = institution.province;
   if (province && province !== "Unknown") return province;
 
   const locations = parseInstitutionAddresses(institution.address, CANONICAL_PROVINCES);
   if (locations.length > 1) return locations[0].label;
 
-  return province ?? "Unknown";
+  return null;
 }
 
 export function getShortDescription(institution: InstitutionRecord): string {

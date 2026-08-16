@@ -37,6 +37,7 @@ export default function SavedInstitutionsList({ records }: SavedInstitutionsList
       <ul className="grid gap-3 sm:grid-cols-2">
         {items.map(({ institution }) => {
           const badge = getStatusBadge(institution);
+          const location = getPrimaryLocation(institution);
           return (
             <li key={institution.id} className="flex flex-col rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
@@ -70,12 +71,14 @@ export default function SavedInstitutionsList({ records }: SavedInstitutionsList
                 </button>
               </div>
 
-              <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {getPrimaryLocation(institution)}
-                </span>
-              </div>
+              {location && (
+                <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {location}
+                  </span>
+                </div>
+              )}
 
               <span
                 className={`mt-2 inline-flex w-fit items-center rounded-lg px-2 py-1 text-xs font-semibold uppercase tracking-wide ${

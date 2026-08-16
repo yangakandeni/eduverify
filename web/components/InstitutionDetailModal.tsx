@@ -122,13 +122,13 @@ export default function InstitutionDetailModal({
                   </button>
                 ))}
               </div>
-            ) : (
+            ) : normalizeProvince(province) !== "Unknown" ? (
               <div className="mt-1 flex flex-wrap gap-1.5">
                 <span className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white">
                   {normalizeProvince(province)}
                 </span>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import {
   getRegistrationDetails,
   getStatusBadge,
   getVerificationDescription,
+  hasNoAddress,
   hasNoFurtherDetails,
 } from "./presentation";
 import type { InstitutionRecord } from "./types";
@@ -285,9 +286,24 @@ describe("getPrimaryLocation", () => {
     expect(getPrimaryLocation(institution)).toBe("Sandton");
   });
 
-  it("still returns Unknown for a single-campus address with no letter markers, rather than an unrelated fallback province", () => {
+  it("returns null for a single-campus address with no letter markers and no resolvable province, rather than the literal 'Unknown'", () => {
     const institution = makeInstitution({ province: "Unknown", address: "1 Sturdee Avenue, Rosebank" });
-    expect(getPrimaryLocation(institution)).toBe("Unknown");
+    expect(getPrimaryLocation(institution)).toBeNull();
+  });
+
+  it("returns null when there is no address and no province at all", () => {
+    const institution = makeInstitution({ province: null, address: "" });
+    expect(getPrimaryLocation(institution)).toBeNull();
+  });
+});
+
+describe("hasNoAddress", () => {
+  it("is true when the address is empty", () => {
+    expect(hasNoAddress(makeInstitution({ address: "" }))).toBe(true);
+  });
+
+  it("is false when an address is present, regardless of qualifications", () => {
+    expect(hasNoAddress(makeInstitution({ address: "1 Sturdee Avenue, Rosebank" }))).toBe(false);
   });
 });
 
