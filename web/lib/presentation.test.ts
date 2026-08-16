@@ -210,9 +210,9 @@ describe("getStatusBadge", () => {
     expect(getStatusBadge(institution)).toEqual({ label: "Discontinued", verified: false, cancelled: true });
   });
 
-  it("labels a bogus institution as Bogus", () => {
+  it("labels a bogus institution as Fake - Not Registered", () => {
     const institution = makeInstitution({ status: "Bogus" });
-    expect(getStatusBadge(institution)).toEqual({ label: "Bogus", verified: false, cancelled: true });
+    expect(getStatusBadge(institution)).toEqual({ label: "Fake - Not Registered", verified: false, cancelled: true });
   });
 });
 

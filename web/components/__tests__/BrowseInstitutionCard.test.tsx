@@ -17,18 +17,18 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
 }
 
 describe("BrowseInstitutionCard primary action button", () => {
-  it("labels the primary action 'More Info', not 'Verify'", () => {
+  it("labels the primary action 'Contact Info', not 'Verify'", () => {
     render(<BrowseInstitutionCard institution={makeInstitution()} saved={false} onToggleSaved={vi.fn()} onVerify={vi.fn()} />);
 
-    expect(screen.getByRole("button", { name: /more info/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contact info/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^verify$/i })).not.toBeInTheDocument();
   });
 
-  it("invokes onVerify when the 'More Info' button is clicked", () => {
+  it("invokes onVerify when the 'Contact Info' button is clicked", () => {
     const onVerify = vi.fn();
     render(<BrowseInstitutionCard institution={makeInstitution()} saved={false} onToggleSaved={vi.fn()} onVerify={onVerify} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /more info/i }));
+    fireEvent.click(screen.getByRole("button", { name: /contact info/i }));
 
     expect(onVerify).toHaveBeenCalledTimes(1);
   });
@@ -79,7 +79,7 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
     expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
   });
 
-  it("disables the 'More Info' button and does not invoke onVerify when clicked", () => {
+  it("disables the 'Contact Info' button and does not invoke onVerify when clicked", () => {
     const onVerify = vi.fn();
     render(
       <BrowseInstitutionCard
@@ -90,7 +90,7 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
       />,
     );
 
-    const button = screen.getByRole("button", { name: /more info/i });
+    const button = screen.getByRole("button", { name: /contact info/i });
     expect(button).toBeDisabled();
 
     fireEvent.click(button);
@@ -112,8 +112,44 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
   });
 });
 
+describe("BrowseInstitutionCard for a bogus/fake institution warning listing", () => {
+  it("shows 'Fake - Not Registered' instead of the unclear 'Bogus' label", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Bogus", address: "", province: null, qualifications: [] })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Fake - Not Registered")).toBeInTheDocument();
+    expect(screen.queryByText("Bogus")).not.toBeInTheDocument();
+  });
+
+  it("disables both the 'Contact Info' and 'Visit Website' buttons", () => {
+    const onVerify = vi.fn();
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Bogus", address: "", province: null, qualifications: [] })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={onVerify}
+      />,
+    );
+
+    const contactInfoButton = screen.getByRole("button", { name: /contact info/i });
+    const visitWebsiteButton = screen.getByRole("button", { name: /visit website/i });
+    expect(contactInfoButton).toBeDisabled();
+    expect(visitWebsiteButton).toBeDisabled();
+
+    fireEvent.click(contactInfoButton);
+    expect(onVerify).not.toHaveBeenCalled();
+  });
+});
+
 describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
-  it("still shows the location row and keeps 'More Info' enabled", () => {
+  it("still shows the location row and keeps 'Contact Info' enabled", () => {
     render(
       <BrowseInstitutionCard
         institution={makeInstitution({ status: "Cancelled" })}
@@ -124,7 +160,7 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
     );
 
     expect(screen.getByText("Gauteng")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /more info/i })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /contact info/i })).not.toBeDisabled();
   });
 
   it("still hides 'Visit Website' entirely (rather than disabling it) when there's simply no website on file", () => {

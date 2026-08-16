@@ -22,7 +22,7 @@ export const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "provisional", label: "Provisionally Registered" },
   { value: "cancelled", label: "Cancelled" },
   { value: "discontinued", label: "Discontinued" },
-  { value: "bogus", label: "Bogus / Unregistered Warning" },
+  { value: "bogus", label: "Fake - Not Registered" },
 ];
 
 export function filterInstitutionsForBrowse(
@@ -38,7 +38,7 @@ export function filterInstitutionsForBrowse(
       const badge = getStatusBadge(institution);
       if (filters.status === "cancelled") return badge.label === "Cancelled";
       if (filters.status === "discontinued") return badge.label === "Discontinued";
-      if (filters.status === "bogus") return badge.label === "Bogus";
+      if (filters.status === "bogus") return badge.label === "Fake - Not Registered";
       if (badge.cancelled) return false;
       if (filters.status === "registered" && !badge.verified) return false;
       if (filters.status === "provisional" && badge.verified) return false;
