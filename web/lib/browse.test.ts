@@ -8,6 +8,8 @@ import {
   getEmptyStateDetail,
   getEmptyStateHeading,
   getResultCountLabel,
+  isProvinceFilterDisabled,
+  isStatusOptionValidForType,
 } from "./browse";
 import type { InstitutionRecord } from "./types";
 
@@ -229,5 +231,37 @@ describe("getEmptyStateDetail", () => {
 
   it("shows a query-specific message when a search is active", () => {
     expect(getEmptyStateDetail("blah")).toBe('"blah" wasn\'t found in the current dataset.');
+  });
+});
+
+describe("isProvinceFilterDisabled", () => {
+  it("disables the province filter when status is 'bogus'", () => {
+    expect(isProvinceFilterDisabled("bogus")).toBe(true);
+  });
+
+  it("leaves the province filter enabled for any other status, including 'All'", () => {
+    expect(isProvinceFilterDisabled("registered")).toBe(false);
+    expect(isProvinceFilterDisabled("cancelled")).toBe(false);
+    expect(isProvinceFilterDisabled(ALL_STATUSES_VALUE)).toBe(false);
+  });
+});
+
+describe("isStatusOptionValidForType", () => {
+  it("only allows 'registered' for Public University and TVET College, since no data path ever gives them another status", () => {
+    expect(isStatusOptionValidForType("registered", "Public University")).toBe(true);
+    expect(isStatusOptionValidForType("cancelled", "Public University")).toBe(false);
+    expect(isStatusOptionValidForType("discontinued", "Public University")).toBe(false);
+    expect(isStatusOptionValidForType("bogus", "Public University")).toBe(false);
+    expect(isStatusOptionValidForType("provisional", "Public University")).toBe(false);
+
+    expect(isStatusOptionValidForType("registered", "TVET College")).toBe(true);
+    expect(isStatusOptionValidForType("cancelled", "TVET College")).toBe(false);
+  });
+
+  it("allows every status for Private Higher Education Institution and when no type filter is applied", () => {
+    for (const status of ["registered", "provisional", "cancelled", "discontinued", "bogus"]) {
+      expect(isStatusOptionValidForType(status, "Private Higher Education Institution")).toBe(true);
+      expect(isStatusOptionValidForType(status, ALL_TYPES_VALUE)).toBe(true);
+    }
   });
 });
