@@ -1,7 +1,7 @@
 import raw from "./data/public_universities.json";
 import { institutionKey } from "./keys";
 import { normalizeProvince } from "./normalize";
-import type { Institution, InstitutionRecord, Qualification } from "./types";
+import type { FacultyProgrammes, Institution, InstitutionRecord } from "./types";
 
 interface RawPublicUniversity {
   name: string;
@@ -9,18 +9,13 @@ interface RawPublicUniversity {
   address: string;
   province: string;
   website: string;
-  degrees: Array<{ title: string; nqfLevel: number }>;
+  faculties_and_programmes: FacultyProgrammes[];
 }
 
 const universities = raw as RawPublicUniversity[];
 
 export function loadPublicUniversities(): InstitutionRecord[] {
   return universities.map((university) => {
-    const qualifications: Qualification[] = university.degrees.map((degree) => ({
-      title: degree.title,
-      nqfLevel: degree.nqfLevel,
-    }));
-
     const institution: Institution = {
       name: university.name,
       abbreviation: university.abbreviation,
@@ -29,7 +24,7 @@ export function loadPublicUniversities(): InstitutionRecord[] {
       address: university.address,
       province: normalizeProvince(university.province),
       contacts: { email: [], phone: [], website: university.website },
-      qualifications,
+      faculties_and_programmes: university.faculties_and_programmes,
       institutionType: "Public University",
     };
 

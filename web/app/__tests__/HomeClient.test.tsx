@@ -24,7 +24,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
     address: "1 Sturdee Avenue, Rosebank",
     province: "Gauteng",
     institutionType: "Private Higher Education Institution",
-    qualifications: [],
+    faculties_and_programmes: [],
     contacts: { email: [], phone: [] },
     ...overrides,
   };

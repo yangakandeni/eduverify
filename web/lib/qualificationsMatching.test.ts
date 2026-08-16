@@ -37,7 +37,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
     name: "Stellenbosch University",
     address: "",
     institutionType: "Public University",
-    qualifications: [],
+    faculties_and_programmes: [],
     contacts: { email: [], phone: [] },
     ...overrides,
   };

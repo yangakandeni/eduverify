@@ -17,4 +17,10 @@ describe("loadPublicUniversities", () => {
     expect(uct.abbreviation).toBe("UCT");
     expect(uct.tradingName).toBeUndefined();
   });
+
+  it("carries faculties_and_programmes through from the raw data", () => {
+    const institutions = loadPublicUniversities();
+    const uct = institutions.find((i) => i.name === "University of Cape Town");
+    expect(uct?.faculties_and_programmes).toBeDefined();
+  });
 });

@@ -8,7 +8,18 @@ function makeInstitution(qualificationTitles: string[]): InstitutionRecord {
     name: "Test Institution",
     address: "",
     contacts: { email: [], phone: [] },
-    qualifications: qualificationTitles.map((title) => ({ title })),
+    faculties_and_programmes: [
+      {
+        faculty: "General",
+        programmes: qualificationTitles.map((title, index) => ({
+          qualId: index,
+          title,
+          nqfLevelRaw: "",
+          subfield: "General",
+          originator: "",
+        })),
+      },
+    ],
     institutionType: "Private Higher Education Institution",
   };
 }

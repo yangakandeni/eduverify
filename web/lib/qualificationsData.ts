@@ -1,24 +1,14 @@
-import raw from "../../data/qualifications.json";
+import { getAllProgrammes } from "./facultiesAndProgrammes";
 import { ALL_INSTITUTIONS, findLocalById } from "./localData";
 import { normalizeText } from "./normalize";
-import { matchQualificationsToInstitutions } from "./qualificationsMatching";
 import type { FacultyGroup, InstitutionRecord, SaqaQualification } from "./types";
 
-const QUALIFICATIONS_BY_INSTITUTION = matchQualificationsToInstitutions(
-  ALL_INSTITUTIONS,
-  raw as SaqaQualification[],
-);
-
 export function getFacultiesForInstitution(institutionId: string): FacultyGroup[] {
-  const qualifications = QUALIFICATIONS_BY_INSTITUTION.get(institutionId) ?? [];
+  const institution = findLocalById(institutionId);
+  if (!institution) return [];
 
-  const counts = new Map<string, number>();
-  for (const qualification of qualifications) {
-    counts.set(qualification.subfield, (counts.get(qualification.subfield) ?? 0) + 1);
-  }
-
-  return [...counts.entries()]
-    .map(([faculty, count]) => ({ faculty, count }))
+  return institution.faculties_and_programmes
+    .map((faculty) => ({ faculty: faculty.faculty, count: faculty.programmes.length }))
     .sort((a, b) => a.faculty.localeCompare(b.faculty));
 }
 
@@ -26,9 +16,10 @@ export function getQualificationsForInstitutionFaculty(
   institutionId: string,
   faculty?: string,
 ): SaqaQualification[] {
-  const qualifications = QUALIFICATIONS_BY_INSTITUTION.get(institutionId) ?? [];
-  if (!faculty) return qualifications;
-  return qualifications.filter((qualification) => qualification.subfield === faculty);
+  const institution = findLocalById(institutionId);
+  if (!institution) return [];
+  if (!faculty) return getAllProgrammes(institution);
+  return institution.faculties_and_programmes.find((f) => f.faculty === faculty)?.programmes ?? [];
 }
 
 export interface QualificationSearchHit {
@@ -45,11 +36,8 @@ export function searchQualificationsGlobal(query: string, limit = 20): Qualifica
 
   const scored: Array<{ hit: QualificationSearchHit; score: number }> = [];
 
-  for (const [institutionId, qualifications] of QUALIFICATIONS_BY_INSTITUTION) {
-    const institution = findLocalById(institutionId);
-    if (!institution) continue;
-
-    for (const qualification of qualifications) {
+  for (const institution of ALL_INSTITUTIONS) {
+    for (const qualification of getAllProgrammes(institution)) {
       const title = normalizeText(qualification.title);
 
       let score = 0;

@@ -12,7 +12,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
     address: "1 Main Road",
     province: "Gauteng",
     contacts: { email: [], phone: [] },
-    qualifications: [],
+    faculties_and_programmes: [],
     institutionType: "Private Higher Education Institution",
     ...overrides,
   };

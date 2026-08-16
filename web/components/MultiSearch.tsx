@@ -2,6 +2,7 @@
 
 import { ArrowRight, GraduationCap, Loader2, MapPin, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getAllProgrammes } from "@/lib/facultiesAndProgrammes";
 import { getDisplayName } from "@/lib/presentation";
 import { normalizeProvince } from "@/lib/normalize";
 import type { QualificationSearchHit } from "@/lib/qualificationsData";
@@ -25,7 +26,7 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
   const containerRef = useRef<HTMLDivElement>(null);
 
   const stats = useMemo(() => {
-    const qualificationCount = institutions.reduce((total, institution) => total + institution.qualifications.length, 0);
+    const qualificationCount = institutions.reduce((total, institution) => total + getAllProgrammes(institution).length, 0);
     const provinceCount = new Set(
       institutions.map((institution) => normalizeProvince(institution.province)).filter((province) => province !== "Unknown")
     ).size;

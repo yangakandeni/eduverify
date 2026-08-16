@@ -1,5 +1,5 @@
 import { cleanLegalName } from "./presentation";
-import type { InstitutionRecord, SaqaQualification } from "./types";
+import type { SaqaQualification } from "./types";
 
 /** Normalizes an institution/originator name for matching only (not display):
  * reuses cleanLegalName's legal-suffix/parenthetical stripping, then further
@@ -23,7 +23,7 @@ export function normalizeForMatch(name: string): string {
  * majority — most private institutions and all TVET colleges don't register
  * qualifications under their own name in SAQA) are dropped. */
 export function matchQualificationsToInstitutions(
-  institutions: InstitutionRecord[],
+  institutions: Array<{ id: string; name: string }>,
   rows: SaqaQualification[],
 ): Map<string, SaqaQualification[]> {
   const idByNormalizedName = new Map<string, string>();

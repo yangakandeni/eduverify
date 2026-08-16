@@ -25,3 +25,10 @@ describe("searchLocal abbreviation matching", () => {
     expect(getDisplayName(uj!.name, uj!.tradingName)).toBe("University of Johannesburg");
   });
 });
+
+describe("searchLocal qualification-title fallback", () => {
+  it("surfaces an institution whose matched programme titles contain the query, even with no name match", () => {
+    const results = searchLocal("theatre");
+    expect(results.some((r) => r.name === "Stellenbosch University")).toBe(true);
+  });
+});

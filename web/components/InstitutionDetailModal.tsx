@@ -10,7 +10,7 @@ import {
   getRegistrationDetails,
   getStatusBadge,
 } from "@/lib/presentation";
-import { institutionCategoryLabels } from "@/lib/categories";
+import { getAllProgrammes, getFacultyLabels } from "@/lib/facultiesAndProgrammes";
 import {
   CANONICAL_PROVINCES,
   formatAddressLines,
@@ -33,11 +33,10 @@ export default function InstitutionDetailModal({
   institution: InstitutionRecord;
   onClose: () => void;
 }) {
-  const { name, tradingName, address, province, contacts, qualifications, institutionType, cancellation_reason } =
-    institution;
+  const { name, tradingName, address, province, contacts, institutionType, cancellation_reason } = institution;
   const badge = getStatusBadge(institution);
   const displayName = getDisplayName(name, tradingName);
-  const categoryPills = institutionCategoryLabels(institution).slice(0, 3);
+  const facultyPills = getFacultyLabels(institution).slice(0, 3);
   const registrationDetails = getRegistrationDetails(institution);
 
   const locations = useMemo(
@@ -170,13 +169,13 @@ export default function InstitutionDetailModal({
           )}
         </div>
 
-        {qualifications.length > 0 && (
+        {getAllProgrammes(institution).length > 0 && (
           <div>
             <div className="mb-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
               Accredited Qualifications
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {categoryPills.map((label) => (
+              {facultyPills.map((label) => (
                 <span
                   key={label}
                   className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"

@@ -1,7 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { parseQualification } from "./qualifications";
-import type { InstitutionRecord } from "./types";
+import type { FacultyProgrammes, InstitutionRecord } from "./types";
 
 const TABLE_NAME = process.env.EDUVERIFY_TABLE_NAME ?? "eduverify-institutions";
 const REGION = process.env.AWS_REGION ?? "af-south-1";
@@ -24,21 +23,26 @@ function getClient(): DynamoDBDocumentClient {
   return client;
 }
 
-/** DynamoDB is only ever seeded with private DHET register data (parser/dynamo_item.py); its
- * qualifications are stored as the raw scraped strings and need the same parsing local data gets. */
-function toRecord(item: Record<string, unknown>): InstitutionRecord {
+/** DynamoDB is only ever seeded with private DHET register data (parser/dynamo_item.py just
+ * spreads institutions.json's records as-is), so items carry faculties_and_programmes
+ * directly once `npm run bake:faculties` has enriched institutions.json before seeding — no
+ * further parsing needed here. Defaults to [] for items ingested via the live S3->Lambda path
+ * (parser/lambda_handler.py), which bypasses the bake step and won't have the field yet, and
+ * strips a stale raw `qualifications` key if one is still present on such a legacy item. */
+export function toRecord(item: Record<string, unknown>): InstitutionRecord {
   const record = { ...item };
   const id = record.PK as string;
-  const rawQualifications = (record.qualifications as string[] | undefined) ?? [];
+  const facultiesAndProgrammes = (record.faculties_and_programmes as FacultyProgrammes[] | undefined) ?? [];
   delete record.PK;
   delete record.GSI1PK;
   delete record.GSI1SK;
+  delete record.faculties_and_programmes;
   delete record.qualifications;
   return {
-    ...(record as Omit<InstitutionRecord, "id" | "qualifications" | "institutionType">),
+    ...(record as Omit<InstitutionRecord, "id" | "faculties_and_programmes" | "institutionType">),
     id,
     institutionType: "Private Higher Education Institution",
-    qualifications: rawQualifications.map(parseQualification),
+    faculties_and_programmes: facultiesAndProgrammes,
   };
 }
 

@@ -33,7 +33,7 @@ Route split in `app/api/`:
 - `GET /api/institutions` — local seed list only, powers the homepage grid/hero.
 - `GET /api/institutions/[id]` — DynamoDB first, local fallback.
 
-Qualification strings are parsed twice from the same raw format (once in Python at scrape time is *not* done — the raw string is kept as-is in `data/institutions.json`; structuring into `{title, nqfLevel, credits, mode, saqaId, campuses}` happens client/server-side in TS): `web/lib/qualifications.ts` (seed data path) and inline in `dynamodb.ts`'s `toRecord` (DynamoDB path) both call the same `parseQualification`.
+An institution's qualifications are pre-matched against SAQA's NLRD register (`data/qualifications.json`) and baked directly into `data/institutions.json` / `web/lib/data/public_universities.json` / `public_tvets.json` as `faculties_and_programmes: {faculty, programmes}[]` by `web/scripts/bakeFacultiesAndProgrammes.ts` (`npm run bake:faculties`, reusing `web/lib/qualificationsMatching.ts`'s name-matching) — this must be re-run after any `parser/fetch_and_parse.py` re-scrape, since that resets the field back to raw/unmatched (see `parser/CLAUDE.md`). Because the match is pre-baked, `web/lib/localData.ts` and `dynamodb.ts`'s `toRecord` both just pass the field straight through; `web/lib/facultiesAndProgrammes.ts`'s `getAllProgrammes(institution)` is the one place to read "every qualification for this institution" from.
 
 Province names are inconsistent/OCR-noisy in the source register; `web/lib/normalize.ts` maps free text to one of `CANONICAL_PROVINCES` (or `"Unknown"`), and is the single place province-matching logic lives (used by search, filters, and the location-based hero).
 

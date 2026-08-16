@@ -1,3 +1,4 @@
+import { getAllProgrammes } from "./facultiesAndProgrammes";
 import { CANONICAL_PROVINCES, parseInstitutionAddresses } from "./normalize";
 import type { InstitutionRecord, InstitutionType } from "./types";
 
@@ -222,7 +223,7 @@ export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
  * would otherwise surface a synthetic "Unknown" and disable actions that have nothing
  * behind them. */
 export function hasNoFurtherDetails(institution: InstitutionRecord): boolean {
-  return institution.address.trim().length === 0 && institution.qualifications.length === 0;
+  return institution.address.trim().length === 0 && getAllProgrammes(institution).length === 0;
 }
 
 /** Longer-form copy for the verification callout in the institution detail modal —
@@ -263,7 +264,7 @@ export function getPrimaryLocation(institution: InstitutionRecord): string {
 export function getShortDescription(institution: InstitutionRecord): string {
   const typeLabel = TYPE_LABEL[institution.institutionType] ?? institution.institutionType;
   const province = institution.province && institution.province !== "Unknown" ? ` in ${institution.province}` : "";
-  const qualCount = institution.qualifications.length;
+  const qualCount = getAllProgrammes(institution).length;
   const qualPhrase = qualCount > 0 ? `${qualCount} accredited qualification${qualCount === 1 ? "" : "s"}` : "qualification details on request";
   return `${typeLabel}${province}, offering ${qualPhrase}.`;
 }
@@ -272,6 +273,6 @@ export function getShortDescription(institution: InstitutionRecord): string {
  * random, so the hero looks the same on every render/refresh until the data changes. */
 export function selectFeatured(institutions: InstitutionRecord[], count = 5): InstitutionRecord[] {
   return [...institutions]
-    .sort((a, b) => b.qualifications.length - a.qualifications.length || a.name.localeCompare(b.name))
+    .sort((a, b) => getAllProgrammes(b).length - getAllProgrammes(a).length || a.name.localeCompare(b.name))
     .slice(0, count);
 }

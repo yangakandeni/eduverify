@@ -15,7 +15,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
     name: "Test Institution",
     address: "",
     contacts: { email: [], phone: [] },
-    qualifications: [],
+    faculties_and_programmes: [],
     institutionType: "Private Higher Education Institution",
     ...overrides,
   };
@@ -293,24 +293,31 @@ describe("getPrimaryLocation", () => {
 
 describe("hasNoFurtherDetails", () => {
   it("is true for a name-only register entry (no address, no qualifications)", () => {
-    const institution = makeInstitution({ status: "Discontinued", address: "", qualifications: [] });
+    const institution = makeInstitution({ status: "Discontinued", address: "", faculties_and_programmes: [] });
     expect(hasNoFurtherDetails(institution)).toBe(true);
   });
 
   it("is true for a name-only cancelled entry even though its status label is Cancelled", () => {
-    const institution = makeInstitution({ status: "Cancelled", address: "", qualifications: [] });
+    const institution = makeInstitution({ status: "Cancelled", address: "", faculties_and_programmes: [] });
     expect(hasNoFurtherDetails(institution)).toBe(true);
   });
 
   it("is false when an address is present, even with no qualifications listed", () => {
-    const institution = makeInstitution({ address: "1 Sturdee Avenue, Rosebank", qualifications: [] });
+    const institution = makeInstitution({ address: "1 Sturdee Avenue, Rosebank", faculties_and_programmes: [] });
     expect(hasNoFurtherDetails(institution)).toBe(false);
   });
 
   it("is false when qualifications are present, even with no address", () => {
     const institution = makeInstitution({
       address: "",
-      qualifications: [{ title: "Diploma in Somewhere" }],
+      faculties_and_programmes: [
+        {
+          faculty: "General",
+          programmes: [
+            { qualId: 1, title: "Diploma in Somewhere", nqfLevelRaw: "", subfield: "General", originator: "" },
+          ],
+        },
+      ],
     });
     expect(hasNoFurtherDetails(institution)).toBe(false);
   });
@@ -319,7 +326,14 @@ describe("hasNoFurtherDetails", () => {
     const institution = makeInstitution({
       status: "Registered",
       address: "1 Sturdee Avenue, Rosebank",
-      qualifications: [{ title: "Diploma in Somewhere" }],
+      faculties_and_programmes: [
+        {
+          faculty: "General",
+          programmes: [
+            { qualId: 1, title: "Diploma in Somewhere", nqfLevelRaw: "", subfield: "General", originator: "" },
+          ],
+        },
+      ],
     });
     expect(hasNoFurtherDetails(institution)).toBe(false);
   });

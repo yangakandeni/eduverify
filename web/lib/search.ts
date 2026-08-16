@@ -1,3 +1,4 @@
+import { getAllProgrammes } from "./facultiesAndProgrammes";
 import { ALL_INSTITUTIONS } from "./localData";
 import { CANONICAL_PROVINCES, normalizeRegistrationNumber, normalizeText } from "./normalize";
 import type { InstitutionRecord, SearchFilters } from "./types";
@@ -58,7 +59,7 @@ export function searchLocal(query: string, filters: SearchFilters = {}, limit = 
     else if (name.includes(q)) score = 40;
 
     if (score === 0 && q.length >= 3) {
-      const qualMatches = institution.qualifications.filter((qualification) =>
+      const qualMatches = getAllProgrammes(institution).filter((qualification) =>
         normalizeText(qualification.title).includes(q)
       ).length;
       if (qualMatches > 0) score = Math.min(38, 20 + qualMatches * 3);

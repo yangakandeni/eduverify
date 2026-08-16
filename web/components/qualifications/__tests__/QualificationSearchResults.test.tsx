@@ -10,7 +10,7 @@ function makeHit(overrides: Partial<QualificationSearchHit> = {}): Qualification
     name: "Stellenbosch University",
     address: "",
     institutionType: "Public University",
-    qualifications: [],
+    faculties_and_programmes: [],
     contacts: { email: [], phone: [] },
   };
 

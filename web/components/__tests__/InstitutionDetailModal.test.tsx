@@ -10,7 +10,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
     address: "1 Sturdee Avenue, Rosebank",
     province: "Gauteng",
     institutionType: "Private Higher Education Institution",
-    qualifications: [],
+    faculties_and_programmes: [],
     contacts: {
       email: ["jennifer.blake@milpark.ac.za"],
       phone: ["086 999 0001"],
@@ -60,6 +60,41 @@ describe("InstitutionDetailModal cancellation reason", () => {
     );
 
     expect(screen.queryByText("should not render")).not.toBeInTheDocument();
+  });
+});
+
+describe("InstitutionDetailModal accredited qualifications block", () => {
+  it("hides the 'Accredited Qualifications' block when faculties_and_programmes is empty", () => {
+    render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);
+
+    expect(screen.queryByText("Accredited Qualifications")).not.toBeInTheDocument();
+  });
+
+  it("shows the 'Accredited Qualifications' block with the institution's actual faculty name as a pill when faculties_and_programmes has matched programmes", () => {
+    render(
+      <InstitutionDetailModal
+        institution={makeInstitution({
+          faculties_and_programmes: [
+            {
+              faculty: "Business and Management Studies",
+              programmes: [
+                {
+                  qualId: 1,
+                  title: "Bachelor of Commerce in Accounting",
+                  nqfLevelRaw: "NQF Level 07",
+                  subfield: "Business and Management Studies",
+                  originator: "Milpark Education",
+                },
+              ],
+            },
+          ],
+        })}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Accredited Qualifications")).toBeInTheDocument();
+    expect(screen.getByText("Business and Management Studies")).toBeInTheDocument();
   });
 });
 

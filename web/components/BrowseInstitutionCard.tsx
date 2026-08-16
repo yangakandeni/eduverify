@@ -1,7 +1,6 @@
 "use client";
 
 import { BadgeCheck, Bookmark, GraduationCap, MapPin, ShieldCheck } from "lucide-react";
-import { institutionCategoryLabels } from "@/lib/categories";
 import {
   TYPE_LABEL,
   getBrandColor,
@@ -12,8 +11,6 @@ import {
   hasNoFurtherDetails,
 } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
-
-const MAX_VISIBLE_CATEGORY_TAGS = 3;
 
 interface BrowseInstitutionCardProps {
   institution: InstitutionRecord;
@@ -31,9 +28,6 @@ export default function BrowseInstitutionCard({
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
   const noFurtherDetails = hasNoFurtherDetails(institution);
-  const categoryLabels = institutionCategoryLabels(institution);
-  const visibleCategoryLabels = categoryLabels.slice(0, MAX_VISIBLE_CATEGORY_TAGS);
-  const remainingCategoryCount = categoryLabels.length - visibleCategoryLabels.length;
 
   return (
     <div className="flex flex-col rounded-2xl border border-border bg-card p-5">
@@ -77,21 +71,6 @@ export default function BrowseInstitutionCard({
         <BadgeCheck className="h-3.5 w-3.5" />
         {badge.label}
       </div>
-
-      {categoryLabels.length > 0 && (
-        <div className="mt-3 mb-4 flex flex-wrap gap-1.5">
-          {visibleCategoryLabels.map((label) => (
-            <span key={label} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-              {label}
-            </span>
-          ))}
-          {remainingCategoryCount > 0 && (
-            <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-              +{remainingCategoryCount}
-            </span>
-          )}
-        </div>
-      )}
 
       <div className="mt-auto flex items-center gap-2 border-t border-border pt-3">
         <button

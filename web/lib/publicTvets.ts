@@ -1,7 +1,7 @@
 import raw from "./data/public_tvets.json";
 import { institutionKey } from "./keys";
 import { normalizeProvince } from "./normalize";
-import type { Institution, InstitutionRecord, Qualification } from "./types";
+import type { FacultyProgrammes, Institution, InstitutionRecord } from "./types";
 
 interface RawPublicTvet {
   name: string;
@@ -9,18 +9,13 @@ interface RawPublicTvet {
   address: string;
   province: string;
   website: string;
-  qualifications: Array<{ title: string; nqfLevel: number }>;
+  faculties_and_programmes: FacultyProgrammes[];
 }
 
 const tvets = raw as RawPublicTvet[];
 
 export function loadPublicTvets(): InstitutionRecord[] {
   return tvets.map((tvet) => {
-    const qualifications: Qualification[] = tvet.qualifications.map((qualification) => ({
-      title: qualification.title,
-      nqfLevel: qualification.nqfLevel,
-    }));
-
     const institution: Institution = {
       name: tvet.name,
       abbreviation: tvet.abbreviation,
@@ -29,7 +24,7 @@ export function loadPublicTvets(): InstitutionRecord[] {
       address: tvet.address,
       province: normalizeProvince(tvet.province),
       contacts: { email: [], phone: [], website: tvet.website },
-      qualifications,
+      faculties_and_programmes: tvet.faculties_and_programmes,
       institutionType: "TVET College",
     };
 

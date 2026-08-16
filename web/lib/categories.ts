@@ -1,3 +1,4 @@
+import { getAllProgrammes } from "./facultiesAndProgrammes";
 import { normalizeText } from "./normalize";
 import type { InstitutionRecord } from "./types";
 
@@ -224,7 +225,7 @@ export function countQualificationsInCategory(institution: InstitutionRecord, ca
   const category = CATEGORY_BY_KEY.get(categoryKey);
   if (!category) return 0;
 
-  return institution.qualifications.reduce((count, qualification) => {
+  return getAllProgrammes(institution).reduce((count, qualification) => {
     const title = normalizeText(qualification.title);
     return category.keywords.some((keyword) => title.includes(normalizeText(keyword))) ? count + 1 : count;
   }, 0);
