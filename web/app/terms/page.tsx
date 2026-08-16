@@ -12,7 +12,7 @@ const SECTIONS = [
   },
   {
     title: "Verification & Data Accuracy Disclaimer",
-    body: "While we make every effort to keep our indexed register data up to date, official registration status remains strictly governed by the DHET. EduVerify provides search results on an \"as-is\" informational basis. Users are advised to confirm final enrollment details directly with the official register or institution.",
+    body: "While we make every effort to keep our indexed register data up to date, official registration status remains strictly governed by the DHET and SAQA. EduVerify provides search results on an \"as-is\" informational basis. Users are advised to confirm final enrollment details directly with the official register or institution.",
   },
   {
     title: "Monetization & Promoted Content Transparency",

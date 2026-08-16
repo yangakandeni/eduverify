@@ -107,6 +107,18 @@ describe("InstitutionDetailModal location label", () => {
   });
 });
 
+describe("InstitutionDetailModal verify-directly footer", () => {
+  it("links out to both DHET and SAQA", () => {
+    render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);
+
+    const dhetLink = screen.getByRole("link", { name: "www.dhet.gov.za" });
+    expect(dhetLink).toHaveAttribute("href", "https://www.dhet.gov.za");
+
+    const saqaLink = screen.getByRole("link", { name: "www.saqa.org.za" });
+    expect(saqaLink).toHaveAttribute("href", "https://www.saqa.org.za");
+  });
+});
+
 describe("InstitutionDetailModal contact pill buttons", () => {
   it("renders Email, Call, and Website pill buttons with correct link schemes", () => {
     render(<InstitutionDetailModal institution={makeInstitution()} onClose={vi.fn()} />);

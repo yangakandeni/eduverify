@@ -27,8 +27,8 @@ export default function Footer() {
 
             <p className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs leading-relaxed">
               <strong className="text-white/80">Disclaimer:</strong> EduVerify is an independent South African platform for verifying higher education institutions and accredited qualifications.
-              It is not affiliated with or operated by the Department of Higher Education and Training (DHET).
-              Data is sourced from publicly available DHET registers and official records.</p>
+              It is not affiliated with or operated by the Department of Higher Education and Training (DHET) or the South African Qualifications Authority (SAQA).
+              Data is sourced from publicly available DHET and SAQA registers and official records.</p>
           </div>
 
           <div>

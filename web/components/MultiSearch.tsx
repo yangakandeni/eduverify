@@ -100,7 +100,7 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
           Verify before you <span className="text-accent">enrol.</span>
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-white/60">
-          Search DHET-registered institutions and accredited qualifications.
+          Search DHET- and SAQA-registered institutions and accredited qualifications.
         </p>
 
         <div ref={containerRef} className="relative mx-auto mt-10 max-w-2xl text-left">

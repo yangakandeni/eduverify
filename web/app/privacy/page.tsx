@@ -16,7 +16,7 @@ const SECTIONS = [
   },
   {
     title: "Data Sources",
-    body: "Information displayed on EduVerify is gathered from publicly accessible registers published by the South African Department of Higher Education and Training (DHET) and accredited quality councils (CHE, SAQA).",
+    body: "Information displayed on EduVerify is gathered from publicly accessible registers published by the Department of Higher Education and Training (DHET) and the South African Qualifications Authority (SAQA), and accredited quality councils (CHE).",
   },
   {
     title: "User Rights & Inquiries",
