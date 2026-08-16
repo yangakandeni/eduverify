@@ -29,8 +29,13 @@ const CORPORATE_SUFFIX_RE =
 const PREVIOUS_NAME_CUTOFF_RE = /\s*previous name\s*:.*$/i;
 
 /** Parenthetical asides that restate history rather than identity, e.g. "(Previously ...)",
- * "(Incorporated in ...)", "(Formerly ...)" — dropped wholesale rather than parsed. */
-const DESCRIPTIVE_PARENTHETICAL_RE = /\s*\((?:previously|incorporated(?:\s+in)?|formerly)[^)]*\)/gi;
+ * "(Incorporated in ...)", "(Formerly ...)", "(Now operating as a site of delivery for ...)"
+ * — dropped wholesale rather than parsed. The site-of-delivery variant is how DHET marks
+ * Educor-group brands (Rosebank College, Varsity College, etc.) absorbed into a parent
+ * institution; its own trailing "(Pty) Ltd)" is left dangling by this match alone but gets
+ * cleaned up by the next pass through CORPORATE_SUFFIX_RE below. */
+const DESCRIPTIVE_PARENTHETICAL_RE =
+  /\s*\((?:previously|incorporated(?:\s+in)?|formerly|now operating as a site of delivery for)[^)]*\)/gi;
 
 /** A short trailing all-caps acronym bracket, e.g. "(A4FM)" — distinct from
  * "(Pty)"/"(NPC)" style corporate-suffix brackets, which have mixed-case content and are
@@ -50,11 +55,23 @@ const TRAILING_SLASH_ABBR_RE = /\s*\/[A-Za-z][A-Za-z0-9&.-]{1,20}\s*$/;
  * text instead, e.g. "... Pty Ltd /GIFSPHEI Previously Katapult Business School (Pty) Ltd". */
 const BARE_PREVIOUSLY_CUTOFF_RE = /(?<!\()\s*previously\b.*$/i;
 
+/** An inline "t/a X" or "trading as X" marker — DHET's own dedicated trading-name field is
+ * never actually populated in practice, so a registered entity's trading name instead shows
+ * up appended to the legal name in plain text, e.g. "Cat Group (Pty) Ltd t/a CAT Academy".
+ * The legal-entity prefix is discarded entirely and only the trading name (X) is kept, since
+ * that's what browsing/search surfaces should show. Must run after PREVIOUS_NAME_CUTOFF_RE:
+ * a "Previous Name: ... t/a ..." tail should be cut wholesale, not mined for a trading name. */
+const INLINE_TRADING_AS_RE = /\b(?:t\/a|trading\s+as)\s+(.+)$/i;
+
 /** Applies the strip rules to a fixed point — order matters (e.g. an acronym bracket can
  * be sitting outside a corporate suffix, so removing it exposes the suffix to strip next)
  * but which rule fires first shouldn't, so we loop until nothing more changes. */
 export function cleanLegalName(raw: string): string {
   let result = raw.replace(PREVIOUS_NAME_CUTOFF_RE, "");
+
+  const tradingAsMatch = INLINE_TRADING_AS_RE.exec(result);
+  if (tradingAsMatch) result = tradingAsMatch[1];
+
   let previous: string;
   do {
     previous = result;

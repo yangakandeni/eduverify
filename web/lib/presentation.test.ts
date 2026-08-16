@@ -119,6 +119,51 @@ describe("getDisplayName", () => {
     expect(getDisplayName("University of the Witwatersrand")).not.toBe("Wits");
     expect(getDisplayName("University of South Africa")).not.toBe("UNISA");
   });
+
+  it("strips a nested '(Now operating as a site of delivery for ...)' clause", () => {
+    expect(
+      getDisplayName(
+        "College Campus (Now operating as a site of delivery for The Independent Institute of Education (Pty) Ltd)"
+      )
+    ).toBe("College Campus");
+    expect(
+      getDisplayName(
+        "Rosebank College (Now operating as a site of delivery for The Independent Institute of Education (Pty) Ltd)"
+      )
+    ).toBe("Rosebank College");
+    expect(
+      getDisplayName(
+        "Varsity College (Now operating as a site of delivery for The Independent Institute of Education (Pty) Ltd)"
+      )
+    ).toBe("Varsity College");
+    expect(
+      getDisplayName(
+        "Vega, The School of Brand Communications (Now operating as a site of delivery for The Independent Institute of Education (Pty) Ltd)"
+      )
+    ).toBe("Vega, The School of Brand Communications");
+    expect(
+      getDisplayName(
+        "Design School Southern Africa (The) (Now operating as a site of delivery for The Independent Institute of Education (Pty) Ltd)"
+      )
+    ).toBe("Design School Southern Africa");
+  });
+
+  it("extracts the trading name from an inline 't/a' or 'trading as' clause", () => {
+    expect(getDisplayName("Cat Group (Pty) Ltd t/a CAT Academy")).toBe("CAT Academy");
+    expect(getDisplayName("eLearning Systems (Pty) Ltd trading as eDegree")).toBe("eDegree");
+    expect(getDisplayName("Hampton College t/a Hampton Community College")).toBe("Hampton Community College");
+    expect(
+      getDisplayName("Complimentary Body Works (Pty) Ltd t/a Complementary Health Centre")
+    ).toBe("Complementary Health Centre");
+  });
+
+  it("still truncates at a 'Previous Name:' clause even when that tail contains its own 't/a'", () => {
+    expect(
+      getDisplayName(
+        "Berea College of Technology (Pty) Ltd Previous Name: Durban Computer College (Pty) Ltd t/a DCC Campus"
+      )
+    ).toBe("Berea College of Technology");
+  });
 });
 
 describe("getRegistrationDetails", () => {
