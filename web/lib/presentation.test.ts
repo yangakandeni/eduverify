@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getDisplayName, getRegistrationDetails, getStatusBadge, getVerificationDescription } from "./presentation";
+import {
+  getDisplayName,
+  getRegistrationDetails,
+  getStatusBadge,
+  getVerificationDescription,
+  hasNoFurtherDetails,
+} from "./presentation";
 import type { InstitutionRecord } from "./types";
 
 function makeInstitution(overrides: Partial<InstitutionRecord> = {}): InstitutionRecord {
@@ -207,5 +213,39 @@ describe("getStatusBadge", () => {
   it("labels a bogus institution as Bogus", () => {
     const institution = makeInstitution({ status: "Bogus" });
     expect(getStatusBadge(institution)).toEqual({ label: "Bogus", verified: false, cancelled: true });
+  });
+});
+
+describe("hasNoFurtherDetails", () => {
+  it("is true for a name-only register entry (no address, no qualifications)", () => {
+    const institution = makeInstitution({ status: "Discontinued", address: "", qualifications: [] });
+    expect(hasNoFurtherDetails(institution)).toBe(true);
+  });
+
+  it("is true for a name-only cancelled entry even though its status label is Cancelled", () => {
+    const institution = makeInstitution({ status: "Cancelled", address: "", qualifications: [] });
+    expect(hasNoFurtherDetails(institution)).toBe(true);
+  });
+
+  it("is false when an address is present, even with no qualifications listed", () => {
+    const institution = makeInstitution({ address: "1 Sturdee Avenue, Rosebank", qualifications: [] });
+    expect(hasNoFurtherDetails(institution)).toBe(false);
+  });
+
+  it("is false when qualifications are present, even with no address", () => {
+    const institution = makeInstitution({
+      address: "",
+      qualifications: [{ title: "Diploma in Somewhere" }],
+    });
+    expect(hasNoFurtherDetails(institution)).toBe(false);
+  });
+
+  it("is false for a fully registered institution", () => {
+    const institution = makeInstitution({
+      status: "Registered",
+      address: "1 Sturdee Avenue, Rosebank",
+      qualifications: [{ title: "Diploma in Somewhere" }],
+    });
+    expect(hasNoFurtherDetails(institution)).toBe(false);
   });
 });

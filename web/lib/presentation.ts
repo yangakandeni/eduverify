@@ -195,6 +195,16 @@ export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
   return { label: isPublic ? "Registered Public" : "Registered Private", verified: true, cancelled: false };
 }
 
+/** True for institutions whose register entry is name-only — the DHET "cancellation/lapse
+ * of registration" and "discontinued by request" list sections (see parser/build.py's
+ * section 4/5 handling) never populate more than a name, so there's no address or
+ * qualification data to show. Cards for these institutions should skip detail rows that
+ * would otherwise surface a synthetic "Unknown" and disable actions that have nothing
+ * behind them. */
+export function hasNoFurtherDetails(institution: InstitutionRecord): boolean {
+  return institution.address.trim().length === 0 && institution.qualifications.length === 0;
+}
+
 /** Longer-form copy for the verification callout in the institution detail modal —
  * distinct from StatusBadge.label, which stays terse for the small pill badges used
  * elsewhere (grid cards, hero cards). */

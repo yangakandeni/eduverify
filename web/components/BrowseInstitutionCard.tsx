@@ -2,7 +2,7 @@
 
 import { BadgeCheck, Bookmark, ExternalLink, MapPin, ShieldCheck } from "lucide-react";
 import { institutionCategoryLabels } from "@/lib/categories";
-import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge } from "@/lib/presentation";
+import { TYPE_LABEL, getBrandColor, getDisplayName, getInitials, getStatusBadge, hasNoFurtherDetails } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 const MAX_VISIBLE_CATEGORY_TAGS = 3;
@@ -26,6 +26,7 @@ export default function BrowseInstitutionCard({
 }: BrowseInstitutionCardProps) {
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
+  const noFurtherDetails = hasNoFurtherDetails(institution);
   const categoryLabels = institutionCategoryLabels(institution);
   const visibleCategoryLabels = categoryLabels.slice(0, MAX_VISIBLE_CATEGORY_TAGS);
   const remainingCategoryCount = categoryLabels.length - visibleCategoryLabels.length;
@@ -55,12 +56,14 @@ export default function BrowseInstitutionCard({
       </h3>
       <p className="text-sm text-muted-foreground">{TYPE_LABEL[institution.institutionType] ?? institution.institutionType}</p>
 
-      <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <MapPin className="h-3 w-3" />
-          {institution.province}
+      {!noFurtherDetails && (
+        <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3 w-3" />
+            {institution.province}
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         className={`mt-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wide ${
@@ -90,21 +93,39 @@ export default function BrowseInstitutionCard({
         <button
           type="button"
           onClick={onVerify}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          disabled={noFurtherDetails}
+          title={noFurtherDetails ? "No further information is available for this institution" : undefined}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+            noFurtherDetails
+              ? "cursor-not-allowed bg-secondary text-muted-foreground opacity-60"
+              : "bg-primary text-primary-foreground hover:bg-primary/90"
+          }`}
         >
           <ShieldCheck className="h-4 w-4" />
           More Info
         </button>
-        {institution.contacts.website && (
-          <a
-            href={websiteHref(institution.contacts.website)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:bg-secondary"
+        {noFurtherDetails ? (
+          <button
+            type="button"
+            disabled
+            title="No website is available for this institution"
+            className="flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground opacity-60"
           >
             <ExternalLink className="h-4 w-4" />
             Visit Website
-          </a>
+          </button>
+        ) : (
+          institution.contacts.website && (
+            <a
+              href={websiteHref(institution.contacts.website)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:bg-secondary"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Visit Website
+            </a>
+          )
         )}
       </div>
     </div>
