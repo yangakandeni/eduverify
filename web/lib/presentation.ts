@@ -243,6 +243,14 @@ export function hasNoAddress(institution: InstitutionRecord): boolean {
   return institution.address.trim().length === 0;
 }
 
+/** True when an institution has no SAQA-matched qualifications on file at all, independent
+ * of whether it has an address — a TVET (or any institution) can be a fully-detailed
+ * register entry with a real address and still have zero matched programmes, in which case
+ * the "Qualifications" action should be disabled rather than linking through to an empty page. */
+export function hasNoQualifications(institution: InstitutionRecord): boolean {
+  return getAllProgrammes(institution).length === 0;
+}
+
 /** Longer-form copy for the verification callout in the institution detail modal —
  * distinct from StatusBadge.label, which stays terse for the small pill badges used
  * elsewhere (grid cards, hero cards). */

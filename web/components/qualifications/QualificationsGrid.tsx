@@ -1,9 +1,11 @@
-import { BookOpen, GraduationCap, Layers } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import type { SaqaQualification } from "@/lib/types";
 
 interface QualificationsGridProps {
   qualifications: SaqaQualification[];
 }
+
+const PILL_CLASS = "inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground";
 
 export default function QualificationsGrid({ qualifications }: QualificationsGridProps) {
   if (qualifications.length === 0) {
@@ -33,13 +35,8 @@ function QualificationCard({ qualification }: { qualification: SaqaQualification
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
-          {qualification.qualId}
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-          <GraduationCap className="h-3 w-3" />
-          {nqfLabel}
-        </span>
+        <span className={PILL_CLASS}>SAQA ID {qualification.qualId}</span>
+        <span className={PILL_CLASS}>{nqfLabel}</span>
       </div>
 
       <h3 className="line-clamp-3 font-display text-sm font-semibold leading-snug text-foreground">
@@ -47,9 +44,10 @@ function QualificationCard({ qualification }: { qualification: SaqaQualification
       </h3>
 
       {qualification.credits !== undefined && (
-        <div className="mt-auto flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
-          <Layers className="h-3.5 w-3.5" />
-          {qualification.credits} Credits
+        <div className="mt-auto border-t border-border pt-3">
+          <span className="inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent-foreground">
+            Min. Credits: {qualification.credits}
+          </span>
         </div>
       )}
     </div>

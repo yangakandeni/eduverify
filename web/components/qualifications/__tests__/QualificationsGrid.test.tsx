@@ -17,13 +17,13 @@ function makeQualification(overrides: Partial<SaqaQualification> = {}): SaqaQual
 }
 
 describe("QualificationsGrid", () => {
-  it("renders a card per qualification with id, title, NQF level, and credits", () => {
+  it("renders a card per qualification with a SAQA ID pill, title, NQF level, and credits", () => {
     render(<QualificationsGrid qualifications={[makeQualification()]} />);
 
     expect(screen.getByText("Advanced Certificate in Business Management and Administration")).toBeInTheDocument();
-    expect(screen.getByText("101772")).toBeInTheDocument();
+    expect(screen.getByText("SAQA ID 101772")).toBeInTheDocument();
     expect(screen.getByText(/NQF Level 6/i)).toBeInTheDocument();
-    expect(screen.getByText(/120/)).toBeInTheDocument();
+    expect(screen.getByText("Min. Credits: 120")).toBeInTheDocument();
   });
 
   it("falls back to the raw NQF level text when it couldn't be parsed to a number", () => {
@@ -46,5 +46,11 @@ describe("QualificationsGrid", () => {
     render(<QualificationsGrid qualifications={[]} />);
 
     expect(screen.getByText(/no qualifications/i)).toBeInTheDocument();
+  });
+
+  it("renders no decorative icons on the SAQA ID or NQF pills", () => {
+    const { container } = render(<QualificationsGrid qualifications={[makeQualification({ credits: undefined })]} />);
+
+    expect(container.querySelectorAll("svg")).toHaveLength(0);
   });
 });

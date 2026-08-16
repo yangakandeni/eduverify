@@ -74,3 +74,7 @@ export interface FacultyGroup {
   faculty: string;
   count: number;
 }
+
+export interface FacultyQualificationGroup extends FacultyGroup {
+  qualifications: SaqaQualification[];
+}

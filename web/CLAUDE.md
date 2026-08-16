@@ -2,7 +2,7 @@
 
 ## Designing UI
 
-Always use the `ui-ux-pro-max` skill for any UI design work in `web/` — colors, typography, spacing, layout, component styling, accessibility. Treat it as the source of truth over ad-hoc styling choices.
+Always use the `ui-ux-pro-max` skill for any frontend feature, change, or bug fix in `web/` — not just visual design work. This includes colors, typography, spacing, layout, component styling, and accessibility, but also structural/behavioral changes to components and pages. Invoke it before touching frontend code, and treat it as the source of truth over ad-hoc styling or layout choices.
 
 ## Commands (run from `web/`)
 

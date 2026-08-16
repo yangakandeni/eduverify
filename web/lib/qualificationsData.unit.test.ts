@@ -61,4 +61,40 @@ describe("qualificationsData (unit, mocked localData)", () => {
     expect(hits[0].qualification).toEqual(artsQualification);
     expect(hits[0].institution.id).toBe(fixtureInstitution.id);
   });
+
+  it("getFacultyQualificationGroups attaches each faculty's own qualifications to its count", async () => {
+    const { getFacultyQualificationGroups } = await import("./qualificationsData");
+
+    expect(getFacultyQualificationGroups(fixtureInstitution.id)).toEqual([
+      { faculty: "Arts", count: 1, qualifications: [artsQualification] },
+      { faculty: "Law", count: 1, qualifications: [lawQualification] },
+    ]);
+  });
+});
+
+describe("resolveInitialFaculty", () => {
+  const groups = [
+    { faculty: "Arts", count: 1, qualifications: [artsQualification] },
+    { faculty: "Law", count: 1, qualifications: [lawQualification] },
+  ];
+
+  it("returns the requested faculty when it matches an existing group", async () => {
+    const { resolveInitialFaculty } = await import("./qualificationsData");
+    expect(resolveInitialFaculty(groups, "Law")).toBe("Law");
+  });
+
+  it("falls back to the first group's faculty when none is requested", async () => {
+    const { resolveInitialFaculty } = await import("./qualificationsData");
+    expect(resolveInitialFaculty(groups, undefined)).toBe("Arts");
+  });
+
+  it("falls back to the first group's faculty when the requested one doesn't match any group", async () => {
+    const { resolveInitialFaculty } = await import("./qualificationsData");
+    expect(resolveInitialFaculty(groups, "Medicine")).toBe("Arts");
+  });
+
+  it("returns undefined when there are no groups at all", async () => {
+    const { resolveInitialFaculty } = await import("./qualificationsData");
+    expect(resolveInitialFaculty([], "Arts")).toBeUndefined();
+  });
 });

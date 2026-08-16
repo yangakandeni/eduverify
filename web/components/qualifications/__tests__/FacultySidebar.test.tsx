@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import FacultySidebar from "@/components/qualifications/FacultySidebar";
 import type { FacultyGroup } from "@/lib/types";
 
@@ -9,62 +9,55 @@ const FACULTIES: FacultyGroup[] = [
 ];
 
 describe("FacultySidebar", () => {
-  it("renders an 'All Faculties' entry plus one link per faculty, each showing its count", () => {
-    render(<FacultySidebar institutionId="stellenbosch" faculties={FACULTIES} />);
-
-    expect(screen.getByRole("link", { name: /all faculties/i })).toHaveAttribute(
-      "href",
-      "/institutions/stellenbosch/qualifications",
+  it("renders one button per faculty, with no 'All Faculties' entry", () => {
+    render(
+      <FacultySidebar faculties={FACULTIES} selectedFaculty="Music" onSelect={vi.fn()} brandColor="#123456" />,
     );
 
-    const music = screen.getByRole("link", { name: /music/i });
-    expect(music).toHaveAttribute("href", "/institutions/stellenbosch/qualifications?faculty=Music");
-    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /all faculties/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(FACULTIES.length);
+  });
 
-    const visualArts = screen.getByRole("link", { name: /visual arts/i });
-    expect(visualArts).toHaveAttribute("href", "/institutions/stellenbosch/qualifications?faculty=Visual+Arts");
+  it("shows each faculty's count", () => {
+    render(
+      <FacultySidebar faculties={FACULTIES} selectedFaculty="Music" onSelect={vi.fn()} brandColor="#123456" />,
+    );
+
+    expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 
-  it("marks 'All Faculties' as active when no faculty is selected", () => {
-    render(<FacultySidebar institutionId="stellenbosch" faculties={FACULTIES} />);
-
-    expect(screen.getByRole("link", { name: /all faculties/i })).toHaveClass("bg-primary");
-    expect(screen.getByRole("link", { name: /music/i })).not.toHaveClass("bg-primary");
-  });
-
-  it("marks the selected faculty as active", () => {
-    render(<FacultySidebar institutionId="stellenbosch" faculties={FACULTIES} activeFaculty="Music" />);
-
-    expect(screen.getByRole("link", { name: /music/i })).toHaveClass("bg-primary");
-    expect(screen.getByRole("link", { name: /all faculties/i })).not.toHaveClass("bg-primary");
-  });
-
-  it("URL-encodes faculty names containing special characters", () => {
+  it("calls onSelect with the clicked faculty's name", () => {
+    const onSelect = vi.fn();
     render(
-      <FacultySidebar
-        institutionId="ufs"
-        faculties={[{ faculty: "Hospitality, Tourism, Travel, Gaming and Leisure", count: 1 }]}
-      />,
+      <FacultySidebar faculties={FACULTIES} selectedFaculty="Music" onSelect={onSelect} brandColor="#123456" />,
     );
 
-    const link = screen.getByRole("link", { name: /hospitality/i });
-    expect(link).toHaveAttribute(
-      "href",
-      "/institutions/ufs/qualifications?faculty=Hospitality%2C+Tourism%2C+Travel%2C+Gaming+and+Leisure",
-    );
+    fireEvent.click(screen.getByRole("button", { name: /visual arts/i }));
+
+    expect(onSelect).toHaveBeenCalledWith("Visual Arts");
   });
 
-  it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", () => {
-    render(<FacultySidebar institutionId="INST#2000/HE07/015" faculties={FACULTIES} />);
+  it("marks the selected faculty's button as pressed and styles it distinctly", () => {
+    render(
+      <FacultySidebar faculties={FACULTIES} selectedFaculty="Music" onSelect={vi.fn()} brandColor="#123456" />,
+    );
 
-    expect(screen.getByRole("link", { name: /all faculties/i })).toHaveAttribute(
-      "href",
-      "/institutions/INST%232000%2FHE07%2F015/qualifications",
+    const music = screen.getByRole("button", { name: /music/i });
+    const visualArts = screen.getByRole("button", { name: /visual arts/i });
+
+    expect(music).toHaveAttribute("aria-pressed", "true");
+    expect(music).toHaveClass("bg-primary");
+    expect(visualArts).toHaveAttribute("aria-pressed", "false");
+    expect(visualArts).not.toHaveClass("bg-primary");
+  });
+
+  it("renders the 'Qualifications & Faculties' header styled with the given brand color", () => {
+    render(
+      <FacultySidebar faculties={FACULTIES} selectedFaculty="Music" onSelect={vi.fn()} brandColor="#7A1632" />,
     );
-    expect(screen.getByRole("link", { name: /music/i })).toHaveAttribute(
-      "href",
-      "/institutions/INST%232000%2FHE07%2F015/qualifications?faculty=Music",
-    );
+
+    const header = screen.getByText(/qualifications & faculties/i);
+    expect(header).toHaveStyle({ color: "#7A1632" });
   });
 });

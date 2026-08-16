@@ -10,7 +10,6 @@ import {
   getRegistrationDetails,
   getStatusBadge,
 } from "@/lib/presentation";
-import { getAllProgrammes, getFacultyLabels } from "@/lib/facultiesAndProgrammes";
 import {
   CANONICAL_PROVINCES,
   formatAddressLines,
@@ -36,7 +35,6 @@ export default function InstitutionDetailModal({
   const { name, tradingName, address, province, contacts, institutionType, cancellation_reason } = institution;
   const badge = getStatusBadge(institution);
   const displayName = getDisplayName(name, tradingName);
-  const facultyPills = getFacultyLabels(institution).slice(0, 3);
   const registrationDetails = getRegistrationDetails(institution);
 
   const locations = useMemo(

@@ -243,6 +243,15 @@ describe("BrowseInstitutionCard faculty pills", () => {
   });
 });
 
+const SAMPLE_FACULTIES = [
+  {
+    faculty: "General",
+    programmes: [
+      { qualId: 1, title: "Diploma in Somewhere", nqfLevelRaw: "NQF Level 06", subfield: "General", originator: "" },
+    ],
+  },
+];
+
 describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
   it("still shows the location row and keeps 'Contact Info' enabled", () => {
     render(
@@ -261,7 +270,7 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
   it("shows an enabled 'Qualifications' link pointing at the institution's qualifications page, regardless of whether a website is on file", () => {
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ status: "Registered" })}
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: SAMPLE_FACULTIES })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
@@ -275,7 +284,11 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
   it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", () => {
     render(
       <BrowseInstitutionCard
-        institution={makeInstitution({ id: "INST#2000/HE07/015", status: "Registered" })}
+        institution={makeInstitution({
+          id: "INST#2000/HE07/015",
+          status: "Registered",
+          faculties_and_programmes: SAMPLE_FACULTIES,
+        })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
@@ -287,5 +300,23 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
       "href",
       "/institutions/INST%232000%2FHE07%2F015/qualifications",
     );
+  });
+});
+
+describe("BrowseInstitutionCard for an institution with an address but no matched qualifications", () => {
+  it("disables the 'Qualifications' button with a 'No qualifications listed' tooltip instead of linking to an empty page", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: [] })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: /qualifications/i });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("title", "No qualifications listed");
+    expect(screen.queryByRole("link", { name: /qualifications/i })).not.toBeInTheDocument();
   });
 });

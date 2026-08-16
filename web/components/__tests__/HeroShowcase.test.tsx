@@ -16,6 +16,15 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
   };
 }
 
+const SAMPLE_FACULTIES = [
+  {
+    faculty: "General",
+    programmes: [
+      { qualId: 1, title: "Diploma in Somewhere", nqfLevelRaw: "NQF Level 06", subfield: "General", originator: "" },
+    ],
+  },
+];
+
 describe("HeroShowcase main card primary action button", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network disabled in tests")));
@@ -81,20 +90,38 @@ describe("HeroShowcase main card for a bogus/fake institution warning listing", 
   });
 
   it("shows an enabled 'Qualifications' link pointing at the institution's qualifications page", () => {
-    render(<HeroShowcase institutions={[makeInstitution()]} onExplore={vi.fn()} />);
+    render(
+      <HeroShowcase institutions={[makeInstitution({ faculties_and_programmes: SAMPLE_FACULTIES })]} onExplore={vi.fn()} />,
+    );
 
     const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
     expect(qualificationsLink).toHaveAttribute("href", "/institutions/uct/qualifications");
   });
 
   it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", () => {
-    render(<HeroShowcase institutions={[makeInstitution({ id: "INST#2000/HE07/015" })]} onExplore={vi.fn()} />);
+    render(
+      <HeroShowcase
+        institutions={[
+          makeInstitution({ id: "INST#2000/HE07/015", faculties_and_programmes: SAMPLE_FACULTIES }),
+        ]}
+        onExplore={vi.fn()}
+      />,
+    );
 
     const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
     expect(qualificationsLink).toHaveAttribute(
       "href",
       "/institutions/INST%232000%2FHE07%2F015/qualifications",
     );
+  });
+
+  it("disables the 'Qualifications' button with a 'No qualifications listed' tooltip when there's an address but no matched qualifications", () => {
+    render(<HeroShowcase institutions={[makeInstitution({ faculties_and_programmes: [] })]} onExplore={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: /qualifications/i });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("title", "No qualifications listed");
+    expect(screen.queryByRole("link", { name: /qualifications/i })).not.toBeInTheDocument();
   });
 });
 
