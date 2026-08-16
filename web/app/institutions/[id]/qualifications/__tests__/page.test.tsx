@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import QualificationsPage from "@/app/institutions/[id]/qualifications/page";
 import { ALL_INSTITUTIONS } from "@/lib/localData";
-import { getBrandColor } from "@/lib/presentation";
 import type { InstitutionRecord } from "@/lib/types";
 
 function requireInstitutionByName(name: string): InstitutionRecord {
@@ -32,11 +31,10 @@ describe("QualificationsPage", () => {
     expect(heading).toHaveClass("text-3xl");
   });
 
-  it("styles the sidebar's 'Qualifications & Faculties' header with the institution's brand color", async () => {
+  it("does not render a redundant 'Qualifications & Faculties' header above the faculty list", async () => {
     render(await QualificationsPage({ params: Promise.resolve({ id: stellenbosch.id }), searchParams: Promise.resolve({}) }));
 
-    const header = screen.getByText(/qualifications & faculties/i);
-    expect(header).toHaveStyle({ color: getBrandColor(stellenbosch) });
+    expect(screen.queryByText(/qualifications & faculties/i)).not.toBeInTheDocument();
   });
 
   it("shows the first faculty's qualifications by default when no faculty is requested", async () => {

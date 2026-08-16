@@ -5,7 +5,7 @@ import BackToHomeButton from "@/components/BackToHomeButton";
 import QualificationsExplorer from "@/components/qualifications/QualificationsExplorer";
 import QualificationsGrid from "@/components/qualifications/QualificationsGrid";
 import { getInstitution } from "@/lib/institutions";
-import { getBrandColor, getDisplayName, getStatusBadge } from "@/lib/presentation";
+import { getDisplayName, getStatusBadge } from "@/lib/presentation";
 import { getFacultyQualificationGroups } from "@/lib/qualificationsData";
 
 interface QualificationsPageProps {
@@ -27,7 +27,6 @@ export default async function QualificationsPage({ params, searchParams }: Quali
   if (!institution) notFound();
 
   const badge = getStatusBadge(institution);
-  const brandColor = getBrandColor(institution);
   const facultyGroups = getFacultyQualificationGroups(institution.id);
 
   return (
@@ -57,7 +56,7 @@ export default async function QualificationsPage({ params, searchParams }: Quali
       {facultyGroups.length === 0 ? (
         <QualificationsGrid qualifications={[]} />
       ) : (
-        <QualificationsExplorer facultyGroups={facultyGroups} initialFaculty={faculty} brandColor={brandColor} />
+        <QualificationsExplorer facultyGroups={facultyGroups} initialFaculty={faculty} />
       )}
     </main>
   );
