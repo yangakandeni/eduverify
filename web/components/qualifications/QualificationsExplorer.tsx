@@ -6,7 +6,7 @@ import BrowsePagination from "@/components/BrowsePagination";
 import FacultySidebar from "@/components/qualifications/FacultySidebar";
 import QualificationsGrid from "@/components/qualifications/QualificationsGrid";
 import { normalizeText } from "@/lib/normalize";
-import { resolveInitialFaculty } from "@/lib/qualificationsData";
+import { ALL_QUALIFICATIONS_FACULTY, resolveInitialFaculty } from "@/lib/qualificationsData";
 import type { FacultyQualificationGroup } from "@/lib/types";
 
 interface QualificationsExplorerProps {
@@ -23,7 +23,12 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty }
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const activeGroup = facultyGroups.find((group) => group.faculty === selectedFaculty) ?? facultyGroups[0];
+  const allQualifications = useMemo(() => facultyGroups.flatMap((group) => group.qualifications), [facultyGroups]);
+
+  const activeGroup =
+    selectedFaculty === ALL_QUALIFICATIONS_FACULTY
+      ? { faculty: ALL_QUALIFICATIONS_FACULTY, count: allQualifications.length, qualifications: allQualifications }
+      : facultyGroups.find((group) => group.faculty === selectedFaculty) ?? facultyGroups[0];
 
   const filteredQualifications = useMemo(() => {
     const query = normalizeText(searchQuery);
@@ -56,7 +61,10 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty }
     <div className="flex flex-col gap-6 md:flex-row md:gap-8">
       <aside className="md:w-64 md:flex-shrink-0">
         <FacultySidebar
-          faculties={facultyGroups.map(({ faculty, count }) => ({ faculty, count }))}
+          faculties={[
+            { faculty: ALL_QUALIFICATIONS_FACULTY, count: allQualifications.length },
+            ...facultyGroups.map(({ faculty, count }) => ({ faculty, count })),
+          ]}
           selectedFaculty={selectedFaculty}
           onSelect={handleSelectFaculty}
         />

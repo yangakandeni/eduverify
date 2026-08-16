@@ -36,11 +36,12 @@ const GROUPS: FacultyQualificationGroup[] = [
 ];
 
 describe("QualificationsExplorer", () => {
-  it("defaults to the first faculty when no initial faculty is given", () => {
+  it("defaults to 'All Qualifications' selected when no initial faculty is given, showing every faculty's items", () => {
     render(<QualificationsExplorer facultyGroups={GROUPS} />);
 
+    expect(screen.getByRole("button", { name: /all qualifications/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /arts/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Commerce Qualification 1")).toBeInTheDocument();
   });
 
   it("selects the requested initial faculty when it matches a group", () => {
@@ -50,10 +51,10 @@ describe("QualificationsExplorer", () => {
     expect(screen.getByText("Commerce Qualification 1")).toBeInTheDocument();
   });
 
-  it("falls back to the first faculty when the requested initial faculty doesn't exist", () => {
+  it("falls back to 'All Qualifications' when the requested initial faculty doesn't exist", () => {
     render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Medicine" />);
 
-    expect(screen.getByRole("button", { name: /arts/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /all qualifications/i })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("switches the visible qualifications when a different faculty is clicked", () => {

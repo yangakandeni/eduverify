@@ -83,14 +83,14 @@ describe("resolveInitialFaculty", () => {
     expect(resolveInitialFaculty(groups, "Law")).toBe("Law");
   });
 
-  it("falls back to the first group's faculty when none is requested", async () => {
-    const { resolveInitialFaculty } = await import("./qualificationsData");
-    expect(resolveInitialFaculty(groups, undefined)).toBe("Arts");
+  it("falls back to 'All Qualifications' when none is requested", async () => {
+    const { resolveInitialFaculty, ALL_QUALIFICATIONS_FACULTY } = await import("./qualificationsData");
+    expect(resolveInitialFaculty(groups, undefined)).toBe(ALL_QUALIFICATIONS_FACULTY);
   });
 
-  it("falls back to the first group's faculty when the requested one doesn't match any group", async () => {
-    const { resolveInitialFaculty } = await import("./qualificationsData");
-    expect(resolveInitialFaculty(groups, "Medicine")).toBe("Arts");
+  it("falls back to 'All Qualifications' when the requested one doesn't match any group", async () => {
+    const { resolveInitialFaculty, ALL_QUALIFICATIONS_FACULTY } = await import("./qualificationsData");
+    expect(resolveInitialFaculty(groups, "Medicine")).toBe(ALL_QUALIFICATIONS_FACULTY);
   });
 
   it("returns undefined when there are no groups at all", async () => {
