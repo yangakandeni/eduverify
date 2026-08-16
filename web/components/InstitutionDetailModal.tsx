@@ -169,23 +169,6 @@ export default function InstitutionDetailModal({
           )}
         </div>
 
-        {getAllProgrammes(institution).length > 0 && (
-          <div>
-            <div className="mb-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-              Accredited Qualifications
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {facultyPills.map((label) => (
-                <span
-                  key={label}
-                  className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"
-                >
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground justify-center text-center">
