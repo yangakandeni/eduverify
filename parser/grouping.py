@@ -87,6 +87,14 @@ def group_bogus_rows(status_rows):
                 records.append({"status": "Bogus", "name_block": current_name})
             current_name = re.sub(r"^\d+\.\s+", "", col0).replace("\n", " ").strip()
         elif current_name is not None:
+            # A bare single-cell row here is an orphaned overflow fragment from a
+            # different (already-closed) entry's address/contact column — pdfplumber
+            # sometimes splits one logical table into several table objects when a
+            # cell's text is long, so the tail reappears later in the row stream with
+            # no column/entity information left. A legitimate name continuation always
+            # keeps the full multi-column row shape, so this can't misfire on one.
+            if len(row) == 1:
+                continue
             current_name = current_name + " " + col0.replace("\n", " ").strip()
     if current_name:
         records.append({"status": "Bogus", "name_block": current_name})

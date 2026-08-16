@@ -105,6 +105,14 @@ describe("getDisplayName", () => {
     ).toBe("The Graduate Institute of Financial Sciences Private Higher Education");
   });
 
+  it("cuts a trailing 'with company registration number ...' clause spanning a page-wrapped name", () => {
+    expect(
+      getDisplayName(
+        "Immanuel University of Theology International (Pty) Ltd with company registration number 2018/288825/ 07"
+      )
+    ).toBe("Immanuel University of Theology International");
+  });
+
   it("cuts a 'Previous name:' clause even when a stray colon precedes it", () => {
     expect(getDisplayName("IQ Academy (Pty) Ltd: Previous name: Fernwood Business College (Pty) Ltd")).toBe(
       "IQ Academy"

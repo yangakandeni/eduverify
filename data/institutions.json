@@ -19562,7 +19562,7 @@
     "cancellation_reason": null
   },
   {
-    "name": "Durban Christian Centre Bible Institute 197 Pretorius St, Pretoria Central, Pretoria, 0001",
+    "name": "Durban Christian Centre Bible Institute",
     "registration_number": null,
     "status": "Bogus",
     "address": "",
@@ -19954,16 +19954,13 @@
     "cancellation_reason": null
   },
   {
-    "name": "Joy Foundation (The) on behalf of Team Impact Registrations: registrations@kreducation.co.za Finance: finance@kreducation.co.za Christian University",
+    "name": "Joy Foundation (The) on behalf of Team Impact Christian University",
     "registration_number": null,
     "status": "Bogus",
     "address": "",
     "province": null,
     "contacts": {
-      "email": [
-        "registrations@kreducation.co.za",
-        "finance@kreducation.co.za"
-      ],
+      "email": [],
       "phone": [],
       "website": null
     },
@@ -19971,17 +19968,14 @@
     "cancellation_reason": null
   },
   {
-    "name": "KR Education Solutions/Em manuel Verpleegskool (Pty) Ltd Call Us Phone: 087 255 2250 Student Whatsapp Line: 064 508 3892",
+    "name": "KR Education Solutions/Em manuel Verpleegskool (Pty) Ltd",
     "registration_number": null,
     "status": "Bogus",
     "address": "",
     "province": null,
     "contacts": {
       "email": [],
-      "phone": [
-        "087 255 2250",
-        "064 508 3892"
-      ],
+      "phone": [],
       "website": null
     },
     "faculties_and_programmes": [],
@@ -20156,7 +20150,7 @@
     "cancellation_reason": null
   },
   {
-    "name": "New Skills Academy 51 Park Ave, Scottsdene, Cape Town, 7570.",
+    "name": "New Skills Academy",
     "registration_number": null,
     "status": "Bogus",
     "address": "",
