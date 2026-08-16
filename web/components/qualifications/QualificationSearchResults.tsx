@@ -16,7 +16,7 @@ export default function QualificationSearchResults({ hits }: QualificationSearch
       </h2>
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {hits.map(({ qualification, institution }) => {
-          const href = `/institutions/${institution.id}/qualifications?${new URLSearchParams({
+          const href = `/institutions/${encodeURIComponent(institution.id)}/qualifications?${new URLSearchParams({
             faculty: qualification.subfield,
           }).toString()}`;
 

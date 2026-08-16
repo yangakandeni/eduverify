@@ -44,4 +44,18 @@ describe("QualificationSearchResults", () => {
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/institutions/stellenbosch/qualifications?faculty=Performing+Arts");
   });
+
+  it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", () => {
+    render(
+      <QualificationSearchResults
+        hits={[makeHit({ institution: { ...makeHit().institution, id: "INST#2000/HE07/015" } })]}
+      />,
+    );
+
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute(
+      "href",
+      "/institutions/INST%232000%2FHE07%2F015/qualifications?faculty=Performing+Arts",
+    );
+  });
 });

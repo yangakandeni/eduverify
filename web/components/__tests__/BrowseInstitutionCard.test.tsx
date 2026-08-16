@@ -271,4 +271,21 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
     const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
     expect(qualificationsLink).toHaveAttribute("href", "/institutions/milpark/qualifications");
   });
+
+  it("URL-encodes an institution id containing '#' and '/' so the link isn't truncated at a URL fragment", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ id: "INST#2000/HE07/015", status: "Registered" })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    const qualificationsLink = screen.getByRole("link", { name: /qualifications/i });
+    expect(qualificationsLink).toHaveAttribute(
+      "href",
+      "/institutions/INST%232000%2FHE07%2F015/qualifications",
+    );
+  });
 });

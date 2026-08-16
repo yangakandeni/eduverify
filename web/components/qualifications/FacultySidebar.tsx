@@ -15,7 +15,7 @@ const COUNT_CLASS = "rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold"
 const INACTIVE_COUNT_CLASS = "rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground";
 
 export default function FacultySidebar({ institutionId, faculties, activeFaculty }: FacultySidebarProps) {
-  const basePath = `/institutions/${institutionId}/qualifications`;
+  const basePath = `/institutions/${encodeURIComponent(institutionId)}/qualifications`;
   const totalCount = faculties.reduce((sum, faculty) => sum + faculty.count, 0);
 
   return (

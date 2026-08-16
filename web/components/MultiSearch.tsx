@@ -173,7 +173,7 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
               {qualificationSuggestions.map(({ qualification, institution }) => (
                 <li key={qualification.qualId}>
                   <a
-                    href={`/institutions/${institution.id}/qualifications?${new URLSearchParams({
+                    href={`/institutions/${encodeURIComponent(institution.id)}/qualifications?${new URLSearchParams({
                       faculty: qualification.subfield,
                     }).toString()}`}
                     className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary"
