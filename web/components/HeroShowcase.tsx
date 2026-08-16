@@ -23,6 +23,7 @@ import {
   getInitials,
   getPrimaryLocation,
   getStatusBadge,
+  hasNoAddress,
   hasNoFurtherDetails,
   type StatusBadge,
 } from "@/lib/presentation";
@@ -230,6 +231,8 @@ function MainCard({
   const badge = getStatusBadge(institution);
   const brandColor = getBrandColor(institution);
   const noFurtherDetails = hasNoFurtherDetails(institution);
+  const noAddress = hasNoAddress(institution);
+  const location = getPrimaryLocation(institution);
   const facultyLabels = getFacultyLabels(institution);
   const visibleFacultyLabels = facultyLabels.slice(0, MAX_VISIBLE_FACULTY_PILLS);
   const remainingFacultyCount = facultyLabels.length - visibleFacultyLabels.length;
@@ -254,10 +257,12 @@ function MainCard({
       <div className="flex flex-1 flex-col p-6 sm:p-8">
         <div className="mt-3 flex flex-row flex-wrap items-center gap-4 text-sm text-muted-foreground">
           <StatusPill badge={badge} />
-          <span className="inline-flex min-w-0 items-center gap-1.5">
-            <MapPin className="h-4 w-4 flex-shrink-0" />
-            <span className="line-clamp-1">{getPrimaryLocation(institution)}</span>
-          </span>
+          {location && (
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="line-clamp-1">{location}</span>
+            </span>
+          )}
         </div>
 
         {facultyLabels.length > 0 && (
@@ -279,10 +284,10 @@ function MainCard({
           <button
             type="button"
             onClick={() => onExplore(institution)}
-            disabled={noFurtherDetails}
-            title={noFurtherDetails ? "No further information is available for this institution" : undefined}
+            disabled={noAddress}
+            title={noAddress ? "No further information is available for this institution" : undefined}
             className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-              noFurtherDetails
+              noAddress
                 ? "cursor-not-allowed bg-secondary text-muted-foreground opacity-60"
                 : "bg-primary text-primary-foreground hover:bg-primary/90"
             }`}
@@ -318,6 +323,7 @@ function MainCard({
 function SmallCard({ institution, onSelect }: { institution: InstitutionRecord; onSelect: () => void }) {
   const brandColor = getBrandColor(institution);
   const badge = getStatusBadge(institution);
+  const location = getPrimaryLocation(institution);
 
   return (
     <button
@@ -340,7 +346,7 @@ function SmallCard({ institution, onSelect }: { institution: InstitutionRecord; 
         <p className="line-clamp-1 text-sm font-semibold text-foreground">
           {getDisplayName(institution.name, institution.tradingName)}
         </p>
-        <p className="mt-0.5 font-mono text-xs text-muted-foreground">{getPrimaryLocation(institution)}</p>
+        {location && <p className="mt-0.5 font-mono text-xs text-muted-foreground">{location}</p>}
       </div>
       <span
         className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide ${

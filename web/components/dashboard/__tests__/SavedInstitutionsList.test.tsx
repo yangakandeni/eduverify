@@ -95,4 +95,14 @@ describe("SavedInstitutionsList", () => {
     expect(screen.getByText("Sandton")).toBeInTheDocument();
     expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
   });
+
+  it("shows no 'Unknown' location for a saved institution with no address and no province", () => {
+    render(
+      <SavedInstitutionsList
+        records={[makeRecord({ institution: makeInstitution({ address: "", province: null }) })]}
+      />,
+    );
+
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+  });
 });

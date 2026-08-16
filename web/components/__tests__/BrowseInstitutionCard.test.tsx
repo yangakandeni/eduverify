@@ -112,6 +112,38 @@ describe("BrowseInstitutionCard for a name-only register entry (no address/quali
   });
 });
 
+describe("BrowseInstitutionCard for a name-only entry that still has matched qualifications", () => {
+  it("disables 'Contact Info' and shows no 'Unknown' location, but keeps 'Qualifications' enabled since real data exists", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({
+          status: "Discontinued",
+          address: "",
+          province: null,
+          faculties_and_programmes: [
+            {
+              faculty: "General",
+              programmes: [
+                { qualId: 1, title: "Diploma in Somewhere", nqfLevelRaw: "NQF Level 06", subfield: "General", originator: "" },
+              ],
+            },
+          ],
+        })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /contact info/i })).toBeDisabled();
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /qualifications/i })).toHaveAttribute(
+      "href",
+      "/institutions/milpark/qualifications",
+    );
+  });
+});
+
 describe("BrowseInstitutionCard for a bogus/fake institution warning listing", () => {
   it("shows 'Fake - Not Registered' instead of the unclear 'Bogus' label", () => {
     render(
