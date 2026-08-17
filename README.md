@@ -194,7 +194,7 @@ flowchart LR
     F2 --> G3["S3 backups/*.json"]
 ```
 
-1. **`pdf_extract.iter_status_rows`** — walks the PDF via `pdfplumber`, tagging every table row with the registration-status section it's under (Registered / Provisionally Registered), dropping rows from incompatible sections (lapsed/cancelled/bogus-colleges lists) before they can merge into a real record.
+1. **`pdf_extract.iter_status_rows`** — walks the PDF via `pdfplumber`, tagging every table row with the registration-status section it's under. The Annexure A register has 6 numbered sections, all of which are surfaced (none are silently dropped): Registered, Provisionally Registered, and a differently-shaped Cancelled/Discontinued/Bogus set handled by `iter_name_list_entries`/`group_bogus_rows` — see `parser/CLAUDE.md` for the full section-by-section breakdown.
 2. **`grouping.group_table_rows`** — the DHET table wraps one institution across multiple physical rows (and page breaks); a new record starts only when the leading index column (`"1."`, `"2."`, ...) is populated — everything else is a continuation appended to the current record.
 3. **`extraction.py`** — pure regex helpers pulling structured fields (name, phones, emails, website, registration number, address, qualification list) out of a grouped record's raw multi-line cell text.
 4. **`build.record_to_institution`** — assembles a validated `models.Institution` (pydantic) from a grouped record, returning `None` for unparseable rows rather than raising.
@@ -204,9 +204,9 @@ flowchart LR
 A second, independent pipeline — no institution-matching happens here (that's `web/lib/qualificationsMatching.ts`, downstream in the web app):
 
 - **`fetch_and_parse_qualifications.py`** — downloads (or reads a local copy of) SAQA's "All Qualifications and Part-Qualifications" xlsx register and writes `data/qualifications.json`.
-- **`qualifications_extract.build_qualifications`** — reads the xlsx via `openpyxl`, keeping only rows whose NQF Sub-Framework is `HEQSF` (Higher Education Qualifications Sub-Framework — the only rows relevant to a higher-education product; OQSF/GFETQSF/SFAP/SFNA rows are occupational or schooling qualifications, out of scope), and validates each into a `models.SaqaQualification`.
+- **`qualifications_extract.build_qualifications`** — reads the xlsx via `openpyxl` and validates every row into a `models.SaqaQualification`, keeping its NQF Sub-Framework (`HEQSF`, `OQSF`, `GFETQSF`, `SFAP`, `SFNA`) as a `framework` field. Filtering to `HEQSF` — the only sub-framework relevant to a higher-education product — happens at consumption time, not here: `web/scripts/bakeFacultiesAndProgrammes.ts` applies that filter when matching qualifications to institutions, so other frameworks stay available in `data/qualifications.json` for non-HEQSF consumers (e.g. `eduverify-api`'s CV/HR qualification matcher).
 
-`data/qualifications.json` feeds `web/scripts/bakeFacultiesAndProgrammes.ts`, which matches qualifications to institutions and bakes the result into the institution JSON files the web app bundles (see [Web app](#web-app)).
+`data/qualifications.json` feeds `web/scripts/bakeFacultiesAndProgrammes.ts`, which matches HEQSF qualifications to institutions and bakes the result into the institution JSON files the web app bundles (see [Web app](#web-app)).
 
 ## Web app
 
