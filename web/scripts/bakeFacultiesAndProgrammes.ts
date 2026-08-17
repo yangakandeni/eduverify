@@ -18,6 +18,14 @@ interface NamedRecord {
   [key: string]: unknown;
 }
 
+/** data/qualifications.json now carries every NQF sub-framework (HEQSF, OQSF, GFETQSF,
+ * SFAP, SFNA) — the parser no longer discards non-HEQSF rows at ingestion time. EduVerify's
+ * own product is HEQSF-only (universities/TVETs), so this filter keeps the baked output
+ * unchanged; other consumers of qualifications.json can use the unfiltered set. */
+export function filterToHeqsf(rows: SaqaQualification[]): SaqaQualification[] {
+  return rows.filter((row) => row.framework === "HEQSF");
+}
+
 /** Builds each record's {faculty, programmes}[], keyed via the same institutionKey() that
  * localData.ts/publicUniversities.ts/publicTvets.ts use at load time — this makes duplicate
  * DHET rows (same registration number) collapse onto one id, so they get identical matched
@@ -67,7 +75,8 @@ export function bakePublicTvets(records: NamedRecord[], saqaRows: SaqaQualificat
 }
 
 function main() {
-  const saqaRows: SaqaQualification[] = JSON.parse(readFileSync(QUALIFICATIONS_PATH, "utf8"));
+  const allSaqaRows: SaqaQualification[] = JSON.parse(readFileSync(QUALIFICATIONS_PATH, "utf8"));
+  const saqaRows = filterToHeqsf(allSaqaRows);
 
   const institutions = JSON.parse(readFileSync(INSTITUTIONS_PATH, "utf8"));
   writeFileSync(INSTITUTIONS_PATH, JSON.stringify(bakeInstitutions(institutions, saqaRows), null, 2) + "\n");

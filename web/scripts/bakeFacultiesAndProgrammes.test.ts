@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bakeInstitutions, bakePublicTvets, bakePublicUniversities } from "./bakeFacultiesAndProgrammes";
+import { bakeInstitutions, bakePublicTvets, bakePublicUniversities, filterToHeqsf } from "./bakeFacultiesAndProgrammes";
 import type { SaqaQualification } from "../lib/types";
 
 function makeQualification(overrides: Partial<SaqaQualification> = {}): SaqaQualification {
@@ -10,6 +10,7 @@ function makeQualification(overrides: Partial<SaqaQualification> = {}): SaqaQual
     nqfLevel: 5,
     subfield: "Marketing",
     originator: "AAA School of Advertising",
+    framework: "HEQSF",
     ...overrides,
   };
 }
@@ -92,6 +93,18 @@ describe("bakePublicUniversities", () => {
 
     expect(result[0].faculties_and_programmes).toEqual([{ faculty: "Marketing", programmes: [makeQualification()] }]);
     expect(result[0]).not.toHaveProperty("degrees");
+  });
+});
+
+describe("filterToHeqsf", () => {
+  it("keeps only HEQSF rows, since qualifications.json now carries all NQF sub-frameworks", () => {
+    const rows = [
+      makeQualification({ qualId: 1, framework: "HEQSF" }),
+      makeQualification({ qualId: 2, framework: "OQSF" }),
+      makeQualification({ qualId: 3, framework: "GFETQSF" }),
+    ];
+
+    expect(filterToHeqsf(rows).map((r) => r.qualId)).toEqual([1]);
   });
 });
 

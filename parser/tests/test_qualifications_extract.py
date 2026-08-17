@@ -4,6 +4,7 @@ import pytest
 from qualifications_extract import build_qualifications, parse_nqf_level, row_to_qualification
 
 ROW_1 = {
+    "NQF Sub-Framework": "HEQSF",
     "Qual ID": 101772,
     "Qualification Title": "Advanced Certificate in Business Management and Administration",
     "NQF Level": "NQF Level 06",
@@ -13,6 +14,7 @@ ROW_1 = {
 }
 
 ROW_MISSING_TITLE = {
+    "NQF Sub-Framework": "HEQSF",
     "Qual ID": 999,
     "Qualification Title": "",
     "NQF Level": "NQF Level 06",
@@ -22,6 +24,7 @@ ROW_MISSING_TITLE = {
 }
 
 ROW_MISSING_ORIGINATOR = {
+    "NQF Sub-Framework": "HEQSF",
     "Qual ID": 998,
     "Qualification Title": "Some Qualification",
     "NQF Level": "NQF Level 06",
@@ -58,6 +61,7 @@ def test_row_to_qualification_full():
     assert qual.credits == 120
     assert qual.originator == "Stellenbosch University"
     assert qual.subfield == "Generic Management"
+    assert qual.framework == "HEQSF"
 
 
 def test_row_to_qualification_returns_none_when_title_missing():
@@ -92,7 +96,7 @@ def _write_workbook(path, rows):
     wb.save(path)
 
 
-def test_build_qualifications_filters_to_heqsf_and_maps_fields(tmp_path):
+def test_build_qualifications_maps_fields_and_preserves_framework(tmp_path):
     xlsx_path = tmp_path / "quals.xlsx"
     _write_workbook(
         xlsx_path,
@@ -105,6 +109,10 @@ def test_build_qualifications_filters_to_heqsf_and_maps_fields(tmp_path):
 
     qualifications = build_qualifications(xlsx_path)
 
-    assert len(qualifications) == 2
-    assert {q.qualId for q in qualifications} == {101772, 116842}
-    assert all(q.originator == "Stellenbosch University" for q in qualifications)
+    assert len(qualifications) == 3
+    assert {q.qualId for q in qualifications} == {101772, 116842, 55555}
+    by_id = {q.qualId: q for q in qualifications}
+    assert by_id[101772].framework == "HEQSF"
+    assert by_id[116842].framework == "HEQSF"
+    assert by_id[55555].framework == "OQSF"
+    assert by_id[55555].originator == "Some Training Provider"

@@ -58,8 +58,11 @@ export interface SearchFilters {
   institutionType?: InstitutionType;
 }
 
-/** A single SAQA NLRD qualification registration (HEQSF sub-framework only),
- * produced by parser/fetch_and_parse_qualifications.py into data/qualifications.json. */
+/** A single SAQA NLRD qualification registration, produced by
+ * parser/fetch_and_parse_qualifications.py into data/qualifications.json (which now carries
+ * every NQF sub-framework, not just HEQSF — see `framework`). EduVerify's own bake script
+ * (web/scripts/bakeFacultiesAndProgrammes.ts) filters to HEQSF only, since that's the only
+ * sub-framework relevant to its higher-education product. */
 export interface SaqaQualification {
   qualId: number;
   title: string;
@@ -68,6 +71,7 @@ export interface SaqaQualification {
   credits?: number;
   subfield: string;
   originator: string;
+  framework: string;
 }
 
 export interface FacultyGroup {

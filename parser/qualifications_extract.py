@@ -8,8 +8,6 @@ import openpyxl
 
 from models import SaqaQualification
 
-_HEQSF = "HEQSF"
-
 _NQF_LEVEL_RE = re.compile(r"NQF Level\s*(\d+)", re.IGNORECASE)
 _TRAILING_LEVEL_RE = re.compile(r"L(\d+)\s*$")
 
@@ -29,11 +27,12 @@ def parse_nqf_level(raw):
     return None
 
 
-def iter_heqsf_rows(xlsx_path):
-    """Yields header-mapped row dicts for every row whose "NQF Sub-Framework"
-    is HEQSF (Higher Education Qualifications Sub-Framework) — the only rows
-    relevant to a higher-education product; OQSF/GFETQSF/SFAP/SFNA rows are
-    occupational or schooling qualifications, out of scope."""
+def iter_qualification_rows(xlsx_path):
+    """Yields header-mapped row dicts for every qualification row in the SAQA NLRD
+    register, across all NQF sub-frameworks (HEQSF, OQSF, GFETQSF, SFAP, SFNA) — the
+    ingestion layer captures everything; filtering to a specific sub-framework (e.g.
+    HEQSF-only for a higher-education product) is a consumer-time concern, not
+    something dropped at read time."""
     workbook = openpyxl.load_workbook(xlsx_path, read_only=True, data_only=True)
     worksheet = workbook[workbook.sheetnames[0]]
     rows = worksheet.iter_rows(values_only=True)
@@ -42,7 +41,7 @@ def iter_heqsf_rows(xlsx_path):
     columns = [str(cell).strip() if cell is not None else "" for cell in header]
 
     for values in rows:
-        if not values or values[0] != _HEQSF:
+        if not values:
             continue
         yield dict(zip(columns, values))
 
@@ -55,6 +54,7 @@ def row_to_qualification(row):
     title = (row.get("Qualification Title") or "").strip()
     originator = (row.get("Originator") or "").strip()
     subfield = (row.get("Subfield") or "").strip()
+    framework = (row.get("NQF Sub-Framework") or "").strip()
 
     if not qual_id or not title or not originator:
         return None
@@ -70,14 +70,17 @@ def row_to_qualification(row):
         credits=int(credits) if credits else None,
         subfield=subfield,
         originator=originator,
+        framework=framework,
     )
 
 
 def build_qualifications(xlsx_path):
     """The single entry point: reads the SAQA xlsx and returns a flat list of
-    SaqaQualification models (mirrors build.build_institutions)."""
+    SaqaQualification models across all NQF sub-frameworks (mirrors
+    build.build_institutions). Callers that need a single sub-framework (e.g.
+    HEQSF-only) filter on `.framework` themselves."""
     qualifications = []
-    for row in iter_heqsf_rows(xlsx_path):
+    for row in iter_qualification_rows(xlsx_path):
         qualification = row_to_qualification(row)
         if qualification is not None:
             qualifications.append(qualification)
