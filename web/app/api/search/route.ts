@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { toServiceUnavailableResponse } from "@/lib/apiRouteError";
 import { getAllInstitutions, searchInstitutions } from "@/lib/institutions";
 import { ALL_INSTITUTIONS } from "@/lib/localData";
 import { searchQualificationsGlobal } from "@/lib/qualificationsData";
@@ -27,10 +28,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ query, results, qualificationHits, notFound: results.length === 0 });
   }
 
-  const [{ results, notFound }, institutionsForQualifications] = await Promise.all([
-    searchInstitutions(query, filters),
-    getAllInstitutions(),
-  ]);
-  const qualificationHits = searchQualificationsGlobal(institutionsForQualifications, query, 10);
-  return NextResponse.json({ query, results, qualificationHits, notFound });
+  try {
+    const [{ results, notFound }, institutionsForQualifications] = await Promise.all([
+      searchInstitutions(query, filters),
+      getAllInstitutions(),
+    ]);
+    const qualificationHits = searchQualificationsGlobal(institutionsForQualifications, query, 10);
+    return NextResponse.json({ query, results, qualificationHits, notFound });
+  } catch (error) {
+    return toServiceUnavailableResponse(error);
+  }
 }

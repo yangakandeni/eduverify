@@ -11,17 +11,25 @@ vi.mock("@/components/BrowseSection", () => ({
   default: ({
     institutions,
     initialPage,
+    error,
     onPageChange,
+    onRetry,
   }: {
     institutions: InstitutionRecord[];
     initialPage?: number;
+    error?: boolean;
     onPageChange?: (page: number) => void;
+    onRetry?: () => void;
   }) => (
     <div>
       <div data-testid="browse">{institutions.map((institution) => institution.name).join(",")}</div>
       <div data-testid="initial-page">{initialPage ?? "(none)"}</div>
+      <div data-testid="browse-error">{error ? "error" : "(none)"}</div>
       <button type="button" onClick={() => onPageChange?.(3)}>
         go-to-page-3
+      </button>
+      <button type="button" onClick={() => onRetry?.()}>
+        retry
       </button>
     </div>
   ),
@@ -99,6 +107,65 @@ describe("HomeClient search (real MultiSearch)", () => {
     fireEvent.click(screen.getByRole("button", { name: /clear search/i }));
 
     expect(mockReplace).toHaveBeenCalledWith("/", { scroll: false });
+  });
+});
+
+describe("HomeClient search failure", () => {
+  beforeEach(() => {
+    mockReplace.mockClear();
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it("shows the browse error state when the search API returns a service_unavailable body, instead of treating it as zero results", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        json: async () => ({ error: "service_unavailable", message: "down" }),
+      }),
+    );
+    render(<HomeClient initialInstitutions={[makeInstitution()]} />);
+
+    fireEvent.change(screen.getByPlaceholderText(/search by institution, qualification, or province/i), {
+      target: { value: "fine art" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+
+    await waitFor(() => expect(screen.getByTestId("browse-error")).toHaveTextContent("error"));
+  });
+
+  it("shows the browse error state when the fetch itself throws (network failure)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("network error")));
+    render(<HomeClient initialInstitutions={[makeInstitution()]} />);
+
+    fireEvent.change(screen.getByPlaceholderText(/search by institution, qualification, or province/i), {
+      target: { value: "fine art" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+
+    await waitFor(() => expect(screen.getByTestId("browse-error")).toHaveTextContent("error"));
+  });
+
+  it("retries the same query when BrowseSection's retry action is triggered", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ json: async () => ({ error: "service_unavailable" }) })
+      .mockResolvedValueOnce({
+        json: async () => ({ results: [makeInstitution({ id: "fine-arts-college", name: "Fine Arts College" })] }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<HomeClient initialInstitutions={[makeInstitution()]} />);
+
+    fireEvent.change(screen.getByPlaceholderText(/search by institution, qualification, or province/i), {
+      target: { value: "fine art" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => expect(screen.getByTestId("browse-error")).toHaveTextContent("error"));
+
+    fireEvent.click(screen.getByRole("button", { name: "retry" }));
+
+    await waitFor(() => expect(screen.getByTestId("browse")).toHaveTextContent("Fine Arts College"));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1][0]).toContain("q=fine+art");
   });
 });
 

@@ -65,6 +65,17 @@ export function getEmptyStateDetail(query?: string): string {
     : "No institutions match these filters yet.";
 }
 
+/** Distinct from getEmptyStateHeading/Detail — a real API outage isn't "no matches," and
+ * conflating the two would tell a user their query genuinely has no results when the
+ * verification service just couldn't be reached. */
+export function getServiceUnavailableHeading(): string {
+  return "Service temporarily unavailable";
+}
+
+export function getServiceUnavailableDetail(): string {
+  return "We're having trouble reaching the verification service right now. Please try again shortly.";
+}
+
 export const INSTITUTION_TYPE_OPTIONS: { value: InstitutionType; label: string }[] = [
   { value: "Public University", label: "Public University" },
   { value: "Private Higher Education Institution", label: "Private Institution" },

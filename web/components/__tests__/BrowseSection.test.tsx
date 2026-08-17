@@ -50,6 +50,38 @@ describe("BrowseSection empty state", () => {
   });
 });
 
+describe("BrowseSection error state", () => {
+  it("shows a service-unavailable message instead of the empty state when error is set", () => {
+    render(<BrowseSection institutions={[]} query="cape town" error onVerify={vi.fn()} />);
+
+    expect(screen.getByText("Service temporarily unavailable")).toBeInTheDocument();
+    expect(screen.queryByText("No institutions found")).not.toBeInTheDocument();
+  });
+
+  it("takes precedence over the loading state", () => {
+    render(<BrowseSection institutions={[]} loading error onVerify={vi.fn()} />);
+
+    expect(screen.getByText("Service temporarily unavailable")).toBeInTheDocument();
+    expect(screen.queryByText("Checking the register...")).not.toBeInTheDocument();
+  });
+
+  it("calls onRetry when the retry button is clicked", () => {
+    const onRetry = vi.fn();
+    render(<BrowseSection institutions={[]} error onRetry={onRetry} onVerify={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not show an error state when error is false, even with zero institutions", () => {
+    render(<BrowseSection institutions={[]} onVerify={vi.fn()} />);
+
+    expect(screen.queryByText("Service temporarily unavailable")).not.toBeInTheDocument();
+    expect(screen.getByText("No institutions found")).toBeInTheDocument();
+  });
+});
+
 describe("BrowseSection filters panel", () => {
   it("shows the filters expanded by default, with no click needed", () => {
     render(<BrowseSection institutions={[]} onVerify={vi.fn()} />);
