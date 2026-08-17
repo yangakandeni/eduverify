@@ -23,7 +23,10 @@ class Institution(BaseModel):
 
 
 class SaqaQualification(BaseModel):
-    """A single SAQA NLRD qualification registration row (HEQSF sub-framework only)."""
+    """A single SAQA NLRD qualification registration row, from any NQF sub-framework
+    (HEQSF, OQSF, GFETQSF, SFAP, SFNA). `framework` is the per-row discriminator callers
+    use to filter to a specific sub-framework (e.g. EduVerify's own bake step filters to
+    HEQSF only) — filtering is a consumer-time concern, not an ingestion-time one."""
 
     qualId: int
     title: str
@@ -32,3 +35,4 @@ class SaqaQualification(BaseModel):
     credits: Optional[int] = None
     subfield: str
     originator: str
+    framework: str

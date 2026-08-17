@@ -77,7 +77,7 @@ def main():
             return 1
         print(f"Downloaded to {xlsx_path}")
 
-    print("Parsing xlsx (filtering to HEQSF rows)...")
+    print("Parsing xlsx (all NQF sub-frameworks)...")
     qualifications = build_qualifications(xlsx_path)
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
