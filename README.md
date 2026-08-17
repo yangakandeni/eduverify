@@ -6,7 +6,7 @@ The repository has three independent parts that share data through [`data/instit
 
 | Part | What it does |
 |---|---|
-| [`parser/`](parser/) | Python pipeline that scrapes the DHET "Annexure A" register PDF into structured institution records |
+| [`parser/`](parser/) | Python pipelines that scrape the DHET "Annexure A" register PDF and the SAQA NLRD qualifications register into structured JSON |
 | [`web/`](web/) | Next.js product — search/browse UI, dashboard, API routes |
 | [`terraform/`](terraform/) + [`scripts/`](scripts/) | AWS infra (S3 → Lambda → DynamoDB) that runs the parser in production and seeds/queries the live table |
 
@@ -70,7 +70,7 @@ flowchart TB
     LIB --> API --> UI
 ```
 
-Both ingestion paths run the **same** parsing stages (`pdf_extract` → `grouping` → `extraction` → `build`); they differ only in where the PDF comes from and where the parsed records end up — a local JSON seed file vs. a live DynamoDB table.
+Both ingestion paths run the **same** parsing stages (`pdf_extract` → `grouping` → `extraction` → `build`); they differ only in where the PDF comes from and where the parsed records end up — a local JSON seed file vs. a live DynamoDB table. A separate, independent pipeline handles qualifications data (see [Parser pipeline](#parser-pipeline)).
 
 ## Data flow
 
@@ -79,7 +79,7 @@ Two entry points feed the same pipeline, for two different consumers:
 - **Local dev / bundled seed data** — `parser/fetch_and_parse.py` downloads (or reads a local copy of) the register PDF and writes `data/institutions.json`. The web app bundles this file directly (`web/lib/localData.ts`) alongside a hand-maintained `web/lib/data/public_universities.json`, deduped into one always-available in-memory list (`ALL_INSTITUTIONS`) — no network call, powers instant typeahead and the browse/discovery homepage.
 - **Production ingestion** — `parser/lambda_handler.py` runs in Lambda, triggered by an S3 `ObjectCreated` event on `raw/*.pdf`. It reuses the same parsing stages, upserts every parsed institution into DynamoDB (`dynamo_item.to_item`), and drops a JSON backup of the batch under `backups/` in the same bucket.
 
-`dynamo_item.to_item` / `institution_key` (Python) is the single source of truth for how an institution is keyed — `INST#<registration_number>`, or `INST#NAME#<slug>` when there's no registration number. **`web/lib/keys.ts` reimplements the same slugify/key logic in TypeScript**; the two must stay in sync or web lookups by ID will silently miss DynamoDB rows.
+`dynamo_item.to_item` / `institution_key` (Python) is the single source of truth for how an institution is keyed — `INST#<registration_number>`, or `INST#NAME#<slug>` when there's no registration number. **`web/lib/keys.ts` reimplements the same slugify/key logic in TypeScript** — the two must stay in sync or web lookups by ID will silently miss DynamoDB rows.
 
 At request time, `web/lib/institutions.ts` merges both sources:
 
@@ -111,7 +111,7 @@ Any DynamoDB error is caught and logged, falling back to local-only silently —
 
 ## AWS infrastructure
 
-Provisioned by Terraform ([`terraform/`](terraform/)) as four modules wired together in [`main.tf`](terraform/main.tf): `s3`, `dynamodb`, `iam`, `lambda`.
+Provisioned by Terraform ([`terraform/`](terraform/)) as modules wired together in [`main.tf`](terraform/main.tf): `s3`, `dynamodb`, `iam`, `lambda`, `ci_oidc`.
 
 ```mermaid
 flowchart LR
@@ -158,6 +158,7 @@ Key details:
 - **DynamoDB** (`modules/dynamodb`) — single table (`PK` hash key) plus `GSI1` (`GSI1PK`/`GSI1SK`, full projection) for status-partitioned name-prefix search. Pay-per-request billing, point-in-time recovery on.
 - **IAM** (`modules/iam`) — least-privilege role scoped to: read `raw/*`, write `backups/*`, read/write the institutions table, query `GSI1`, and write to its own CloudWatch log group only.
 - **Lambda** (`modules/lambda`) — `parser/` zipped as the function package (tests/fixtures/venv excluded); dependencies (`pdfplumber`, `pydantic`, etc.) ship as a separate layer, cross-compiled for the Lambda runtime's manylinux platform straight from `requirements-lambda.txt` via `pip install --platform ... --only-binary=:all:` — no Docker required, even from an Apple Silicon dev machine. Default: `3008MB` memory, `300s` timeout (a real ~200-page register PDF peaks near 800MB and takes ~25s to parse), `x86_64`, region `af-south-1`.
+- **CI OIDC** (`modules/ci_oidc`) — an IAM role GitHub Actions assumes via OIDC (no long-lived AWS credentials in CI) to run Terraform/deploy from CI.
 - The S3 → Lambda trigger (`aws_s3_bucket_notification` in `main.tf`) fires only on `ObjectCreated` events matching prefix `raw/` and suffix `.pdf`.
 - **Remote state** (`backend_state.tf`) — S3 bucket + DynamoDB lock table backing `main.tf`'s `backend "s3" {}`, one per AWS account (staging and production each deploy into their own account via a dedicated IAM Identity Center SSO profile — see `docs/DEPLOYMENT.md`); each is bootstrapped once with local state before the backend it creates can be used.
 - **Amplify Hosting** (`frontend.tf`) — has no regional endpoint in `af-south-1`, so it deploys via a separate `aws.amplify` provider alias into `eu-west-1` while everything else stays in `af-south-1`.
@@ -174,6 +175,8 @@ python scripts/seed_dynamodb.py --endpoint-url http://localhost:8000  # against 
 ```
 
 ## Parser pipeline
+
+### Institutions (DHET register)
 
 One-way, composable stages in [`parser/`](parser/), each independently unit-tested and side-effect-free where possible:
 
@@ -196,6 +199,15 @@ flowchart LR
 3. **`extraction.py`** — pure regex helpers pulling structured fields (name, phones, emails, website, registration number, address, qualification list) out of a grouped record's raw multi-line cell text.
 4. **`build.record_to_institution`** — assembles a validated `models.Institution` (pydantic) from a grouped record, returning `None` for unparseable rows rather than raising.
 
+### Qualifications (SAQA NLRD register)
+
+A second, independent pipeline — no institution-matching happens here (that's `web/lib/qualificationsMatching.ts`, downstream in the web app):
+
+- **`fetch_and_parse_qualifications.py`** — downloads (or reads a local copy of) SAQA's "All Qualifications and Part-Qualifications" xlsx register and writes `data/qualifications.json`.
+- **`qualifications_extract.build_qualifications`** — reads the xlsx via `openpyxl`, keeping only rows whose NQF Sub-Framework is `HEQSF` (Higher Education Qualifications Sub-Framework — the only rows relevant to a higher-education product; OQSF/GFETQSF/SFAP/SFNA rows are occupational or schooling qualifications, out of scope), and validates each into a `models.SaqaQualification`.
+
+`data/qualifications.json` feeds `web/scripts/bakeFacultiesAndProgrammes.ts`, which matches qualifications to institutions and bakes the result into the institution JSON files the web app bundles (see [Web app](#web-app)).
+
 ## Web app
 
 ```mermaid
@@ -214,7 +226,10 @@ flowchart TB
         R2["GET /api/search\nfull search: DynamoDB + local"]
         R3["GET /api/institutions\nlocal seed list"]
         R4["GET /api/institutions/[id]\nDynamoDB first, local fallback"]
-        R5["/api/saved-institutions\nGET/POST/DELETE"]
+        R5["GET /api/institutions/[id]/faculties"]
+        R6["GET /api/institutions/[id]/qualifications"]
+        R7["GET /api/qualifications/search"]
+        R8["/api/saved-institutions\nGET/POST/DELETE"]
     end
 
     subgraph Auth["Clerk (proxy.ts middleware)"]
@@ -235,17 +250,22 @@ flowchart TB
     INST --> R2
     LOCAL --> R3
     INST --> R4
-    R5 --> META
+    LOCAL --> R5
+    LOCAL --> R6
+    LOCAL --> R7
+    R8 --> META
     CLERK --> DASH
     R1 & R2 & R3 & R4 --> HOME
     LOCAL --> QUALS
-    R5 --> DASH
+    R5 & R6 & R7 --> QUALS
+    R8 --> DASH
 ```
 
 - **`web/lib/localData.ts`** — bundles `data/institutions.json` (private institutions, scraped) plus `web/lib/data/public_universities.json` (hand-maintained public universities/TVETs, via `publicUniversities.ts`) into one deduped list, `ALL_INSTITUTIONS`.
 - **`web/lib/dynamodb.ts`** — the live register; single-table design, `PK` = institution key, `GSI1PK` = uppercased status, `GSI1SK` = name. Server-side only.
 - **`web/lib/institutions.ts`** — the merge point: `searchInstitutions` queries DynamoDB (exact registration-number + name-prefix) and always also runs local fuzzy search in parallel, deduping by id. Any DynamoDB error falls back to local-only, silently.
-- **Qualifications** are pre-matched against SAQA's NLRD register (`data/qualifications.json`) and baked directly into `data/institutions.json`/`public_universities.json`/`public_tvets.json` as `faculties_and_programmes` by `web/scripts/bakeFacultiesAndProgrammes.ts` — `web/lib/facultiesAndProgrammes.ts`'s `getAllProgrammes` is the one place to read "every qualification for an institution" from, and `web/lib/qualificationsData.ts` groups/paginates them per faculty for the `/institutions/[id]/qualifications` page (client-side faculty switching, in-faculty search, 12-per-page pagination — no per-selection page reload).
+- **Qualifications** are pre-matched against SAQA's NLRD register (`data/qualifications.json`) and baked directly into `data/institutions.json`/`public_universities.json`/`public_tvets.json` as `faculties_and_programmes` by `web/scripts/bakeFacultiesAndProgrammes.ts` — `web/lib/facultiesAndProgrammes.ts`'s `getAllProgrammes` is the one place to read "every qualification for an institution" from, and `web/lib/qualificationsData.ts` groups/paginates them per faculty for the `/institutions/[id]/qualifications` page (client-side faculty switching, in-faculty search, 12-per-page pagination — no per-selection page reload). When no valid faculty is requested, the page defaults to an "All Qualifications" view that flattens every faculty's programmes together, rather than the first faculty alphabetically.
+- **`web/lib/qualificationSearch.ts`** — typo-tolerant, word-order-independent fuzzy matching for qualification titles: a length-scaled Levenshtein distance tolerates minor misspellings, and a small dictionary expands common degree abbreviations (`phd`, `bsc`, `ba`, `nd`, `hnd`, `ma`, `msc`, `it`) to their full words. Used both by `search.ts`'s qualification-match fallback tier and by the qualifications explorer's in-faculty search box.
 - **`web/lib/normalize.ts`** maps OCR-noisy/inconsistent province names in the source register to `CANONICAL_PROVINCES` (or `"Unknown"`) — the single place province-matching logic lives (search, filters, homepage hero).
 - **`web/lib/location.ts`** does best-effort client-side IP geolocation (public, unauthenticated API, 2.5s timeout) to pick a default province for the homepage hero; any failure resolves to `null` and falls back to `DEFAULT_PROVINCE` ("Gauteng"). A manual province pick always wins over a late geolocation result.
 - **`web/lib/collections.ts`** builds the homepage hero's Recommended/Featured/Recently Added tabs from `ALL_INSTITUTIONS` plus a province; Featured/Recently Added are omitted entirely when empty.
@@ -258,11 +278,14 @@ flowchart TB
 eduverify/
 ├── data/
 │   ├── institutions.json          # parsed output, bundled by the web app
+│   ├── qualifications.json        # SAQA NLRD register, feeds bakeFacultiesAndProgrammes
 │   └── _annexure_a_register.pdf   # source register (local dev copy)
-├── parser/                        # Python scraping pipeline
+├── parser/                        # Python scraping pipelines
 │   ├── pdf_extract.py / grouping.py / extraction.py / build.py / models.py
 │   ├── dynamo_item.py             # institution keying (source of truth)
 │   ├── fetch_and_parse.py         # CLI entry point → data/institutions.json
+│   ├── fetch_and_parse_qualifications.py  # CLI entry point → data/qualifications.json
+│   ├── qualifications_extract.py  # SAQA NLRD xlsx parsing
 │   ├── lambda_handler.py          # S3-triggered entry point → DynamoDB
 │   └── tests/
 ├── web/                           # Next.js app
@@ -270,7 +293,7 @@ eduverify/
 │   ├── components/                # UI + dashboard components
 │   └── lib/                       # data layer, search, normalization, keys.ts
 ├── terraform/                     # AWS infra (S3 → Lambda → DynamoDB)
-│   └── modules/{s3,dynamodb,iam,lambda}/
+│   └── modules/{s3,dynamodb,iam,lambda,ci_oidc}/
 └── scripts/
     └── seed_dynamodb.py           # bulk-load data/institutions.json into DynamoDB
 ```
@@ -294,6 +317,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python fetch_and_parse.py                    # download latest DHET PDF → ../data/institutions.json
 python fetch_and_parse.py --pdf-path FILE    # parse an already-downloaded PDF instead
+python fetch_and_parse_qualifications.py     # download latest SAQA NLRD xlsx → ../data/qualifications.json
 ```
 
 ### Infra (from `terraform/`)
