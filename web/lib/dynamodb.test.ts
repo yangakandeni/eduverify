@@ -43,4 +43,31 @@ describe("toRecord", () => {
 
     expect(result).not.toHaveProperty("qualifications");
   });
+
+  it("defaults institutionType to Private Higher Education Institution for a legacy item without the field", () => {
+    const item = {
+      PK: "INST#2000/HE07/015",
+      GSI1PK: "REGISTERED",
+      GSI1SK: "AAA School of Advertising",
+      name: "AAA School of Advertising",
+    };
+
+    const result = toRecord(item);
+
+    expect(result.institutionType).toBe("Private Higher Education Institution");
+  });
+
+  it("preserves institutionType when the item carries one (e.g. a seeded public university or TVET college)", () => {
+    const item = {
+      PK: "INST#NAME#UNIVERSITY-OF-CAPE-TOWN",
+      GSI1PK: "ESTABLISHED — HIGHER EDUCATION ACT",
+      GSI1SK: "University of Cape Town",
+      name: "University of Cape Town",
+      institutionType: "Public University",
+    };
+
+    const result = toRecord(item);
+
+    expect(result.institutionType).toBe("Public University");
+  });
 });

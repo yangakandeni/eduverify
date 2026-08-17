@@ -12,6 +12,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const faculty = request.nextUrl.searchParams.get("faculty") ?? undefined;
   return NextResponse.json({
-    qualifications: getQualificationsForInstitutionFaculty(institution.id, faculty),
+    qualifications: getQualificationsForInstitutionFaculty(institution, faculty),
   });
 }

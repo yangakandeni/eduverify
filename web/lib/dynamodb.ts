@@ -6,8 +6,21 @@ const TABLE_NAME = process.env.EDUVERIFY_TABLE_NAME ?? "eduverify-institutions";
 const REGION = process.env.AWS_REGION ?? "af-south-1";
 const REQUEST_TIMEOUT_MS = 2500;
 
-/** GSI1PK values written by parser/dynamo_item.py (institution.status, uppercased, or UNKNOWN). */
-const STATUS_PARTITIONS = ["REGISTERED", "PROVISIONALLY REGISTERED", "UNKNOWN"];
+/** GSI1PK values written by parser/dynamo_item.py (institution.status, uppercased, or UNKNOWN).
+ * The last two are scripts/seed_dynamodb.py's public-university/TVET status strings, uppercased
+ * the same way — they must stay listed here or GSI1-based queries (this file's own
+ * queryByNamePrefix, plus eduverify-api's search/list) silently never see those institutions,
+ * even though a direct GetItem by PK still finds them. */
+const STATUS_PARTITIONS = [
+  "REGISTERED",
+  "PROVISIONALLY REGISTERED",
+  "UNKNOWN",
+  "ESTABLISHED — HIGHER EDUCATION ACT",
+  "ESTABLISHED — CONTINUING EDUCATION AND TRAINING ACT",
+  "CANCELLED",
+  "DISCONTINUED",
+  "BOGUS",
+];
 
 let client: DynamoDBDocumentClient | null = null;
 
@@ -23,25 +36,34 @@ function getClient(): DynamoDBDocumentClient {
   return client;
 }
 
-/** DynamoDB is only ever seeded with private DHET register data (parser/dynamo_item.py just
- * spreads institutions.json's records as-is), so items carry faculties_and_programmes
- * directly once `npm run bake:faculties` has enriched institutions.json before seeding — no
- * further parsing needed here. Defaults to [] for items ingested via the live S3->Lambda path
- * (parser/lambda_handler.py), which bypasses the bake step and won't have the field yet, and
- * strips a stale raw `qualifications` key if one is still present on such a legacy item. */
+/** DynamoDB is seeded from private DHET register data (parser/dynamo_item.py spreads
+ * institutions.json's records as-is, which never carry an institutionType field) plus, via
+ * scripts/seed_dynamodb.py, public universities/TVET colleges (which do carry one) — so
+ * items carry faculties_and_programmes directly once `npm run bake:faculties` has enriched
+ * institutions.json/public_universities.json/public_tvets.json before seeding — no further
+ * parsing needed here. Defaults faculties_and_programmes to [] for items ingested via the live
+ * S3->Lambda path (parser/lambda_handler.py), which bypasses the bake step and won't have the
+ * field yet, and strips a stale raw `qualifications` key if one is still present on such a
+ * legacy item. Defaults institutionType to "Private Higher Education Institution" only when
+ * the item itself doesn't carry one — true for every private-register item, never true for a
+ * seeded public university/TVET college. */
 export function toRecord(item: Record<string, unknown>): InstitutionRecord {
   const record = { ...item };
   const id = record.PK as string;
+  const institutionType =
+    (record.institutionType as InstitutionRecord["institutionType"] | undefined) ??
+    "Private Higher Education Institution";
   const facultiesAndProgrammes = (record.faculties_and_programmes as FacultyProgrammes[] | undefined) ?? [];
   delete record.PK;
   delete record.GSI1PK;
   delete record.GSI1SK;
+  delete record.institutionType;
   delete record.faculties_and_programmes;
   delete record.qualifications;
   return {
     ...(record as Omit<InstitutionRecord, "id" | "faculties_and_programmes" | "institutionType">),
     id,
-    institutionType: "Private Higher Education Institution",
+    institutionType,
     faculties_and_programmes: facultiesAndProgrammes,
   };
 }

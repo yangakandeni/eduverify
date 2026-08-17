@@ -1,10 +1,12 @@
 import { getAllProgrammes } from "./facultiesAndProgrammes";
-import { ALL_INSTITUTIONS, findLocalById } from "./localData";
 import { normalizeText } from "./normalize";
 import type { FacultyGroup, FacultyQualificationGroup, InstitutionRecord, SaqaQualification } from "./types";
 
-export function getFacultiesForInstitution(institutionId: string): FacultyGroup[] {
-  const institution = findLocalById(institutionId);
+/** Takes the institution record itself (already resolved by the caller via
+ * institutions.ts's getInstitution, which is USE_EXTERNAL_API-aware) rather than looking it
+ * up again by id from bundled local data — the record's own faculties_and_programmes is
+ * always the right source, whichever path (API or local) resolved it. */
+export function getFacultiesForInstitution(institution: InstitutionRecord | null): FacultyGroup[] {
   if (!institution) return [];
 
   return institution.faculties_and_programmes
@@ -13,10 +15,9 @@ export function getFacultiesForInstitution(institutionId: string): FacultyGroup[
 }
 
 export function getQualificationsForInstitutionFaculty(
-  institutionId: string,
+  institution: InstitutionRecord | null,
   faculty?: string,
 ): SaqaQualification[] {
-  const institution = findLocalById(institutionId);
   if (!institution) return [];
   if (!faculty) return getAllProgrammes(institution);
   return institution.faculties_and_programmes.find((f) => f.faculty === faculty)?.programmes ?? [];
@@ -24,12 +25,12 @@ export function getQualificationsForInstitutionFaculty(
 
 /** Each faculty paired with its own qualifications, for pages that need both up front
  * (e.g. client-side faculty switching with no per-selection refetch). Composes the two
- * functions above rather than re-deriving from findLocalById/getAllProgrammes directly, so
- * ordering and matching stay in one place. */
-export function getFacultyQualificationGroups(institutionId: string): FacultyQualificationGroup[] {
-  return getFacultiesForInstitution(institutionId).map((group) => ({
+ * functions above rather than re-deriving from getAllProgrammes directly, so ordering and
+ * matching stay in one place. */
+export function getFacultyQualificationGroups(institution: InstitutionRecord | null): FacultyQualificationGroup[] {
+  return getFacultiesForInstitution(institution).map((group) => ({
     ...group,
-    qualifications: getQualificationsForInstitutionFaculty(institutionId, group.faculty),
+    qualifications: getQualificationsForInstitutionFaculty(institution, group.faculty),
   }));
 }
 
@@ -56,14 +57,21 @@ export interface QualificationSearchHit {
 
 /** Keyword search over every matched SAQA qualification's title, tiered like
  * search.ts's institution scoring (exact > startsWith > includes). Only
- * qualifications already matched to a recognized institution are searched. */
-export function searchQualificationsGlobal(query: string, limit = 20): QualificationSearchHit[] {
+ * qualifications already matched to a recognized institution are searched. Takes the
+ * candidate institutions as a parameter (rather than reading bundled local data directly)
+ * so the caller controls the source — institutions.ts's getAllInstitutions() when
+ * USE_EXTERNAL_API is set, the bundled array otherwise. */
+export function searchQualificationsGlobal(
+  institutions: InstitutionRecord[],
+  query: string,
+  limit = 20,
+): QualificationSearchHit[] {
   const q = normalizeText(query);
   if (!q) return [];
 
   const scored: Array<{ hit: QualificationSearchHit; score: number }> = [];
 
-  for (const institution of ALL_INSTITUTIONS) {
+  for (const institution of institutions) {
     for (const qualification of getAllProgrammes(institution)) {
       const title = normalizeText(qualification.title);
 
