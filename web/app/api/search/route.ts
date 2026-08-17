@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchInstitutions } from "@/lib/institutions";
+import { getAllInstitutions, searchInstitutions } from "@/lib/institutions";
+import { ALL_INSTITUTIONS } from "@/lib/localData";
 import { searchQualificationsGlobal } from "@/lib/qualificationsData";
 import { searchLocal } from "@/lib/search";
 import type { InstitutionType } from "@/lib/types";
@@ -17,15 +18,19 @@ export async function GET(request: NextRequest) {
 
   const filters = { province, institutionType };
 
-  // Typeahead suggestions stay local-only for instant response; DynamoDB is only
-  // consulted for the full search a user triggers on submit.
+  // Typeahead suggestions stay local-only for instant response regardless of
+  // USE_EXTERNAL_API; DynamoDB/the API is only consulted for the full search a user
+  // triggers on submit.
   if (mode === "typeahead") {
     const results = searchLocal(query, filters, 8);
-    const qualificationHits = searchQualificationsGlobal(query, 5);
+    const qualificationHits = searchQualificationsGlobal(ALL_INSTITUTIONS, query, 5);
     return NextResponse.json({ query, results, qualificationHits, notFound: results.length === 0 });
   }
 
-  const { results, notFound } = await searchInstitutions(query, filters);
-  const qualificationHits = searchQualificationsGlobal(query, 10);
+  const [{ results, notFound }, institutionsForQualifications] = await Promise.all([
+    searchInstitutions(query, filters),
+    getAllInstitutions(),
+  ]);
+  const qualificationHits = searchQualificationsGlobal(institutionsForQualifications, query, 10);
   return NextResponse.json({ query, results, qualificationHits, notFound });
 }

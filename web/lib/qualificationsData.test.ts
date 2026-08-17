@@ -23,7 +23,7 @@ function requireInstitutionByType(institutionType: InstitutionType): Institution
 describe("getFacultiesForInstitution", () => {
   it("groups Stellenbosch University's SAQA qualifications by faculty (subfield)", () => {
     const stellenbosch = requireInstitutionByName("Stellenbosch University");
-    const faculties = getFacultiesForInstitution(stellenbosch.id);
+    const faculties = getFacultiesForInstitution(stellenbosch);
 
     expect(faculties.length).toBeGreaterThan(0);
     expect(faculties.map((f) => f.faculty)).toContain("Visual Arts");
@@ -34,18 +34,18 @@ describe("getFacultiesForInstitution", () => {
 
   it("returns an empty list for an institution with no matched SAQA qualifications", () => {
     const tvet = requireInstitutionByType("TVET College");
-    expect(getFacultiesForInstitution(tvet.id)).toEqual([]);
+    expect(getFacultiesForInstitution(tvet)).toEqual([]);
   });
 
-  it("returns an empty list for an unknown institution id", () => {
-    expect(getFacultiesForInstitution("does-not-exist")).toEqual([]);
+  it("returns an empty list when no institution is given", () => {
+    expect(getFacultiesForInstitution(null)).toEqual([]);
   });
 });
 
 describe("getQualificationsForInstitutionFaculty", () => {
   it("filters to only the given faculty", () => {
     const stellenbosch = requireInstitutionByName("Stellenbosch University");
-    const visualArts = getQualificationsForInstitutionFaculty(stellenbosch.id, "Visual Arts");
+    const visualArts = getQualificationsForInstitutionFaculty(stellenbosch, "Visual Arts");
 
     expect(visualArts.length).toBeGreaterThan(0);
     for (const qualification of visualArts) {
@@ -55,18 +55,22 @@ describe("getQualificationsForInstitutionFaculty", () => {
 
   it("returns every matched qualification when no faculty is given", () => {
     const stellenbosch = requireInstitutionByName("Stellenbosch University");
-    const all = getQualificationsForInstitutionFaculty(stellenbosch.id);
-    const visualArts = getQualificationsForInstitutionFaculty(stellenbosch.id, "Visual Arts");
+    const all = getQualificationsForInstitutionFaculty(stellenbosch);
+    const visualArts = getQualificationsForInstitutionFaculty(stellenbosch, "Visual Arts");
 
     expect(all.length).toBeGreaterThanOrEqual(visualArts.length);
+  });
+
+  it("returns an empty list when no institution is given", () => {
+    expect(getQualificationsForInstitutionFaculty(null)).toEqual([]);
   });
 });
 
 describe("getFacultyQualificationGroups", () => {
   it("attaches each faculty's own qualifications alongside its count, matching getFacultiesForInstitution's ordering", () => {
     const stellenbosch = requireInstitutionByName("Stellenbosch University");
-    const groups = getFacultyQualificationGroups(stellenbosch.id);
-    const faculties = getFacultiesForInstitution(stellenbosch.id);
+    const groups = getFacultyQualificationGroups(stellenbosch);
+    const faculties = getFacultiesForInstitution(stellenbosch);
 
     expect(groups.map((g) => g.faculty)).toEqual(faculties.map((f) => f.faculty));
 
@@ -80,13 +84,13 @@ describe("getFacultyQualificationGroups", () => {
 
   it("returns an empty list for an institution with no matched SAQA qualifications", () => {
     const tvet = requireInstitutionByType("TVET College");
-    expect(getFacultyQualificationGroups(tvet.id)).toEqual([]);
+    expect(getFacultyQualificationGroups(tvet)).toEqual([]);
   });
 });
 
 describe("searchQualificationsGlobal", () => {
   it("finds a qualification by keyword and returns its owning institution", () => {
-    const hits = searchQualificationsGlobal("theatre");
+    const hits = searchQualificationsGlobal(ALL_INSTITUTIONS, "theatre");
 
     expect(hits.length).toBeGreaterThan(0);
     for (const hit of hits) {
@@ -96,11 +100,17 @@ describe("searchQualificationsGlobal", () => {
   });
 
   it("returns no more than the requested limit", () => {
-    const hits = searchQualificationsGlobal("certificate", 5);
+    const hits = searchQualificationsGlobal(ALL_INSTITUTIONS, "certificate", 5);
     expect(hits.length).toBeLessThanOrEqual(5);
   });
 
   it("returns an empty array for an empty query", () => {
-    expect(searchQualificationsGlobal("")).toEqual([]);
+    expect(searchQualificationsGlobal(ALL_INSTITUTIONS, "")).toEqual([]);
+  });
+
+  it("only searches the institutions it's given, not the full bundled array", () => {
+    const stellenbosch = requireInstitutionByName("Stellenbosch University");
+    const hits = searchQualificationsGlobal([stellenbosch], "theatre");
+    expect(hits.every((hit) => hit.institution.id === stellenbosch.id)).toBe(true);
   });
 });

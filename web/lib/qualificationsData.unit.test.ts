@@ -1,4 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import {
+  getFacultiesForInstitution,
+  getFacultyQualificationGroups,
+  getQualificationsForInstitutionFaculty,
+  resolveInitialFaculty,
+  searchQualificationsGlobal,
+  ALL_QUALIFICATIONS_FACULTY,
+} from "./qualificationsData";
 import type { InstitutionRecord, SaqaQualification } from "./types";
 
 function makeQualification(overrides: Partial<SaqaQualification> = {}): SaqaQualification {
@@ -42,53 +50,35 @@ const otherInstitution: InstitutionRecord = {
   faculties_and_programmes: [{ faculty: "Hospitality", programmes: [hospitalityQualification] }],
 };
 
-vi.mock("./localData", () => ({
-  ALL_INSTITUTIONS: [fixtureInstitution, otherInstitution],
-  findLocalById: (id: string) => [fixtureInstitution, otherInstitution].find((i) => i.id === id),
-}));
-
-describe("qualificationsData (unit, mocked localData)", () => {
-  it("getFacultiesForInstitution reads faculties directly off the institution's own faculties_and_programmes", async () => {
-    const { getFacultiesForInstitution } = await import("./qualificationsData");
-
-    expect(getFacultiesForInstitution(fixtureInstitution.id)).toEqual([
+describe("qualificationsData (unit, plain fixtures)", () => {
+  it("getFacultiesForInstitution reads faculties directly off the institution's own faculties_and_programmes", () => {
+    expect(getFacultiesForInstitution(fixtureInstitution)).toEqual([
       { faculty: "Arts", count: 1 },
       { faculty: "Law", count: 1 },
     ]);
   });
 
-  it("getQualificationsForInstitutionFaculty filters to the requested faculty without re-matching", async () => {
-    const { getQualificationsForInstitutionFaculty } = await import("./qualificationsData");
-
-    expect(getQualificationsForInstitutionFaculty(fixtureInstitution.id, "Law")).toEqual([lawQualification]);
-    expect(getQualificationsForInstitutionFaculty(fixtureInstitution.id)).toEqual([
-      lawQualification,
-      artsQualification,
-    ]);
+  it("getQualificationsForInstitutionFaculty filters to the requested faculty without re-matching", () => {
+    expect(getQualificationsForInstitutionFaculty(fixtureInstitution, "Law")).toEqual([lawQualification]);
+    expect(getQualificationsForInstitutionFaculty(fixtureInstitution)).toEqual([lawQualification, artsQualification]);
   });
 
-  it("searchQualificationsGlobal searches every institution's faculties_and_programmes directly", async () => {
-    const { searchQualificationsGlobal } = await import("./qualificationsData");
-
-    const hits = searchQualificationsGlobal("art");
+  it("searchQualificationsGlobal searches every given institution's faculties_and_programmes directly", () => {
+    const hits = searchQualificationsGlobal([fixtureInstitution, otherInstitution], "art");
 
     expect(hits).toHaveLength(1);
     expect(hits[0].qualification).toEqual(artsQualification);
     expect(hits[0].institution.id).toBe(fixtureInstitution.id);
   });
 
-  it("does not surface a qualification whose title merely contains the query as a bare mid-word substring", async () => {
-    const { searchQualificationsGlobal } = await import("./qualificationsData");
-
-    const hits = searchQualificationsGlobal("IT");
+  it("does not surface a qualification whose title merely contains the query as a bare mid-word substring", () => {
+    const hits = searchQualificationsGlobal([fixtureInstitution, otherInstitution], "IT");
 
     expect(hits.some((hit) => hit.qualification.qualId === hospitalityQualification.qualId)).toBe(false);
   });
 
-  it("getFacultyQualificationGroups attaches each faculty's own qualifications to its count", async () => {
-    const { getFacultyQualificationGroups } = await import("./qualificationsData");
-
-    expect(getFacultyQualificationGroups(fixtureInstitution.id)).toEqual([
+  it("getFacultyQualificationGroups attaches each faculty's own qualifications to its count", () => {
+    expect(getFacultyQualificationGroups(fixtureInstitution)).toEqual([
       { faculty: "Arts", count: 1, qualifications: [artsQualification] },
       { faculty: "Law", count: 1, qualifications: [lawQualification] },
     ]);
@@ -101,23 +91,19 @@ describe("resolveInitialFaculty", () => {
     { faculty: "Law", count: 1, qualifications: [lawQualification] },
   ];
 
-  it("returns the requested faculty when it matches an existing group", async () => {
-    const { resolveInitialFaculty } = await import("./qualificationsData");
+  it("returns the requested faculty when it matches an existing group", () => {
     expect(resolveInitialFaculty(groups, "Law")).toBe("Law");
   });
 
-  it("falls back to 'All Qualifications' when none is requested", async () => {
-    const { resolveInitialFaculty, ALL_QUALIFICATIONS_FACULTY } = await import("./qualificationsData");
+  it("falls back to 'All Qualifications' when none is requested", () => {
     expect(resolveInitialFaculty(groups, undefined)).toBe(ALL_QUALIFICATIONS_FACULTY);
   });
 
-  it("falls back to 'All Qualifications' when the requested one doesn't match any group", async () => {
-    const { resolveInitialFaculty, ALL_QUALIFICATIONS_FACULTY } = await import("./qualificationsData");
+  it("falls back to 'All Qualifications' when the requested one doesn't match any group", () => {
     expect(resolveInitialFaculty(groups, "Medicine")).toBe(ALL_QUALIFICATIONS_FACULTY);
   });
 
-  it("returns undefined when there are no groups at all", async () => {
-    const { resolveInitialFaculty } = await import("./qualificationsData");
+  it("returns undefined when there are no groups at all", () => {
     expect(resolveInitialFaculty([], "Arts")).toBeUndefined();
   });
 });

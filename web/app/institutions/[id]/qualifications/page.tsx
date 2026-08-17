@@ -27,7 +27,7 @@ export default async function QualificationsPage({ params, searchParams }: Quali
   if (!institution) notFound();
 
   const badge = getStatusBadge(institution);
-  const facultyGroups = getFacultyQualificationGroups(institution.id);
+  const facultyGroups = getFacultyQualificationGroups(institution);
   const backParams = new URLSearchParams();
   if (q) {
     backParams.set("q", q);
