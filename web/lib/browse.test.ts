@@ -8,6 +8,8 @@ import {
   getEmptyStateDetail,
   getEmptyStateHeading,
   getResultCountLabel,
+  getServiceUnavailableDetail,
+  getServiceUnavailableHeading,
   isProvinceFilterDisabled,
   isStatusOptionValidForType,
 } from "./browse";
@@ -231,6 +233,20 @@ describe("getEmptyStateDetail", () => {
 
   it("shows a query-specific message when a search is active", () => {
     expect(getEmptyStateDetail("blah")).toBe('"blah" wasn\'t found in the current dataset.');
+  });
+});
+
+describe("getServiceUnavailableHeading", () => {
+  it("always reads 'Service temporarily unavailable'", () => {
+    expect(getServiceUnavailableHeading()).toBe("Service temporarily unavailable");
+  });
+});
+
+describe("getServiceUnavailableDetail", () => {
+  it("reads a generic 'try again' message, distinct from a genuine no-results state", () => {
+    expect(getServiceUnavailableDetail()).toBe(
+      "We're having trouble reaching the verification service right now. Please try again shortly.",
+    );
   });
 });
 

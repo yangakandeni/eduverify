@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, WifiOff } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import BrowseHeader from "@/components/BrowseHeader";
 import BrowseInstitutionCard from "@/components/BrowseInstitutionCard";
@@ -12,6 +12,8 @@ import {
   filterInstitutionsForBrowse,
   getEmptyStateDetail,
   getEmptyStateHeading,
+  getServiceUnavailableDetail,
+  getServiceUnavailableHeading,
   isProvinceFilterDisabled,
   isStatusOptionValidForType,
 } from "@/lib/browse";
@@ -24,20 +26,27 @@ interface BrowseSectionProps {
   institutions: InstitutionRecord[];
   query?: string;
   loading?: boolean;
+  /** A search/fetch to the verification service failed — distinct from "no results," since
+   * there's no local fallback left to degrade to post-cutover. Takes precedence over loading
+   * and the empty state. */
+  error?: boolean;
   initialPage?: number;
   onVerify: (institution: InstitutionRecord) => void;
   onClearSearch?: () => void;
   onPageChange?: (page: number) => void;
+  onRetry?: () => void;
 }
 
 export default function BrowseSection({
   institutions,
   query,
   loading,
+  error,
   initialPage,
   onVerify,
   onClearSearch,
   onPageChange,
+  onRetry,
 }: BrowseSectionProps) {
   const [province, setProvince] = useState(ALL_PROVINCES_VALUE);
   const [institutionType, setInstitutionType] = useState(ALL_TYPES_VALUE);
@@ -109,7 +118,22 @@ export default function BrowseSection({
           onToggleFilters={() => setFiltersOpen((value) => !value)}
         />
 
-        {loading ? (
+        {error ? (
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+            <WifiOff className="h-8 w-8 text-rose-500" />
+            <p className="font-semibold text-rose-700">{getServiceUnavailableHeading()}</p>
+            <p className="max-w-md text-sm text-rose-600">{getServiceUnavailableDetail()}</p>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-1 text-sm font-medium text-rose-700 underline-offset-2 hover:underline"
+              >
+                Try again
+              </button>
+            )}
+          </div>
+        ) : loading ? (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card py-16 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin" />
             <p>Checking the register...</p>

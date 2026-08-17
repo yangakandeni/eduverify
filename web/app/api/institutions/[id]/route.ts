@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
+import { toServiceUnavailableResponse } from "@/lib/apiRouteError";
 import { getInstitution } from "@/lib/institutions";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const institution = await getInstitution(decodeURIComponent(id));
 
-  if (!institution) {
-    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  try {
+    const institution = await getInstitution(decodeURIComponent(id));
+    if (!institution) {
+      return NextResponse.json({ error: "not_found" }, { status: 404 });
+    }
+    return NextResponse.json({ institution });
+  } catch (error) {
+    return toServiceUnavailableResponse(error);
   }
-
-  return NextResponse.json({ institution });
 }

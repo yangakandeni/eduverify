@@ -13,7 +13,7 @@ import type { InstitutionRecord } from "@/lib/types";
 
 interface SearchState {
   active: boolean;
-  status: "idle" | "loading" | "done";
+  status: "idle" | "loading" | "done" | "error";
   query: string;
   results: InstitutionRecord[];
 }
@@ -73,6 +73,10 @@ export default function HomeClient({ initialInstitutions, initialQuery, initialP
     try {
       const response = await fetch(`/api/search?${new URLSearchParams({ q: trimmed })}`);
       const data = await response.json();
+      if (data.error === "service_unavailable") {
+        setSearch({ active: true, status: "error", query: trimmed, results: [] });
+        return;
+      }
       setSearch({
         active: true,
         status: "done",
@@ -80,7 +84,9 @@ export default function HomeClient({ initialInstitutions, initialQuery, initialP
         results: data.results ?? [],
       });
     } catch {
-      setSearch({ active: true, status: "done", query: trimmed, results: [] });
+      // No local fallback left post-cutover — a real outage (network failure, or the API
+      // route itself throwing) surfaces as a distinct error state, not "zero results".
+      setSearch({ active: true, status: "error", query: trimmed, results: [] });
     }
   }
 
@@ -117,10 +123,12 @@ export default function HomeClient({ initialInstitutions, initialQuery, initialP
           institutions={browseInstitutions}
           query={search.active ? search.query : undefined}
           loading={search.active && search.status === "loading"}
+          error={search.active && search.status === "error"}
           initialPage={initialPage}
           onVerify={setExploreInstitution}
           onClearSearch={handleClear}
           onPageChange={handlePageChange}
+          onRetry={() => handleSearch(search.query, initialPage)}
         />
       </div>
 
