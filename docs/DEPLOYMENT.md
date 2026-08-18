@@ -34,6 +34,31 @@ from `project_name`, which each environment's tfvars sets to a distinct
 value (`eduverify` / `eduverify-staging`) — that naming split is now a
 belt-and-suspenders convenience, not the isolation mechanism.
 
+### DEV, and the branch → environment flow
+
+There's a third environment, DEV, that isn't AWS infra at all: it's a
+developer's own machine running `npm run dev` in `web/` against the bundled
+local seed data (see `web/CLAUDE.md`'s Architecture section) — no calls to
+`eduverify-api`, no AWS credentials needed. Day-to-day feature work happens
+here, on a feature branch.
+
+Both `main` and `staging` are branch-protected (required PR + passing CI,
+direct pushes rejected — `enforce_admins` is on, so this applies to the repo
+owner too). That makes the promotion path fully push-driven and gated by
+review, not by convention:
+
+1. Push a feature branch — this does **not** trigger CI (`.github/workflows/test.yml`
+   only runs on `pull_request`, not `push`), so pushing for backup/safety
+   mid-work is free.
+2. Open a PR into `staging`. CI (parser pytest + terraform validate) must
+   pass before it can merge.
+3. Merge → the push to `staging` triggers `deploy-staging.yml`, which
+   deploys into the staging AWS account and the `eduverify-staging-web`
+   Amplify app.
+4. Verify on staging, then open a PR from `staging` into `main`.
+5. Merge → the push to `main` triggers `deploy.yml` into production and
+   `eduverify-web`.
+
 ### Credentials: IAM Identity Center (SSO)
 
 Both accounts are reached through IAM Identity Center — no long-lived IAM
