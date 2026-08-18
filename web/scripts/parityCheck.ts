@@ -120,13 +120,15 @@ async function checkSearch(deps: {
   let mismatches = 0;
 
   for (const query of SAMPLE_QUERIES) {
-    const localIds = new Set(searchLocal(query, {}).map((r) => r.id));
+    const localResults = searchLocal(query, {});
+    const localById = new Map(localResults.map((r) => [r.id, r]));
+    const localIds = new Set(localById.keys());
 
-    let apiIds = new Set<string>();
+    let apiResults: InstitutionRecord[] = [];
     let apiError: string | null = null;
     try {
       const outcome = await withExternalApi(() => searchInstitutions(query));
-      apiIds = new Set(outcome.results.map((r) => r.id));
+      apiResults = outcome.results;
     } catch (error) {
       apiError = (error as Error).message;
     }
@@ -137,9 +139,24 @@ async function checkSearch(deps: {
       continue;
     }
 
+    const apiById = new Map(apiResults.map((r) => [r.id, r]));
+    const apiIds = new Set(apiById.keys());
+
     const onlyLocal = [...localIds].filter((id) => !apiIds.has(id));
     const onlyApi = [...apiIds].filter((id) => !localIds.has(id));
-    if (onlyLocal.length > 0 || onlyApi.length > 0) {
+    let fieldIssues = 0;
+    for (const id of localIds) {
+      const api = apiById.get(id);
+      if (!api) continue;
+      const issues = diffRecord(localById.get(id)!, api);
+      if (issues.length > 0) {
+        fieldIssues++;
+        console.log(`[FIELD MISMATCH] query "${query}", ${id}:`);
+        issues.forEach((issue) => console.log(`  - ${issue}`));
+      }
+    }
+
+    if (onlyLocal.length > 0 || onlyApi.length > 0 || fieldIssues > 0) {
       mismatches++;
       console.log(`[MISMATCH] query "${query}": local=${localIds.size} results, api=${apiIds.size} results`);
       if (onlyLocal.length) console.log(`  only in local (${onlyLocal.length}): ${onlyLocal.slice(0, 5).join(", ")}`);
@@ -148,6 +165,61 @@ async function checkSearch(deps: {
   }
 
   console.log(`\nSearch comparison: ${SAMPLE_QUERIES.length - mismatches}/${SAMPLE_QUERIES.length} queries matched exactly.`);
+  return mismatches;
+}
+
+/**
+ * Compares getAllInstitutions() across both paths — the one call collections.ts,
+ * HeroShowcase, and BrowseSection all depend on (via page.tsx), and the one thing the
+ * per-institution/search checks above don't exercise at all.
+ */
+async function checkAllInstitutions(deps: {
+  getAllInstitutions: () => Promise<InstitutionRecord[]>;
+}): Promise<number> {
+  const { getAllInstitutions } = deps;
+  console.log(`\nComparing getAllInstitutions() (local vs API)...\n`);
+
+  const local = await getAllInstitutions();
+  const localById = new Map(local.map((r) => [r.id, r]));
+  const localIds = new Set(localById.keys());
+
+  let api: InstitutionRecord[] = [];
+  let apiError: string | null = null;
+  try {
+    api = await withExternalApi(() => getAllInstitutions());
+  } catch (error) {
+    apiError = (error as Error).message;
+  }
+
+  if (apiError) {
+    console.log(`[ERROR] getAllInstitutions(): ${apiError}`);
+    return 1;
+  }
+
+  const apiById = new Map(api.map((r) => [r.id, r]));
+  const apiIds = new Set(apiById.keys());
+
+  const onlyLocal = [...localIds].filter((id) => !apiIds.has(id));
+  const onlyApi = [...apiIds].filter((id) => !localIds.has(id));
+  let fieldIssues = 0;
+  for (const id of localIds) {
+    const apiRecord = apiById.get(id);
+    if (!apiRecord) continue;
+    const issues = diffRecord(localById.get(id)!, apiRecord);
+    if (issues.length > 0) {
+      fieldIssues++;
+      console.log(`[FIELD MISMATCH] ${id}:`);
+      issues.forEach((issue) => console.log(`  - ${issue}`));
+    }
+  }
+
+  if (onlyLocal.length) console.log(`only in local (${onlyLocal.length}): ${onlyLocal.slice(0, 5).join(", ")}`);
+  if (onlyApi.length) console.log(`only in api (${onlyApi.length}): ${onlyApi.slice(0, 5).join(", ")}`);
+
+  const mismatches = (onlyLocal.length > 0 || onlyApi.length > 0 ? 1 : 0) + (fieldIssues > 0 ? 1 : 0);
+  console.log(
+    `\ngetAllInstitutions comparison: local=${localIds.size}, api=${apiIds.size}, ${fieldIssues} field mismatch(es).`
+  );
   return mismatches;
 }
 
@@ -163,7 +235,7 @@ async function main() {
   }
 
   const { ALL_INSTITUTIONS, findLocalById } = await import("../lib/localData");
-  const { getInstitution, searchInstitutions } = await import("../lib/institutions");
+  const { getInstitution, searchInstitutions, getAllInstitutions } = await import("../lib/institutions");
   const { getDisplayName } = await import("../lib/presentation");
   const { searchLocal } = await import("../lib/search");
 
@@ -174,8 +246,10 @@ async function main() {
     getDisplayName,
   });
   const queryMismatches = await checkSearch({ searchLocal, searchInstitutions });
+  const allInstitutionsMismatches = await checkAllInstitutions({ getAllInstitutions });
 
-  const failed = mismatches > 0 || abbreviationViolations > 0 || queryMismatches > 0;
+  const failed =
+    mismatches > 0 || abbreviationViolations > 0 || queryMismatches > 0 || allInstitutionsMismatches > 0;
   console.log(`\n${failed ? "FAILED" : "PASSED"}`);
   process.exit(failed ? 1 : 0);
 }

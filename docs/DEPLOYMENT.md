@@ -303,3 +303,36 @@ aws s3 rm "s3://$BUCKET_NAME/backups/smoke_test.json"
 If step 3b ran, also remove whatever institution records it wrote to
 DynamoDB (identify them via the `total_written` count and the source PDF's
 contents), unless the sample PDF was a real DHET excerpt you want kept.
+
+## 4. Cutting production over to `USE_EXTERNAL_API`
+
+Production currently reads DynamoDB/local data directly (`USE_EXTERNAL_API`
+unset/`false` on the `main` Amplify branch); staging runs the `eduverify-api`
+path (`USE_EXTERNAL_API=true`). Do not flip production until all of the
+following are true — flipping it is a live, user-facing change with no local
+fallback on the API path (`web/lib/institutions.ts`'s doc comments: "an API
+outage is a real, user-visible outage").
+
+1. `web/lib/collections.ts`, `HeroShowcase`, and `BrowseSection` have test
+   coverage confirming they degrade correctly when `isSponsored`/`isFeatured`/
+   `isRecentlyAdded` are absent (they are, on both paths, today — see
+   `web/lib/collections.test.ts`'s "against an eduverify-api-shaped response"
+   case).
+2. Run the parity check from `web/` against **staging** values for
+   `EDUVERIFY_API_BASE_URL`/`EDUVERIFY_API_KEY` in `.env.local`:
+   ```bash
+   npx tsx scripts/parityCheck.ts
+   ```
+   Confirm a clean `PASSED` — this now also compares `getAllInstitutions()`
+   (the call `page.tsx`/the homepage hero/browse grid depend on) and does
+   field-level diffs on search results, not just id-set presence.
+3. Flip the `USE_EXTERNAL_API` environment variable on the **production**
+   Amplify branch (Amplify Console → App → Hosting environments → the `main`
+   branch's environment variables — this is app-runtime config, not
+   Terraform-managed) to `true`, and redeploy that branch.
+4. Monitor real traffic (error rates, `apiClient.ts`'s `ApiError` occurrences
+   in logs, the homepage hero/browse rendering) for a period before
+   considering this done.
+5. **Rollback**: flip `USE_EXTERNAL_API` back to `false` (or unset) on the
+   `main` branch and redeploy if anything looks wrong — the legacy
+   DynamoDB/local path is untouched and still fully functional.

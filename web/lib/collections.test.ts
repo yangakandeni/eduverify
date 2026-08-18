@@ -73,6 +73,36 @@ describe("buildRecommended", () => {
   });
 });
 
+describe("buildCollections against an eduverify-api-shaped response", () => {
+  it("degrades gracefully to Recommended-only, ranked public/TVET before private, when nothing is curated", () => {
+    // Mirrors what getAllInstitutions() returns via USE_EXTERNAL_API=true today: every
+    // record's isSponsored/isFeatured/isRecentlyAdded is undefined (eduverify-api declares
+    // the fields but nothing populates them yet) — same as the legacy local path, since no
+    // curation data exists anywhere. This locks in that the API path doesn't regress hero
+    // rendering just because those flags are always absent.
+    const institutions = [
+      makeInstitution({ institutionType: "Private Higher Education Institution", province: "Gauteng" }),
+      makeInstitution({ institutionType: "Public University", province: "Gauteng" }),
+      makeInstitution({ institutionType: "TVET College", province: "Gauteng" }),
+      makeInstitution({ institutionType: "Private Higher Education Institution", province: "Gauteng" }),
+    ];
+
+    const collections = buildCollections(institutions, "Gauteng");
+
+    expect(collections.map((c) => c.key)).toEqual(["recommended"]);
+    const [recommended] = collections;
+    const types = recommended.institutions.map((i) => i.institutionType);
+    // Public University and TVET College share tierRank 1, so their relative order is an
+    // untested tiebreak (qualification count, then name) — assert the tier grouping, not a
+    // specific order within it.
+    expect(types.slice(0, 2).sort()).toEqual(["Public University", "TVET College"]);
+    expect(types.slice(2)).toEqual([
+      "Private Higher Education Institution",
+      "Private Higher Education Institution",
+    ]);
+  });
+});
+
 describe("chunk", () => {
   it("splits a list into fixed-size groups, with a smaller final group", () => {
     const items = [1, 2, 3, 4, 5, 6, 7];
