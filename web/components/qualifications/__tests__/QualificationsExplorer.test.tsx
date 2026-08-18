@@ -342,6 +342,16 @@ describe("QualificationsExplorer", () => {
     expect(screen.queryByText("Commerce Qualification 1")).not.toBeInTheDocument();
   });
 
+  it("makes the search input span the full width on mobile instead of capping it at a narrow max-width", () => {
+    render(<QualificationsExplorer facultyGroups={GROUPS} />);
+
+    const wrapper = screen.getByRole("searchbox").parentElement!;
+
+    expect(wrapper.className).toMatch(/w-full/);
+    expect(wrapper.className).not.toMatch(/max-w-xs/);
+    expect(wrapper.className).toMatch(/sm:max-w-sm/);
+  });
+
   it("keeps a fixed search placeholder regardless of which faculty is selected", () => {
     render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
 

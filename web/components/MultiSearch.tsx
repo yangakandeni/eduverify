@@ -205,7 +205,7 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
           ))}
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-3 gap-4">
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-3 gap-2 sm:gap-4">
           <StatCard value={`${stats.institutionCount}+`} label="Institutions" />
           <StatCard value={`${stats.qualificationCount.toLocaleString()}+`} label="Qualifications" />
           <StatCard value={`${stats.provinceCount}`} label="Provinces" />
@@ -217,9 +217,11 @@ export default function MultiSearch({ institutions, value, onValueChange, onSear
 
 function StatCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
-      <p className="font-display text-3xl font-bold text-white">{value}</p>
-      <p className="mt-1 text-sm text-white/60">{label}</p>
+    <div className="min-w-0 overflow-hidden rounded-xl border border-white/10 bg-white/5 p-2.5 text-center sm:p-6">
+      <p className="truncate font-display text-base font-bold text-white sm:text-3xl" data-testid="stat-value">
+        {value}
+      </p>
+      <p className="mt-1 truncate text-[11px] text-white/60 sm:text-sm">{label}</p>
     </div>
   );
 }
