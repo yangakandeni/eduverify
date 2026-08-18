@@ -1,6 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { searchLocal } from "./search";
+import { institutionNameMatches, searchLocal } from "./search";
 import { getDisplayName } from "./presentation";
+import type { InstitutionRecord } from "./types";
+
+function makeInstitution(overrides: Partial<InstitutionRecord> = {}): InstitutionRecord {
+  return {
+    id: "uj",
+    name: "University of Johannesburg",
+    abbreviation: "UJ",
+    address: "PO Box 524, Auckland Park",
+    province: "Gauteng",
+    institutionType: "Public University",
+    faculties_and_programmes: [],
+    contacts: { email: [], phone: [] },
+    ...overrides,
+  };
+}
 
 describe("searchLocal abbreviation matching", () => {
   it("finds a public university by its common abbreviation", () => {
@@ -50,5 +65,23 @@ describe("searchLocal qualification-title fallback", () => {
   it("tolerates a minor spelling mistake against a qualification title", () => {
     const results = searchLocal("compter scince");
     expect(results.some((r) => r.name === "Akademia NPC")).toBe(true);
+  });
+});
+
+describe("institutionNameMatches", () => {
+  it("is true for a query matching the institution's common abbreviation", () => {
+    expect(institutionNameMatches(makeInstitution(), "uj")).toBe(true);
+  });
+
+  it("is true for a query matching (part of) the institution's full name", () => {
+    expect(institutionNameMatches(makeInstitution(), "johannesburg")).toBe(true);
+  });
+
+  it("is false for a query that only matches one of the institution's qualification titles", () => {
+    expect(institutionNameMatches(makeInstitution(), "fine art")).toBe(false);
+  });
+
+  it("is false for an empty query", () => {
+    expect(institutionNameMatches(makeInstitution(), "")).toBe(false);
   });
 });

@@ -128,11 +128,11 @@ describe("BrowseSection institution-type/status filter interaction", () => {
 });
 
 describe("BrowseSection forwards the active query to institution cards", () => {
-  it("shows 'View Qualification' with the search term carried through when a query is active", () => {
-    render(<BrowseSection institutions={[makeInstitution()]} query="fine art" onVerify={vi.fn()} />);
+  it("shows 'View Qualification' with the search term carried through when the query matched a qualification", () => {
+    render(<BrowseSection institutions={[makeInstitution()]} query="diploma" onVerify={vi.fn()} />);
 
     const link = screen.getByRole("link", { name: /view qualification/i });
-    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=fine+art");
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=diploma");
   });
 
   it("shows plain 'Qualifications' with no query param when browsing without a search term", () => {
@@ -149,7 +149,7 @@ const MANY_INSTITUTIONS: InstitutionRecord[] = Array.from({ length: 13 }, (_, in
 
 describe("BrowseSection pagination state", () => {
   it("starts on the given initialPage instead of always defaulting to page 1", () => {
-    render(<BrowseSection institutions={MANY_INSTITUTIONS} query="fine art" initialPage={2} onVerify={vi.fn()} />);
+    render(<BrowseSection institutions={MANY_INSTITUTIONS} query="diploma" initialPage={2} onVerify={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "2" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByText("Institution 7")).toBeInTheDocument();
@@ -157,16 +157,16 @@ describe("BrowseSection pagination state", () => {
   });
 
   it("carries the current page into each card's 'View Qualification' link", () => {
-    render(<BrowseSection institutions={MANY_INSTITUTIONS} query="fine art" initialPage={2} onVerify={vi.fn()} />);
+    render(<BrowseSection institutions={MANY_INSTITUTIONS} query="diploma" initialPage={2} onVerify={vi.fn()} />);
 
     const links = screen.getAllByRole("link", { name: /view qualification/i });
-    expect(links[0]).toHaveAttribute("href", "/institutions/inst-7/qualifications?q=fine+art&page=2");
+    expect(links[0]).toHaveAttribute("href", "/institutions/inst-7/qualifications?q=diploma&page=2");
   });
 
   it("calls onPageChange when the user clicks a different page", () => {
     const onPageChange = vi.fn();
     render(
-      <BrowseSection institutions={MANY_INSTITUTIONS} query="fine art" onPageChange={onPageChange} onVerify={vi.fn()} />,
+      <BrowseSection institutions={MANY_INSTITUTIONS} query="diploma" onPageChange={onPageChange} onVerify={vi.fn()} />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "2" }));
@@ -179,7 +179,7 @@ describe("BrowseSection pagination state", () => {
     render(
       <BrowseSection
         institutions={MANY_INSTITUTIONS}
-        query="fine art"
+        query="diploma"
         initialPage={2}
         onPageChange={onPageChange}
         onVerify={vi.fn()}

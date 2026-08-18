@@ -1,6 +1,7 @@
 "use client";
 
 import { BadgeCheck, Bookmark, GraduationCap, MapPin, ShieldCheck } from "lucide-react";
+import { getAllProgrammes } from "@/lib/facultiesAndProgrammes";
 import {
   TYPE_LABEL,
   getBrandColor,
@@ -11,6 +12,8 @@ import {
   hasNoAddress,
   hasNoQualifications,
 } from "@/lib/presentation";
+import { matchesQualificationSearch } from "@/lib/qualificationSearch";
+import { institutionNameMatches } from "@/lib/search";
 import type { InstitutionRecord } from "@/lib/types";
 
 interface BrowseInstitutionCardProps {
@@ -36,15 +39,22 @@ export default function BrowseInstitutionCard({
   const noAddress = hasNoAddress(institution);
   const location = getPrimaryLocation(institution);
   const trimmedQuery = query?.trim();
+  // Only carry the search term into the qualifications page when it actually matched one of
+  // this institution's qualifications — an institution-name match (e.g. "uj") should land on
+  // "All qualifications", not filter by a term that isn't a qualification search at all.
+  const isQualificationMatch =
+    !!trimmedQuery &&
+    !institutionNameMatches(institution, trimmedQuery) &&
+    getAllProgrammes(institution).some((programme) => matchesQualificationSearch(programme.title, trimmedQuery));
   const qualificationsParams = new URLSearchParams();
-  if (trimmedQuery) {
+  if (isQualificationMatch && trimmedQuery) {
     qualificationsParams.set("q", trimmedQuery);
     if (page && page > 1) qualificationsParams.set("page", String(page));
   }
   const qualificationsHref = qualificationsParams.size
     ? `/institutions/${encodeURIComponent(institution.id)}/qualifications?${qualificationsParams}`
     : `/institutions/${encodeURIComponent(institution.id)}/qualifications`;
-  const qualificationsLabel = trimmedQuery ? "View Qualification" : "Qualifications";
+  const qualificationsLabel = isQualificationMatch ? "View Qualification" : "Qualifications";
 
   return (
     <div className="flex flex-col rounded-2xl border border-border bg-card p-5">
