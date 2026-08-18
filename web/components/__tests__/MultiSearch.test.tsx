@@ -143,6 +143,20 @@ describe("MultiSearch hero subheading", () => {
   });
 });
 
+describe("MultiSearch hero stats", () => {
+  it("keeps each stat card from overflowing its column on narrow mobile widths", () => {
+    render(<MultiSearch institutions={[]} value="" onValueChange={noop} onSearch={noop} onClear={noop} />);
+
+    const values = screen.getAllByTestId("stat-value");
+    expect(values).toHaveLength(3);
+    values.forEach((value) => {
+      expect(value.className).toMatch(/truncate/);
+      expect(value.className).toMatch(/text-base/);
+      expect(value.parentElement?.className).toMatch(/min-w-0/);
+    });
+  });
+});
+
 describe("MultiSearch institution suggestions", () => {
   it("does not show a location badge (which would otherwise read 'Unknown') when province is 'Unknown'", async () => {
     vi.stubGlobal(

@@ -101,7 +101,7 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty, 
         />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <div className="relative w-full max-w-xs self-end sm:max-w-sm">
+        <div className="relative w-full sm:max-w-sm sm:self-end">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="search"
