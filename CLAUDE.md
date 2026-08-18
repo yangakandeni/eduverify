@@ -18,6 +18,8 @@ EduVerify is a lookup tool for South African higher-education institutions (publ
 - `web/` — Next.js app (the product): search/browse UI, dashboard, API routes. See `web/CLAUDE.md`.
 - `terraform/` + `scripts/` — AWS infra (S3 → Lambda → DynamoDB) that runs the parser in production and seeds/queries the live table. See `terraform/CLAUDE.md`.
 
+**Account-topology note**: `terraform/data-stack/` (which used to provision a second, independently-ingested copy of this infra in the `eduverify-api-staging`/`eduverify-api-prod` AWS accounts) has been retired — that ingestion stack now lives in the sibling `eduverify-api` repo's own `terraform/ingestion/`, which adopted the same live Terraform state. This doesn't change the three-part framing above: `parser/` and `terraform/`+`scripts/` here still back the table production actually reads from (`USE_EXTERNAL_API=false`) until a separate future cutover.
+
 # EduVerify - Claude Code Engineering Guidelines
 
 ## Core Development Philosophy: Test-Driven Development (TDD)
