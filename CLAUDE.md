@@ -12,13 +12,12 @@ Every new feature, change, or bug fix must be built test-driven (TDD): write or 
 
 ## What this is
 
-EduVerify is a lookup tool for South African higher-education institutions (public universities, TVET colleges, and DHET-registered private institutions), so people can verify a qualification/provider is legitimate. The repo has three independent parts that share data through `data/institutions.json`:
+EduVerify is a lookup tool for South African higher-education institutions (public universities, TVET colleges, and DHET-registered private institutions), so people can verify a qualification/provider is legitimate. The repo has two parts:
 
-- `parser/` — Python pipeline that scrapes the DHET "Annexure A" register PDF into structured institution records. See `parser/CLAUDE.md`.
 - `web/` — Next.js app (the product): search/browse UI, dashboard, API routes. See `web/CLAUDE.md`.
-- `terraform/` + `scripts/` — AWS infra (S3 → Lambda → DynamoDB) that runs the parser in production and seeds/queries the live table. See `terraform/CLAUDE.md`.
+- `terraform/` + `scripts/` — AWS infra for `web/` itself: the DynamoDB table it reads from, Amplify hosting, CI/OIDC deploy role, remote-state backend. See `terraform/CLAUDE.md`.
 
-**Account-topology note**: `terraform/data-stack/` (which used to provision a second, independently-ingested copy of this infra in the `eduverify-api-staging`/`eduverify-api-prod` AWS accounts) has been retired — that ingestion stack now lives in the sibling `eduverify-api` repo's own `terraform/ingestion/`, which adopted the same live Terraform state. This doesn't change the three-part framing above: `parser/` and `terraform/`+`scripts/` here still back the table production actually reads from (`USE_EXTERNAL_API=false`) until a separate future cutover.
+**Ingestion note**: this repo no longer scrapes or writes institution data. The DHET "Annexure A" register parser and its S3 → Lambda → DynamoDB ingestion pipeline (formerly `parser/` and the ingestion modules under `terraform/`) have fully moved to the sibling `eduverify-api` repo, which now owns both the parsing code and the DynamoDB table's ingestion side. `web/` still reads that table directly (`web/lib/dynamodb.ts`, `USE_EXTERNAL_API=false`); the committed `data/institutions.json` / `data/qualifications.json` fixtures stay as static bundled seed data for local dev, but this repo has no mechanism left to regenerate them — that would now happen via `eduverify-api`.
 
 # EduVerify - Claude Code Engineering Guidelines
 
@@ -32,6 +31,5 @@ EduVerify is a lookup tool for South African higher-education institutions (publ
    - `getDisplayName` MUST cleanly strip legal bloat including `(Pty) Ltd`, `(The)`, `NPC`, `Limited`, `(Incorporated in...)`, and trailing parenthetical notes.
 
 ## Required Test Execution Commands
-- Parser Tests: `pytest`
 - Web Frontend Tests: `npm run test` or `npm run test:ci`
 - Verification Build: `npm run build`

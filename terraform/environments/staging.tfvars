@@ -13,13 +13,11 @@
 environment         = "staging"
 project_name        = "eduverify-staging"
 dynamodb_table_name = "eduverify-staging-institutions"
-s3_bucket_name      = "eduverify-staging-registers"
 amplify_branch_name = "staging"
 amplify_app_id      = "d1w5n2yybv3bld"
 # us-west-1, not the eu-west-1 default: that's the region the app was
 # actually created in via the AWS Console (see frontend.tf).
 amplify_region       = "us-west-1"
-log_retention_days   = 7
 tf_state_bucket_name = "eduverify-staging-tfstate-755729228319"
 # No staging deploy workflow exists yet (deploy.yml only runs on pushes to
 # main) — this just provisions the role in advance for when one does.

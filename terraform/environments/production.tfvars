@@ -14,8 +14,6 @@
 environment          = "production"
 project_name         = "eduverify"
 dynamodb_table_name  = "eduverify-institutions"
-s3_bucket_name       = "eduverify-registers"
 amplify_branch_name  = "main"
-log_retention_days   = 30
 tf_state_bucket_name = "eduverify-prod-tfstate-367740899404"
 github_deploy_refs   = ["refs/heads/main"]

@@ -195,8 +195,8 @@ export interface StatusBadge {
  * status is relabeled "Fake - Not Registered" for the badge text since "Bogus" reads as
  * unclear/informal for a warning meant to stop someone enrolling. Cancelled/
  * Discontinued/Bogus are checked first: DHET lists some cancelled registrations under
- * the Registered/Provisionally Registered sections rather than a separate section (see
- * parser/extraction.py's has_cancellation_notice), so a raw status of "Provisionally
+ * the Registered/Provisionally Registered sections rather than a separate section
+ * (handled upstream in eduverify-api's ingestion pipeline), so a raw status of "Provisionally
  * Registered" doesn't always mean the registration is still active. `cancelled` is
  * reused as a general "not a real active registration" flag for all three, since every
  * consumer (browse filter, card styling) treats them identically — only the label text
@@ -225,8 +225,8 @@ export function getStatusBadge(institution: InstitutionRecord): StatusBadge {
 }
 
 /** True for institutions whose register entry is name-only — the DHET "cancellation/lapse
- * of registration" and "discontinued by request" list sections (see parser/build.py's
- * section 4/5 handling) never populate more than a name, so there's no address or
+ * of registration" and "discontinued by request" list sections (handled upstream in
+ * eduverify-api's ingestion pipeline) never populate more than a name, so there's no address or
  * qualification data to show. Cards for these institutions should skip detail rows that
  * would otherwise surface a synthetic "Unknown" and disable actions that have nothing
  * behind them. */

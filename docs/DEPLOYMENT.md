@@ -1,9 +1,14 @@
 # Deployment Runbook
 
-Manual verification steps for deploying EduVerify's infra (`terraform/`).
+Manual verification steps for deploying EduVerify's infra (`terraform/`):
+the DynamoDB table `web/` reads from, its Amplify hosting, and the CI/OIDC
+deploy role. Data ingestion (the DHET-register scraper and its own
+Terraform-managed infra) lives entirely in the sibling `eduverify-api` repo
+now — this doc no longer covers it.
+
 Pre-flight checks and the `terraform plan` step are automated by
 [`scripts/verify_deployment.sh`](../scripts/verify_deployment.sh); this doc
-covers that script plus the interactive apply/smoke-test steps that follow it.
+covers that script plus the interactive apply step that follows it.
 
 ## Environments
 
@@ -17,10 +22,7 @@ or an over-broad IAM policy in one environment cannot touch the other.
 | AWS account ID | `367740899404` | `755729228319` |
 | SSO profile (`~/.aws/config`) | `eduverify-prod` | `eduverify-staging` |
 | Terraform state bucket | `eduverify-prod-tfstate-367740899404` | `eduverify-staging-tfstate-755729228319` |
-| Lambda function | `eduverify-ingestion` | `eduverify-staging-ingestion` |
-| Lambda log group | `/aws/lambda/eduverify-ingestion` | `/aws/lambda/eduverify-staging-ingestion` |
 | DynamoDB table | `eduverify-institutions` | `eduverify-staging-institutions` |
-| S3 register bucket | `eduverify-registers` | `eduverify-staging-registers` |
 | Amplify app | `eduverify-web` | `eduverify-staging-web` |
 | Amplify branch | `main` | `staging` |
 | Region | `af-south-1` | `af-south-1` |
@@ -29,10 +31,10 @@ They're configured via `terraform/environments/<env>.{backend,tfvars}` and
 selected with a `terraform init -backend-config=...` / `-var-file=...` pair,
 or by passing the env name as `scripts/verify_deployment.sh`'s one argument
 (which also picks the matching SSO profile — see below). Everything else
-(Lambda function name, IAM role, log group, Amplify app, SNS alerts) derives
-from `project_name`, which each environment's tfvars sets to a distinct
-value (`eduverify` / `eduverify-staging`) — that naming split is now a
-belt-and-suspenders convenience, not the isolation mechanism.
+(IAM role names, Amplify app) derives from `project_name`, which each
+environment's tfvars sets to a distinct value (`eduverify` /
+`eduverify-staging`) — that naming split is now a belt-and-suspenders
+convenience, not the isolation mechanism.
 
 ### DEV, and the branch → environment flow
 
@@ -50,8 +52,8 @@ review, not by convention:
 1. Push a feature branch — this does **not** trigger CI (`.github/workflows/test.yml`
    only runs on `pull_request`, not `push`), so pushing for backup/safety
    mid-work is free.
-2. Open a PR into `staging`. CI (parser pytest + terraform validate) must
-   pass before it can merge.
+2. Open a PR into `staging`. CI (`terraform validate`) must pass before it
+   can merge.
 3. Merge → the push to `staging` triggers `deploy-staging.yml`, which
    deploys into the staging AWS account and the `eduverify-staging-web`
    Amplify app.
@@ -139,14 +141,7 @@ This checks, in order:
    above) — hard-fails on mismatch rather than risking a cross-account apply.
 2. `terraform/environments/<env>.backend.hcl`'s `bucket` is parseable and
    actually reachable.
-3. `pytest` passes in `parser/` (regex extraction, Pydantic model validation,
-   bogus-institution filtering — all fully local, no AWS calls).
-4. `scripts/build_lambda_layer.sh` cross-compiles `parser/requirements-lambda.txt`
-   into `terraform/modules/lambda/build/layer` — must run before `plan`, since
-   `data.archive_file.layer` reads that directory during the refresh below
-   and can't populate it itself on a fresh checkout (see that script's header
-   comment for why this isn't a Terraform-internal step).
-5. `terraform init -backend-config=environments/<env>.backend.hcl` +
+3. `terraform init -backend-config=environments/<env>.backend.hcl` +
    `terraform plan -var-file=environments/<env>.tfvars -out=tfplan`.
 
 If the state bucket / lock table don't exist yet (first-ever deploy of a
@@ -218,93 +213,14 @@ against the *other* environment's backend.hcl in between (switching from
 staging to production, say), re-run step 1 first to regenerate `tfplan`
 against the right state.
 
-Grab the outputs you'll need for the smoke test:
+Grab the outputs you'll need afterward:
 
 ```bash
-terraform output lambda_function_name
 terraform output dynamodb_table_name
-terraform output s3_bucket_name
+terraform output amplify_default_domain
 ```
 
-## 3. Post-deployment smoke test
-
-**Caveat:** `parser/lambda_handler.py`'s `handler` reads
-`event["Records"][...]["s3"]["bucket"]["name"]` / `["s3"]["object"]["key"]` —
-it's written for the S3 `ObjectCreated` trigger shape, not an arbitrary
-payload. Invoking it with `{"source": "cli_smoke_test"}` will return
-`{"processed": []}` (no `Records` key, so it no-ops) — that's still a valid
-smoke test of "does the function boot, import its dependencies, and return
-without erroring," it just won't exercise the parse-and-write path. Use it
-first as a cheap health check, then use the S3-upload version below to
-actually confirm end-to-end ingestion.
-
-### 3a. Health-check invoke (confirms cold start / imports / IAM role)
-
-```bash
-FUNCTION_NAME=$(terraform -chdir=terraform output -raw lambda_function_name)
-
-aws lambda invoke \
-  --function-name "$FUNCTION_NAME" \
-  --cli-binary-format raw-in-base64-out \
-  --payload '{"source": "cli_smoke_test"}' \
-  /tmp/smoke_test_response.json
-
-cat /tmp/smoke_test_response.json   # expect: {"processed": []}
-```
-
-### 3b. Real ingestion smoke test (exercises parse + DynamoDB write)
-
-Upload a small known-good DHET-format PDF to the `raw/` prefix — this fires
-the real S3 trigger, so no synthetic payload is needed:
-
-```bash
-BUCKET_NAME=$(terraform -chdir=terraform output -raw s3_bucket_name)
-
-aws s3 cp path/to/sample_register.pdf "s3://$BUCKET_NAME/raw/smoke_test.pdf"
-```
-
-### 3c. Tail logs
-
-```bash
-aws logs tail "/aws/lambda/$FUNCTION_NAME" --follow --since 5m
-```
-
-Look for the handler completing without a traceback and a `total_written` /
-`total_skipped` count in the returned summary (visible in the invoke response
-for 3a-style invokes, or in the log stream for the S3-triggered run in 3b).
-
-### 3d. Verify DynamoDB
-
-```bash
-TABLE_NAME=$(terraform -chdir=terraform output -raw dynamodb_table_name)
-
-# Scan a few items to confirm records landed (cheap sanity check, not exhaustive)
-aws dynamodb scan --table-name "$TABLE_NAME" --max-items 5
-
-# Or look up a specific institution once you know a registration number/name
-# from the source PDF, using the same key scheme as parser/dynamo_item.py:
-aws dynamodb get-item \
-  --table-name "$TABLE_NAME" \
-  --key '{"PK": {"S": "INST#<registration_number>"}}'
-```
-
-### 3e. Clean up the smoke-test object
-
-The uploaded PDF also triggers `_process_pdf`'s backup write to
-`backups/smoke_test.json` in the same bucket — remove both once verified, so
-they don't linger as one-off institution rows or confuse a future
-`ALL_INSTITUTIONS` diff:
-
-```bash
-aws s3 rm "s3://$BUCKET_NAME/raw/smoke_test.pdf"
-aws s3 rm "s3://$BUCKET_NAME/backups/smoke_test.json"
-```
-
-If step 3b ran, also remove whatever institution records it wrote to
-DynamoDB (identify them via the `total_written` count and the source PDF's
-contents), unless the sample PDF was a real DHET excerpt you want kept.
-
-## 4. Cutting production over to `USE_EXTERNAL_API`
+## 3. Cutting production over to `USE_EXTERNAL_API`
 
 Production currently reads DynamoDB/local data directly (`USE_EXTERNAL_API`
 unset/`false` on the `main` Amplify branch); staging runs the `eduverify-api`
