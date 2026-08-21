@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Pre-flight checks + Terraform plan for an EduVerify deployment.
 # Usage: ./scripts/verify_deployment.sh [staging|production]  (default: production)
-# See docs/DEPLOYMENT.md for the full runbook, including the post-deploy smoke test
-# (Lambda invoke + log tail + DynamoDB read), which is interactive/manual by design.
+# See docs/DEPLOYMENT.md for the full runbook.
 set -euo pipefail
 
 ENVIRONMENT="${1:-production}"
@@ -60,30 +59,7 @@ else
   fail "state bucket '$bucket_in_hcl' is not reachable with current credentials — run the backend_state.tf bootstrap first (see docs/DEPLOYMENT.md)"
 fi
 
-step "3. Parser test suite"
-if [[ -d "$REPO_ROOT/parser/.venv" ]]; then
-  # `python -m pytest` (not the bare `pytest` console script) so cwd is on
-  # sys.path — required for tests' flat imports (`from build import ...`).
-  (cd "$REPO_ROOT/parser" && source .venv/bin/activate && python -m pytest -q) \
-    && pass "pytest passed" || fail "pytest failed"
-else
-  fail "parser/.venv not found — create it and 'pip install -r requirements.txt' first"
-fi
-
-step "4. Lambda layer build"
-# Must happen before `terraform plan`: data.archive_file.layer
-# (terraform/modules/lambda) zips this directory during the plan's refresh
-# step, which is too early for a null_resource/local-exec inside that module
-# to populate it reliably (see scripts/build_lambda_layer.sh's header).
-# Args here must match var.lambda_architecture / the Lambda runtime default
-# in terraform/variables.tf and terraform/modules/lambda/variables.tf.
-"$REPO_ROOT/scripts/build_lambda_layer.sh" \
-  "$REPO_ROOT/parser/requirements-lambda.txt" \
-  "$REPO_ROOT/terraform/modules/lambda/build/layer" \
-  3.12 x86_64
-pass "layer build directory populated"
-
-step "5. Terraform init + plan"
+step "3. Terraform init + plan"
 (
   cd "$REPO_ROOT/terraform"
   VAR_FILE_ARGS=(-var-file="environments/$ENVIRONMENT.tfvars")

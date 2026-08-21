@@ -2,20 +2,20 @@
 
 EduVerify is a lookup tool for South African higher-education institutions — public universities, TVET colleges, and DHET-registered private providers — so anyone can verify that a qualification or provider is legitimate.
 
-The repository has three independent parts that share data through [`data/institutions.json`](data/institutions.json):
+The repository has two parts:
 
 | Part | What it does |
 |---|---|
-| [`parser/`](parser/) | Python pipelines that scrape the DHET "Annexure A" register PDF and the SAQA NLRD qualifications register into structured JSON |
 | [`web/`](web/) | Next.js product — search/browse UI, dashboard, API routes |
-| [`terraform/`](terraform/) + [`scripts/`](scripts/) | AWS infra (S3 → Lambda → DynamoDB) that runs the parser in production and seeds/queries the live table |
+| [`terraform/`](terraform/) + [`scripts/`](scripts/) | AWS infra for `web/` itself: the DynamoDB table it reads from, Amplify hosting, and the CI/OIDC deploy role |
+
+Institution and qualification data (scraping the DHET "Annexure A" register and the SAQA NLRD qualifications register, and writing the live DynamoDB table) is no longer this repo's job — that ingestion pipeline now lives entirely in the sibling `eduverify-api` repo. This repo keeps [`data/institutions.json`](data/institutions.json) and `data/qualifications.json` committed as static bundled fixtures for local dev, but has no mechanism left to regenerate them itself.
 
 ## Contents
 
 - [System architecture](#system-architecture)
 - [Data flow](#data-flow)
 - [AWS infrastructure](#aws-infrastructure)
-- [Parser pipeline](#parser-pipeline)
 - [Web app](#web-app)
 - [Repository layout](#repository-layout)
 - [Getting started](#getting-started)
@@ -25,28 +25,13 @@ The repository has three independent parts that share data through [`data/instit
 
 ```mermaid
 flowchart TB
-    subgraph SRC["Source"]
-        PDF["DHET Annexure A\nregister (PDF)"]
+    subgraph EXT["eduverify-api (separate repo)"]
+        DHET["DHET Annexure A\nregister (PDF)"]
+        DHET -->|scrape + parse| DDB[("DynamoDB\ninstitutions table")]
     end
 
-    subgraph PARSER["parser/ (Python)"]
-        direction TB
-        P1["pdf_extract.py\niter_status_rows"]
-        P2["grouping.py\ngroup_table_rows"]
-        P3["extraction.py\nregex field extraction"]
-        P4["build.py\nrecord_to_institution"]
-        P1 --> P2 --> P3 --> P4
-    end
-
-    subgraph LOCAL["Local dev path"]
-        JSON["data/institutions.json"]
-    end
-
-    subgraph AWS["AWS (production ingestion)"]
-        S3["S3 raw/*.pdf"]
-        LAMBDA["Lambda\nlambda_handler.handler"]
-        DDB[("DynamoDB\ninstitutions table")]
-        BACKUP["S3 backups/*.json"]
+    subgraph LOCAL["Static bundled fixtures"]
+        JSON["data/institutions.json\ndata/qualifications.json"]
     end
 
     subgraph WEBAPP["web/ (Next.js)"]
@@ -55,31 +40,21 @@ flowchart TB
         UI["Search / Browse / Dashboard"]
     end
 
-    PDF -->|fetch_and_parse.py| P1
-    P4 -->|CLI entry point| JSON
     JSON -->|bundled at build time| LIB
-
-    PDF -->|manual upload| S3
-    S3 -->|ObjectCreated raw/*.pdf| LAMBDA
-    LAMBDA --> P1
-    P4 -->|dynamo_item.to_item| LAMBDA
-    LAMBDA -->|BatchWriteItem| DDB
-    LAMBDA -->|JSON dump| BACKUP
-
-    DDB -->|server-side only| LIB
+    DDB -->|server-side reads only| LIB
     LIB --> API --> UI
 ```
 
-Both ingestion paths run the **same** parsing stages (`pdf_extract` → `grouping` → `extraction` → `build`); they differ only in where the PDF comes from and where the parsed records end up — a local JSON seed file vs. a live DynamoDB table. A separate, independent pipeline handles qualifications data (see [Parser pipeline](#parser-pipeline)).
+`web/` never writes to DynamoDB — it only reads the table `eduverify-api` populates. The static `data/*.json` fixtures give the app an always-available local dataset (typeahead, browse/discovery) independent of any network call.
 
 ## Data flow
 
-Two entry points feed the same pipeline, for two different consumers:
+Two sources feed the same merge layer:
 
-- **Local dev / bundled seed data** — `parser/fetch_and_parse.py` downloads (or reads a local copy of) the register PDF and writes `data/institutions.json`. The web app bundles this file directly (`web/lib/localData.ts`) alongside a hand-maintained `web/lib/data/public_universities.json`, deduped into one always-available in-memory list (`ALL_INSTITUTIONS`) — no network call, powers instant typeahead and the browse/discovery homepage.
-- **Production ingestion** — `parser/lambda_handler.py` runs in Lambda, triggered by an S3 `ObjectCreated` event on `raw/*.pdf`. It reuses the same parsing stages, upserts every parsed institution into DynamoDB (`dynamo_item.to_item`), and drops a JSON backup of the batch under `backups/` in the same bucket.
+- **Bundled static fixtures** — `data/institutions.json` and `data/qualifications.json` are committed JSON, produced and refreshed by `eduverify-api`'s ingestion pipeline and periodically copied into this repo. The web app bundles them directly (`web/lib/localData.ts`) alongside a hand-maintained `web/lib/data/public_universities.json`, deduped into one always-available in-memory list (`ALL_INSTITUTIONS`) — no network call, powers instant typeahead and the browse/discovery homepage.
+- **Live DynamoDB reads** — `web/lib/dynamodb.ts` queries the same table `eduverify-api` ingests into, server-side only.
 
-`dynamo_item.to_item` / `institution_key` (Python) is the single source of truth for how an institution is keyed — `INST#<registration_number>`, or `INST#NAME#<slug>` when there's no registration number. **`web/lib/keys.ts` reimplements the same slugify/key logic in TypeScript** — the two must stay in sync or web lookups by ID will silently miss DynamoDB rows.
+Institution keying (`INST#<registration_number>`, or `INST#NAME#<slug>` when there's no registration number) is now canonically implemented in `eduverify-api`'s own `src/lib/keys.ts`. **`web/lib/keys.ts` reimplements the same slugify/key logic in TypeScript here** — the two must stay in sync or web lookups by ID will silently miss DynamoDB rows.
 
 At request time, `web/lib/institutions.ts` merges both sources:
 
@@ -111,102 +86,21 @@ Any DynamoDB error is caught and logged, falling back to local-only silently —
 
 ## AWS infrastructure
 
-Provisioned by Terraform ([`terraform/`](terraform/)) as modules wired together in [`main.tf`](terraform/main.tf): `s3`, `dynamodb`, `iam`, `lambda`, `ci_oidc`.
-
-```mermaid
-flowchart LR
-    subgraph Upload
-        A["Register PDF\nuploaded to raw/*.pdf"]
-    end
-
-    subgraph S3B["S3 bucket (eduverify-registers)"]
-        RAW["raw/ — versioned, SSE-AES256,\nblocked public access"]
-        BAK["backups/ — parsed JSON dumps"]
-    end
-
-    subgraph Compute
-        LAMBDA["Lambda: eduverify-ingestion\nhandler = lambda_handler.handler\nsource = parser/ (tests/fixtures excluded)"]
-        LAYER["Lambda layer\npip-installed from\nrequirements-lambda.txt\n(cross-compiled manylinux wheels,\nno Docker needed)"]
-        LOGS[("CloudWatch Logs\n/aws/lambda/eduverify-ingestion")]
-    end
-
-    subgraph Data
-        DDB[("DynamoDB: eduverify-institutions\nPK (hash) + GSI1 (GSI1PK/GSI1SK)\nPAY_PER_REQUEST, PITR enabled")]
-    end
-
-    subgraph Security
-        ROLE["IAM role: eduverify-lambda-exec-role"]
-    end
-
-    A --> RAW
-    RAW -->|"s3:ObjectCreated:*\nfilter: raw/*.pdf"| LAMBDA
-    LAYER -.->|attached| LAMBDA
-    LAMBDA -->|s3:GetObject on raw/*| RAW
-    LAMBDA -->|"PutItem / UpdateItem /\nGetItem / BatchWriteItem"| DDB
-    LAMBDA -->|s3:PutObject on backups/*| BAK
-    LAMBDA -->|logs:PutLogEvents| LOGS
-    ROLE -.->|assumed by| LAMBDA
-    ROLE -->|scoped policy| RAW
-    ROLE -->|scoped policy| BAK
-    ROLE -->|scoped policy| DDB
-    ROLE -->|scoped policy| LOGS
-```
+Provisioned by Terraform ([`terraform/`](terraform/)) as modules wired together in [`main.tf`](terraform/main.tf): `dynamodb`, `ci_oidc`.
 
 Key details:
 
-- **S3** (`modules/s3`) — single bucket, versioned, AES256 server-side encryption, all public access blocked, bucket-owner-enforced ownership. `raw/` holds uploaded registers; `backups/` holds the Lambda's parsed-JSON dumps.
-- **DynamoDB** (`modules/dynamodb`) — single table (`PK` hash key) plus `GSI1` (`GSI1PK`/`GSI1SK`, full projection) for status-partitioned name-prefix search. Pay-per-request billing, point-in-time recovery on.
-- **IAM** (`modules/iam`) — least-privilege role scoped to: read `raw/*`, write `backups/*`, read/write the institutions table, query `GSI1`, and write to its own CloudWatch log group only.
-- **Lambda** (`modules/lambda`) — `parser/` zipped as the function package (tests/fixtures/venv excluded); dependencies (`pdfplumber`, `pydantic`, etc.) ship as a separate layer, cross-compiled for the Lambda runtime's manylinux platform straight from `requirements-lambda.txt` via `pip install --platform ... --only-binary=:all:` — no Docker required, even from an Apple Silicon dev machine. Default: `3008MB` memory, `300s` timeout (a real ~200-page register PDF peaks near 800MB and takes ~25s to parse), `x86_64`, region `af-south-1`.
+- **DynamoDB** (`modules/dynamodb`) — single table (`PK` hash key) plus `GSI1` (`GSI1PK`/`GSI1SK`, full projection) for status-partitioned name-prefix search. Pay-per-request billing, point-in-time recovery on. Ingested into by `eduverify-api`, read directly by `web/lib/dynamodb.ts`.
 - **CI OIDC** (`modules/ci_oidc`) — an IAM role GitHub Actions assumes via OIDC (no long-lived AWS credentials in CI) to run Terraform/deploy from CI.
-- The S3 → Lambda trigger (`aws_s3_bucket_notification` in `main.tf`) fires only on `ObjectCreated` events matching prefix `raw/` and suffix `.pdf`.
 - **Remote state** (`backend_state.tf`) — S3 bucket + DynamoDB lock table backing `main.tf`'s `backend "s3" {}`, one per AWS account (staging and production each deploy into their own account via a dedicated IAM Identity Center SSO profile — see `docs/DEPLOYMENT.md`); each is bootstrapped once with local state before the backend it creates can be used.
-- **Amplify Hosting** (`frontend.tf`) — has no regional endpoint in `af-south-1`, so it deploys via a separate `aws.amplify` provider alias into `eu-west-1` while everything else stays in `af-south-1`.
-- **Scheduled ingestion** (`eventbridge.tf`) — a weekly EventBridge rule invokes the Lambda directly, but `lambda_handler.handler` currently only handles the S3 event shape, so this invocation is a no-op today.
-- **Monitoring** (`monitoring.tf`) — SNS topic (`eduverify-alerts`, optional email subscription) plus CloudWatch alarms on Lambda `Errors`/`Throttles`.
+- **Amplify Hosting** (`frontend.tf`) — hosts the Next.js `web/` app. Has no regional endpoint in `af-south-1`, so it deploys via a separate `aws.amplify` provider alias into its own region while the DynamoDB table stays in `af-south-1`. Its SSR compute role has read-only access to the institutions table (`GetItem`/`BatchGetItem`/`Query`) for `web/`'s server-side reads.
 
 Operational scripts:
 
 ```bash
-./scripts/verify_deployment.sh                                        # production pre-flight (see docs/DEPLOYMENT.md)
+./scripts/verify_deployment.sh   # deployment pre-flight (see docs/DEPLOYMENT.md)
 cd terraform && terraform plan   # / apply — provisions everything above
-python scripts/seed_dynamodb.py                                       # bulk-load data/institutions.json
-python scripts/seed_dynamodb.py --endpoint-url http://localhost:8000  # against DynamoDB Local
 ```
-
-## Parser pipeline
-
-### Institutions (DHET register)
-
-One-way, composable stages in [`parser/`](parser/), each independently unit-tested and side-effect-free where possible:
-
-```mermaid
-flowchart LR
-    A["pdf_extract.py\niter_status_rows"] --> B["grouping.py\ngroup_table_rows"] --> C["extraction.py\nregex field helpers"] --> D["build.py\nrecord_to_institution"]
-    D -->|"None for\nunparseable rows"| E1["dropped"]
-    D --> E2["models.Institution\n(pydantic)"]
-
-    E2 --> F1["fetch_and_parse.py\n(CLI)"]
-    E2 --> F2["lambda_handler.py\n(S3-triggered)"]
-
-    F1 --> G1["data/institutions.json"]
-    F2 --> G2[("DynamoDB")]
-    F2 --> G3["S3 backups/*.json"]
-```
-
-1. **`pdf_extract.iter_status_rows`** — walks the PDF via `pdfplumber`, tagging every table row with the registration-status section it's under. The Annexure A register has 6 numbered sections, all of which are surfaced (none are silently dropped): Registered, Provisionally Registered, and a differently-shaped Cancelled/Discontinued/Bogus set handled by `iter_name_list_entries`/`group_bogus_rows` — see `parser/CLAUDE.md` for the full section-by-section breakdown.
-2. **`grouping.group_table_rows`** — the DHET table wraps one institution across multiple physical rows (and page breaks); a new record starts only when the leading index column (`"1."`, `"2."`, ...) is populated — everything else is a continuation appended to the current record.
-3. **`extraction.py`** — pure regex helpers pulling structured fields (name, phones, emails, website, registration number, address, qualification list) out of a grouped record's raw multi-line cell text.
-4. **`build.record_to_institution`** — assembles a validated `models.Institution` (pydantic) from a grouped record, returning `None` for unparseable rows rather than raising.
-
-### Qualifications (SAQA NLRD register)
-
-A second, independent pipeline — no institution-matching happens here (that's `web/lib/qualificationsMatching.ts`, downstream in the web app):
-
-- **`fetch_and_parse_qualifications.py`** — downloads (or reads a local copy of) SAQA's "All Qualifications and Part-Qualifications" xlsx register and writes `data/qualifications.json`.
-- **`qualifications_extract.build_qualifications`** — reads the xlsx via `openpyxl` and validates every row into a `models.SaqaQualification`, keeping its NQF Sub-Framework (`HEQSF`, `OQSF`, `GFETQSF`, `SFAP`, `SFNA`) as a `framework` field. Filtering to `HEQSF` — the only sub-framework relevant to a higher-education product — happens at consumption time, not here: `web/scripts/bakeFacultiesAndProgrammes.ts` applies that filter when matching qualifications to institutions, so other frameworks stay available in `data/qualifications.json` for non-HEQSF consumers (e.g. `eduverify-api`'s CV/HR qualification matcher).
-
-`data/qualifications.json` feeds `web/scripts/bakeFacultiesAndProgrammes.ts`, which matches HEQSF qualifications to institutions and bakes the result into the institution JSON files the web app bundles (see [Web app](#web-app)).
 
 ## Web app
 
@@ -259,7 +153,7 @@ flowchart TB
     R8 --> DASH
 ```
 
-- **`web/lib/localData.ts`** — bundles `data/institutions.json` (private institutions, scraped) plus `web/lib/data/public_universities.json` (hand-maintained public universities/TVETs, via `publicUniversities.ts`) into one deduped list, `ALL_INSTITUTIONS`.
+- **`web/lib/localData.ts`** — bundles `data/institutions.json` (private institutions) plus `web/lib/data/public_universities.json` (hand-maintained public universities/TVETs, via `publicUniversities.ts`) into one deduped list, `ALL_INSTITUTIONS`.
 - **`web/lib/dynamodb.ts`** — the live register; single-table design, `PK` = institution key, `GSI1PK` = uppercased status, `GSI1SK` = name. Server-side only.
 - **`web/lib/institutions.ts`** — the merge point: `searchInstitutions` queries DynamoDB (exact registration-number + name-prefix) and always also runs local fuzzy search in parallel, deduping by id. Any DynamoDB error falls back to local-only, silently.
 - **Qualifications** are pre-matched against SAQA's NLRD register (`data/qualifications.json`) and baked directly into `data/institutions.json`/`public_universities.json`/`public_tvets.json` as `faculties_and_programmes` by `web/scripts/bakeFacultiesAndProgrammes.ts` — `web/lib/facultiesAndProgrammes.ts`'s `getAllProgrammes` is the one place to read "every qualification for an institution" from, and `web/lib/qualificationsData.ts` groups/paginates them per faculty for the `/institutions/[id]/qualifications` page (client-side faculty switching, in-faculty search, 12-per-page pagination — no per-selection page reload). When no valid faculty is requested, the page defaults to an "All Qualifications" view that flattens every faculty's programmes together, rather than the first faculty alphabetically.
@@ -275,25 +169,16 @@ flowchart TB
 ```
 eduverify/
 ├── data/
-│   ├── institutions.json          # parsed output, bundled by the web app
-│   ├── qualifications.json        # SAQA NLRD register, feeds bakeFacultiesAndProgrammes
-│   └── _annexure_a_register.pdf   # source register (local dev copy)
-├── parser/                        # Python scraping pipelines
-│   ├── pdf_extract.py / grouping.py / extraction.py / build.py / models.py
-│   ├── dynamo_item.py             # institution keying (source of truth)
-│   ├── fetch_and_parse.py         # CLI entry point → data/institutions.json
-│   ├── fetch_and_parse_qualifications.py  # CLI entry point → data/qualifications.json
-│   ├── qualifications_extract.py  # SAQA NLRD xlsx parsing
-│   ├── lambda_handler.py          # S3-triggered entry point → DynamoDB
-│   └── tests/
+│   ├── institutions.json          # static fixture, sourced from eduverify-api, bundled by the web app
+│   └── qualifications.json        # SAQA NLRD register, feeds bakeFacultiesAndProgrammes
 ├── web/                           # Next.js app
 │   ├── app/                       # routes: /, /dashboard, /api/*, /about, ...
 │   ├── components/                # UI + dashboard components
 │   └── lib/                       # data layer, search, normalization, keys.ts
-├── terraform/                     # AWS infra (S3 → Lambda → DynamoDB)
-│   └── modules/{s3,dynamodb,iam,lambda,ci_oidc}/
+├── terraform/                     # AWS infra for web/: DynamoDB (read side), Amplify, CI OIDC
+│   └── modules/{dynamodb,ci_oidc}/
 └── scripts/
-    └── seed_dynamodb.py           # bulk-load data/institutions.json into DynamoDB
+    └── verify_deployment.sh       # deployment pre-flight
 ```
 
 ## Getting started
@@ -308,27 +193,16 @@ npm run dev
 
 > This repo pins a pre-release Next.js whose APIs diverge from training data — read `web/node_modules/next/dist/docs/` before writing Next.js code, and heed its deprecation notices (`web/AGENTS.md`).
 
-### Parser (from `parser/`)
-
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python fetch_and_parse.py                    # download latest DHET PDF → ../data/institutions.json
-python fetch_and_parse.py --pdf-path FILE    # parse an already-downloaded PDF instead
-python fetch_and_parse_qualifications.py     # download latest SAQA NLRD xlsx → ../data/qualifications.json
-```
-
 ### Infra (from `terraform/`)
 
 ```bash
-terraform plan   # / apply — provisions S3, DynamoDB, Lambda, IAM
+terraform plan   # / apply — provisions DynamoDB, Amplify hosting, CI OIDC role, remote-state backend
 ```
 
 ## Testing
 
 | Suite | Command | Run from |
 |---|---|---|
-| Parser | `python -m pytest` | `parser/` (inside its `.venv`) |
 | Web | `npm run test` | `web/` |
 | Web build | `npm run build` | `web/` |
 

@@ -16,7 +16,7 @@ export interface BrowseFilters {
 /** Registered/Provisionally Registered cover most of the register; the remaining three
  * options surface institutions the DHET register flags as no longer (or never)
  * legitimately registered — cancelled, self-discontinued, or an outright "bogus college"
- * warning listing (see getStatusBadge and parser/pdf_extract.py's section 3-6 handling). */
+ * warning listing (see getStatusBadge; section handling now lives in eduverify-api's ingestion pipeline). */
 export const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "registered", label: "Registered" },
   { value: "provisional", label: "Provisionally Registered" },

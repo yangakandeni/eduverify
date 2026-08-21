@@ -106,10 +106,9 @@ locals {
   ]
 }
 
-# Scoped by the project_name prefix every resource in main.tf/frontend.tf/
-# monitoring.tf/eventbridge.tf names itself with, rather than a broad
-# managed policy — so this role can `terraform apply` the eduverify stack
-# and nothing else in the account.
+# Scoped by the project_name prefix every resource in main.tf/frontend.tf
+# names itself with, rather than a broad managed policy — so this role can
+# `terraform apply` the eduverify stack and nothing else in the account.
 data "aws_iam_policy_document" "deploy_permissions" {
   statement {
     sid       = "TerraformStateObjects"
