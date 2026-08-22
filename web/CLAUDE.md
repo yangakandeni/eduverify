@@ -42,3 +42,7 @@ Province names are inconsistent/OCR-noisy in the source register; `web/lib/norma
 `web/lib/collections.ts` builds the homepage hero's tabs (Recommended/Featured/Recently Added) from `ALL_INSTITUTIONS` plus a province, ranking institutions by sponsorship/type tier then qualification count; Featured/Recently Added tabs are omitted entirely when empty rather than rendered blank.
 
 Auth is Clerk, wired via `web/proxy.ts` (Next middleware): only `/dashboard(.*)` is protected. `web/lib/dashboardData.ts` (saved/recently-viewed institutions) is currently stubbed to return empty arrays — no per-user DynamoDB table exists yet.
+
+## Environments (DEV / STAGING / PROD)
+
+DEV is a local `npm run dev` with `USE_EXTERNAL_API` unset — always the local-seed/DynamoDB-optional path in `institutions.ts` above, never `eduverify-api`. STAGING (the `staging` branch) sets `USE_EXTERNAL_API=true`. PROD (`main`) stays `false` until the parity check against `eduverify-api` is done. See `docs/DEPLOYMENT.md`'s "DEV, and the branch → environment flow" for the full feature-branch → staging → main promotion path and why direct pushes to `main`/`staging` are rejected.

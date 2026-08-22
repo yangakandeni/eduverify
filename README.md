@@ -12,14 +12,21 @@ The repository has three independent parts that share data through [`data/instit
 
 ## Contents
 
-- [System architecture](#system-architecture)
-- [Data flow](#data-flow)
-- [AWS infrastructure](#aws-infrastructure)
-- [Parser pipeline](#parser-pipeline)
-- [Web app](#web-app)
-- [Repository layout](#repository-layout)
-- [Getting started](#getting-started)
-- [Testing](#testing)
+- [EduVerify](#eduverify)
+  - [Contents](#contents)
+  - [System architecture](#system-architecture)
+  - [Data flow](#data-flow)
+  - [AWS infrastructure](#aws-infrastructure)
+  - [Parser pipeline](#parser-pipeline)
+    - [Institutions (DHET register)](#institutions-dhet-register)
+    - [Qualifications (SAQA NLRD register)](#qualifications-saqa-nlrd-register)
+  - [Web app](#web-app)
+  - [Repository layout](#repository-layout)
+  - [Getting started](#getting-started)
+    - [Web app (from `web/`)](#web-app-from-web)
+    - [Parser (from `parser/`)](#parser-from-parser)
+    - [Infra (from `terraform/`)](#infra-from-terraform)
+  - [Testing](#testing)
 
 ## System architecture
 
@@ -224,7 +231,6 @@ flowchart TB
     subgraph Routes["app/api/"]
         R1["GET /api/search?mode=typeahead\nlocal-only, instant"]
         R2["GET /api/search\nfull search: DynamoDB + local"]
-        R3["GET /api/institutions\nlocal seed list"]
         R4["GET /api/institutions/[id]\nDynamoDB first, local fallback"]
         R5["GET /api/institutions/[id]/faculties"]
         R6["GET /api/institutions/[id]/qualifications"]
@@ -248,14 +254,13 @@ flowchart TB
     DYNAMO --> INST
     INST --> R1
     INST --> R2
-    LOCAL --> R3
     INST --> R4
     LOCAL --> R5
     LOCAL --> R6
     LOCAL --> R7
     R8 --> META
     CLERK --> DASH
-    R1 & R2 & R3 & R4 --> HOME
+    R1 & R2 & R4 --> HOME
     LOCAL --> QUALS
     R5 & R6 & R7 --> QUALS
     R8 --> DASH

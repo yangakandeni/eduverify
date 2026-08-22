@@ -304,19 +304,19 @@ describe("BrowseInstitutionCard for a fully-detailed register entry", () => {
 });
 
 describe("BrowseInstitutionCard qualifications button under an active search query", () => {
-  it("reads 'View Qualification' and carries the search term as a 'q' param when a query is active", () => {
+  it("reads 'View Qualification' and carries the search term as a 'q' param when the query matched one of the institution's qualifications", () => {
     render(
       <BrowseInstitutionCard
         institution={makeInstitution({ status: "Registered", faculties_and_programmes: SAMPLE_FACULTIES })}
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
-        query="fine art"
+        query="diploma"
       />,
     );
 
     const link = screen.getByRole("link", { name: /view qualification/i });
-    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=fine+art");
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=diploma");
     expect(screen.queryByRole("link", { name: /^qualifications$/i })).not.toBeInTheDocument();
   });
 
@@ -327,13 +327,13 @@ describe("BrowseInstitutionCard qualifications button under an active search que
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
-        query="fine art"
+        query="diploma"
         page={10}
       />,
     );
 
     const link = screen.getByRole("link", { name: /view qualification/i });
-    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=fine+art&page=10");
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=diploma&page=10");
   });
 
   it("omits the 'page' param when on the first page, to keep the URL clean", () => {
@@ -343,13 +343,13 @@ describe("BrowseInstitutionCard qualifications button under an active search que
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
-        query="fine art"
+        query="diploma"
         page={1}
       />,
     );
 
     const link = screen.getByRole("link", { name: /view qualification/i });
-    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=fine+art");
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications?q=diploma");
   });
 
   it("falls back to plain 'Qualifications' with no 'q' param when no query is active", () => {
@@ -359,6 +359,22 @@ describe("BrowseInstitutionCard qualifications button under an active search que
         saved={false}
         onToggleSaved={vi.fn()}
         onVerify={vi.fn()}
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: /^qualifications$/i });
+    expect(link).toHaveAttribute("href", "/institutions/milpark/qualifications");
+    expect(screen.queryByRole("link", { name: /view qualification/i })).not.toBeInTheDocument();
+  });
+
+  it("falls back to plain 'Qualifications' with no 'q' param when the query matched the institution's name rather than a qualification", () => {
+    render(
+      <BrowseInstitutionCard
+        institution={makeInstitution({ status: "Registered", faculties_and_programmes: SAMPLE_FACULTIES })}
+        saved={false}
+        onToggleSaved={vi.fn()}
+        onVerify={vi.fn()}
+        query="milpark"
       />,
     );
 

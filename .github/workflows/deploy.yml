@@ -1,9 +1,18 @@
 name: Deploy
 
+# Manual only — no push trigger. Run from the Actions tab after a PR has merged into
+# `main`. The `environment: production` block below is enforced by this repo's GitHub
+# Environment "Deployment branches and tags" rule (Settings -> Environments ->
+# production), which must be restricted to the `main` branch — that's what actually
+# stops this from running against the wrong ref, not this workflow file alone. Consider
+# also turning on "Required reviewers" for the production environment so an apply needs
+# a second approval.
 on:
-  push:
-    branches: [main]
   workflow_dispatch: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 permissions:
   id-token: write
@@ -13,6 +22,7 @@ jobs:
   deploy:
     name: Test, package & apply
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
