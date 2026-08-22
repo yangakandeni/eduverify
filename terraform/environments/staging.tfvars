@@ -21,6 +21,7 @@ amplify_app_id      = "d1w5n2yybv3bld"
 amplify_region       = "us-west-1"
 log_retention_days   = 7
 tf_state_bucket_name = "eduverify-staging-tfstate-755729228319"
-# No staging deploy workflow exists yet (deploy.yml only runs on pushes to
-# main) — this just provisions the role in advance for when one does.
 github_deploy_refs = ["refs/heads/staging"]
+# deploy-staging.yml's job sets `environment: staging`, which changes the
+# OIDC token's sub claim to the environment form — see modules/ci_oidc.
+github_environment = "staging"

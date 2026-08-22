@@ -124,3 +124,9 @@ variable "github_deploy_refs" {
   type        = list(string)
   default     = ["refs/heads/main"]
 }
+
+variable "github_environment" {
+  description = "GitHub Environment name the deploy workflow's job declares via `environment:` (e.g. \"staging\"), so the CI role's trust policy also accepts the environment-shaped OIDC sub claim GitHub issues for that job — see modules/ci_oidc."
+  type        = string
+  default     = ""
+}

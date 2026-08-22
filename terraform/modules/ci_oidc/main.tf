@@ -40,15 +40,32 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     # via `gh api repos/<repo>/actions/oidc/customization/sub`), not the
     # classic "repo:<owner>/<repo>:ref:<ref>" — matching both keeps this
     # working whether or not that default changes again.
+    #
+    # Also includes the "environment:<name>" form (not just "ref:<ref>"):
+    # any job that sets `environment:` gets an OIDC token whose sub claim is
+    # repo:<owner>/<repo>:environment:<name> instead of the ref form, per
+    # GitHub's docs. A deploy workflow with an `environment:` block (as both
+    # deploy.yml and deploy-staging.yml have, to scope environment secrets/
+    # vars and branch-restriction rules) is denied AssumeRoleWithWebIdentity
+    # without this, even though the ref-based condition above looks correct —
+    # confirmed via CloudTrail: userName was
+    # "repo:<owner>@<id>/<repo>@<id>:environment:staging", which matched
+    # neither ref pattern.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values = flatten([
-        for ref in var.github_deploy_refs : [
-          "repo:${var.github_repo}:ref:${ref}",
-          "repo:${split("/", var.github_repo)[0]}@*/${split("/", var.github_repo)[1]}@*:ref:${ref}",
-        ]
-      ])
+      values = concat(
+        flatten([
+          for ref in var.github_deploy_refs : [
+            "repo:${var.github_repo}:ref:${ref}",
+            "repo:${split("/", var.github_repo)[0]}@*/${split("/", var.github_repo)[1]}@*:ref:${ref}",
+          ]
+        ]),
+        var.github_environment != "" ? [
+          "repo:${var.github_repo}:environment:${var.github_environment}",
+          "repo:${split("/", var.github_repo)[0]}@*/${split("/", var.github_repo)[1]}@*:environment:${var.github_environment}",
+        ] : []
+      )
     }
   }
 }

@@ -79,6 +79,7 @@ module "ci_oidc" {
   project_name         = var.project_name
   github_repo          = var.github_repo
   github_deploy_refs   = var.github_deploy_refs
+  github_environment   = var.github_environment
   tf_state_bucket_name = var.tf_state_bucket_name
   tf_lock_table_name   = aws_dynamodb_table.tf_locks.name
   amplify_app_id       = var.amplify_app_id
