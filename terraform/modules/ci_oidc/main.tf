@@ -153,7 +153,11 @@ data "aws_iam_policy_document" "deploy_permissions" {
     actions = [
       "s3:GetEncryptionConfiguration", "s3:GetBucketPublicAccessBlock",
       "s3:GetBucketOwnershipControls", "s3:GetBucketTagging",
-      "s3:GetBucketPolicy", "s3:GetBucketAcl",
+      # aws_s3_bucket's Read also populates the deprecated `policy`, `acl`,
+      # and `cors_rule` attributes on every refresh, so these three are
+      # needed even though this project declares none of the corresponding
+      # aws_s3_bucket_policy/_acl/_cors_configuration resources.
+      "s3:GetBucketPolicy", "s3:GetBucketAcl", "s3:GetBucketCORS",
     ]
     resources = [local.tf_state_bucket_arn]
   }
@@ -183,11 +187,11 @@ data "aws_iam_policy_document" "deploy_permissions" {
       "s3:PutBucketOwnershipControls", "s3:GetBucketOwnershipControls",
       "s3:PutBucketNotification", "s3:GetBucketNotification",
       "s3:PutBucketTagging", "s3:GetBucketTagging",
-      # aws_s3_bucket's Read still populates its deprecated `policy` and `acl`
-      # attributes on every refresh, so these are needed even though no
-      # aws_s3_bucket_policy/aws_s3_bucket_acl resource is declared anywhere
-      # in this project.
-      "s3:GetBucketPolicy", "s3:GetBucketAcl",
+      # aws_s3_bucket's Read still populates its deprecated `policy`, `acl`,
+      # and `cors_rule` attributes on every refresh, so these are needed
+      # even though no aws_s3_bucket_policy/_acl/_cors_configuration
+      # resource is declared anywhere in this project.
+      "s3:GetBucketPolicy", "s3:GetBucketAcl", "s3:GetBucketCORS",
     ]
     resources = ["arn:aws:s3:::${local.project_resource}"]
   }
