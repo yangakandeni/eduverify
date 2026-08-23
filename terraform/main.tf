@@ -62,6 +62,16 @@ module "s3" {
   tags        = local.common_tags
 }
 
+# The staging registers bucket already existed in AWS (BucketAlreadyOwnedByYou
+# on create) but wasn't tracked in the staging state file, so `terraform
+# apply` kept trying to create it and failing with a 409. This block is a
+# no-op once a given environment's bucket is already in state, so it's safe
+# to leave in place across environments/re-applies.
+import {
+  to = module.s3.aws_s3_bucket.registers
+  id = var.s3_bucket_name
+}
+
 module "iam" {
   source = "./modules/iam"
 
