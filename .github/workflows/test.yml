@@ -52,5 +52,5 @@ jobs:
         working-directory: terraform
 
       - name: Terraform validate
-        run: terraform validate
+        run: terraform validate -var-file=environments/production.tfvars
         working-directory: terraform
