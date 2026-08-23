@@ -21,4 +21,4 @@ tf_state_bucket_name = "eduverify-prod-tfstate-367740899404"
 github_deploy_refs   = ["refs/heads/main"]
 # deploy.yml's job sets `environment: production`, which changes the OIDC
 # token's sub claim to the environment form — see modules/ci_oidc.
-github_environment   = "production"
+github_environment = "production"
