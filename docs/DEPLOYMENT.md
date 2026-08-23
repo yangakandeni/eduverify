@@ -227,6 +227,34 @@ terraform output dynamodb_table_name
 terraform output s3_bucket_name
 ```
 
+**Gotcha — CI can't self-modify its own deploy policy:** if a CI/CD apply
+fails with `AccessDenied ... iam:DeletePolicyVersion ... on resource:
+policy/eduverify-<env>-github-actions-deploy-policy`, that's not a missing
+permission to add. `aws_iam_policy.deploy_permissions` in
+`terraform/modules/ci_oidc/main.tf` is the policy attached to the very role
+running the apply, and each edit to its document (a new `s3:...`/`iam:...`
+action, say) forces IAM to create a new policy version — pruning an old one
+once the 5-version cap is hit. The CI role is deliberately **not** granted
+`iam:CreatePolicyVersion`/`iam:DeletePolicyVersion` on its own policy ARN
+(see the `self_policy_arns` / `RefreshOwnCiInfra` comments in that file):
+granting write access to a policy already attached to yourself is a
+textbook privilege-escalation path (rewrite the policy, set the new version
+as default, now the role has whatever permissions it just gave itself).
+
+Apply changes to `module.ci_oidc` out-of-band with an admin identity instead
+of through CI, the same way the state-bucket bootstrap above does:
+
+```bash
+cd terraform
+aws sso login --profile eduverify-staging   # or eduverify-prod
+AWS_PROFILE=eduverify-staging terraform init -backend-config=environments/staging.backend.hcl
+AWS_PROFILE=eduverify-staging terraform apply -var-file=environments/staging.tfvars -target=module.ci_oidc
+```
+
+Once that's applied, CI can resume applying everything else it already has
+permission for. This will recur on every future edit to the CI role's own
+policy documents — that's the accepted tradeoff of not granting self-write.
+
 ## 3. Post-deployment smoke test
 
 **Caveat:** `parser/lambda_handler.py`'s `handler` reads
