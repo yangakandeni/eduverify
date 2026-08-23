@@ -138,7 +138,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
   statement {
     sid       = "TerraformStateBucketList"
     effect    = "Allow"
-    actions   = ["s3:ListBucket", "s3:GetBucketVersioning"]
+    actions   = ["s3:ListBucket"]
     resources = [local.tf_state_bucket_arn]
   }
 
@@ -151,14 +151,14 @@ data "aws_iam_policy_document" "deploy_permissions" {
     sid    = "RefreshBackendStateInfra"
     effect = "Allow"
     actions = [
-      "s3:GetEncryptionConfiguration", "s3:GetBucketPublicAccessBlock",
-      "s3:GetBucketOwnershipControls", "s3:GetBucketTagging",
-      # aws_s3_bucket's Read also populates the deprecated `policy`, `acl`,
-      # `cors_rule`, and `website` attributes on every refresh, so these
-      # four are needed even though this project declares none of the
-      # corresponding aws_s3_bucket_policy/_acl/_cors_configuration/
-      # _website_configuration resources.
-      "s3:GetBucketPolicy", "s3:GetBucketAcl", "s3:GetBucketCORS", "s3:GetBucketWebsite",
+      "s3:GetEncryptionConfiguration",
+      # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
+      # attributes (policy, acl, cors_rule, website, replication, ...) on
+      # every refresh, none of which this project declares as their own
+      # resource. The exact set the provider reads has grown three times
+      # already (website, CORS, replication) as it evolved, so this is
+      # wildcarded rather than enumerated action-by-action.
+      "s3:GetBucket*",
     ]
     resources = [local.tf_state_bucket_arn]
   }
@@ -182,17 +182,19 @@ data "aws_iam_policy_document" "deploy_permissions" {
     effect = "Allow"
     actions = [
       "s3:CreateBucket",
-      "s3:PutBucketVersioning", "s3:GetBucketVersioning",
+      "s3:PutBucketVersioning",
       "s3:PutEncryptionConfiguration", "s3:GetEncryptionConfiguration",
-      "s3:PutBucketPublicAccessBlock", "s3:GetBucketPublicAccessBlock",
-      "s3:PutBucketOwnershipControls", "s3:GetBucketOwnershipControls",
-      "s3:PutBucketNotification", "s3:GetBucketNotification",
-      "s3:PutBucketTagging", "s3:GetBucketTagging",
-      # aws_s3_bucket's Read still populates its deprecated `policy`, `acl`,
-      # `cors_rule`, and `website` attributes on every refresh, so these are
-      # needed even though no aws_s3_bucket_policy/_acl/_cors_configuration/
-      # _website_configuration resource is declared anywhere in this project.
-      "s3:GetBucketPolicy", "s3:GetBucketAcl", "s3:GetBucketCORS", "s3:GetBucketWebsite",
+      "s3:PutBucketPublicAccessBlock",
+      "s3:PutBucketOwnershipControls",
+      "s3:PutBucketNotification",
+      "s3:PutBucketTagging",
+      # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
+      # attributes (policy, acl, cors_rule, website, replication, ...) on
+      # every refresh, none of which this project declares as their own
+      # resource. The exact set the provider reads has grown three times
+      # already (website, CORS, replication) as it evolved, so this is
+      # wildcarded rather than enumerated action-by-action.
+      "s3:GetBucket*",
     ]
     resources = ["arn:aws:s3:::${local.project_resource}"]
   }
