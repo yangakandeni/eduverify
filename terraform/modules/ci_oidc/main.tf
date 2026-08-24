@@ -14,6 +14,15 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
   thumbprint_list = [data.tls_certificate.github_actions.certificates[0].sha1_fingerprint]
 
   tags = var.tags
+
+  # thumbprint_list updates are applied by the GitHub Actions role itself
+  # (see UpdateOwnOidcThumbprint below), so that grant must land first —
+  # otherwise a cert-rotation apply races the still-old policy and fails
+  # with AccessDenied on iam:UpdateOpenIDConnectProviderThumbprint. There's
+  # no implicit dependency edge for Terraform to infer here since the
+  # policy references this provider only via a static ARN string
+  # (local.self_oidc_provider_arn), not a resource attribute.
+  depends_on = [aws_iam_role_policy_attachment.deploy_permissions_app]
 }
 
 data "aws_iam_policy_document" "github_actions_assume_role" {
@@ -22,8 +31,13 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
-      type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github_actions.arn]
+      type = "Federated"
+      # Static local, not a resource attribute reference — using the live
+      # attribute here would create a dependency cycle back through
+      # aws_iam_role.github_actions_deploy and deploy_permissions_app's
+      # depends_on (see UpdateOwnOidcThumbprint above). The ARN is
+      # deterministic from account_id alone, so this is equivalent.
+      identifiers = [local.self_oidc_provider_arn]
     }
 
     condition {
