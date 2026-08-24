@@ -404,6 +404,22 @@ data "aws_iam_policy_document" "deploy_permissions_app" {
     ]
     resources = concat([local.self_oidc_provider_arn, local.self_role_arn], local.self_policy_arns)
   }
+
+  # data.tls_certificate.github_actions's fingerprint is recomputed from
+  # GitHub's live TLS cert on every plan, so a cert rotation (as happened
+  # GitHub-side once already, industry-wide, in 2023) surfaces as a
+  # thumbprint_list diff that apply tries to reconcile via this exact
+  # action — confirmed via a real AccessDenied for it. Scoped to only this
+  # provider's own ARN, so unlike the write actions guarded against in the
+  # managed_role_names/managed_policy_names comment above, it can't be used
+  # to escalate privilege (it can't alter a trust policy or attach
+  # permissions anywhere else).
+  statement {
+    sid       = "UpdateOwnOidcThumbprint"
+    effect    = "Allow"
+    actions   = ["iam:UpdateOpenIDConnectProviderThumbprint"]
+    resources = [local.self_oidc_provider_arn]
+  }
 }
 
 resource "aws_iam_policy" "deploy_permissions_app" {
