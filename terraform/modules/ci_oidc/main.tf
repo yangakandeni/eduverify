@@ -203,6 +203,15 @@ data "aws_iam_policy_document" "deploy_permissions" {
       # already (website, CORS, replication) as it evolved, so this is
       # wildcarded rather than enumerated action-by-action.
       "s3:GetBucket*",
+      # Distinct from the "s3:GetBucket*" wildcard above: HeadBucket (how the
+      # provider checks the bucket still exists on every refresh) requires
+      # this exact bucket-level action name, which "GetBucket*" doesn't
+      # match. It was previously granted only on the object ARN
+      # (ManageProjectBucketObjects, below), which doesn't count for a
+      # bucket-level call — so refresh got denied, the provider treated the
+      # bucket as deleted, and apply then tried to recreate a bucket that
+      # already existed (BucketAlreadyOwnedByYou).
+      "s3:ListBucket",
     ]
     resources = ["arn:aws:s3:::${local.project_resource}"]
   }
