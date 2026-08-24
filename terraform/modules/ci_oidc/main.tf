@@ -14,6 +14,15 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
   thumbprint_list = [data.tls_certificate.github_actions.certificates[0].sha1_fingerprint]
 
   tags = var.tags
+
+  # thumbprint_list updates are applied by the GitHub Actions role itself
+  # (see UpdateOwnOidcThumbprint below), so that grant must land first —
+  # otherwise a cert-rotation apply races the still-old policy and fails
+  # with AccessDenied on iam:UpdateOpenIDConnectProviderThumbprint. There's
+  # no implicit dependency edge for Terraform to infer here since the
+  # policy references this provider only via a static ARN string
+  # (local.self_oidc_provider_arn), not a resource attribute.
+  depends_on = [aws_iam_role_policy_attachment.deploy_permissions_app]
 }
 
 data "aws_iam_policy_document" "github_actions_assume_role" {
@@ -22,8 +31,13 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
-      type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github_actions.arn]
+      type = "Federated"
+      # Static local, not a resource attribute reference — using the live
+      # attribute here would create a dependency cycle back through
+      # aws_iam_role.github_actions_deploy and deploy_permissions_app's
+      # depends_on (see UpdateOwnOidcThumbprint above). The ARN is
+      # deterministic from account_id alone, so this is equivalent.
+      identifiers = [local.self_oidc_provider_arn]
     }
 
     condition {
@@ -152,6 +166,14 @@ data "aws_iam_policy_document" "deploy_permissions" {
     effect = "Allow"
     actions = [
       "s3:GetEncryptionConfiguration",
+      # Despite the name, these aren't covered by the s3:GetBucket*
+      # wildcard below — AWS's actual action names have no "Bucket" in them,
+      # same as GetEncryptionConfiguration above. GetReplicationConfiguration
+      # backs the GetBucketReplication API call the provider's Read makes
+      # for the replication attribute — confirmed via a real AccessDenied on
+      # exactly this action when it was still missing.
+      "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
       # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
       # attributes (policy, acl, cors_rule, website, replication, ...) on
       # every refresh, none of which this project declares as their own
@@ -188,6 +210,16 @@ data "aws_iam_policy_document" "deploy_permissions" {
       "s3:PutBucketOwnershipControls",
       "s3:PutBucketNotification",
       "s3:PutBucketTagging",
+      # Despite the name, these aren't covered by the s3:GetBucket*
+      # wildcard below — AWS's actual action names have no "Bucket" in them,
+      # same as GetEncryptionConfiguration above. Missing
+      # GetReplicationConfiguration surfaced as "Cannot import non-existent
+      # remote object" on this bucket's import block in main.tf, not as an
+      # explicit AccessDenied — the provider can't tell "denied" from
+      # "doesn't exist" here, so a permission gap on any sub-attribute Read
+      # during import looks like a missing bucket.
+      "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
       # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
       # attributes (policy, acl, cors_rule, website, replication, ...) on
       # every refresh, none of which this project declares as their own
@@ -195,6 +227,15 @@ data "aws_iam_policy_document" "deploy_permissions" {
       # already (website, CORS, replication) as it evolved, so this is
       # wildcarded rather than enumerated action-by-action.
       "s3:GetBucket*",
+      # Distinct from the "s3:GetBucket*" wildcard above: HeadBucket (how the
+      # provider checks the bucket still exists on every refresh) requires
+      # this exact bucket-level action name, which "GetBucket*" doesn't
+      # match. It was previously granted only on the object ARN
+      # (ManageProjectBucketObjects, below), which doesn't count for a
+      # bucket-level call — so refresh got denied, the provider treated the
+      # bucket as deleted, and apply then tried to recreate a bucket that
+      # already existed (BucketAlreadyOwnedByYou).
+      "s3:ListBucket",
     ]
     resources = ["arn:aws:s3:::${local.project_resource}"]
   }
@@ -376,6 +417,22 @@ data "aws_iam_policy_document" "deploy_permissions_app" {
       "iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyVersions", "iam:ListPolicyTags",
     ]
     resources = concat([local.self_oidc_provider_arn, local.self_role_arn], local.self_policy_arns)
+  }
+
+  # data.tls_certificate.github_actions's fingerprint is recomputed from
+  # GitHub's live TLS cert on every plan, so a cert rotation (as happened
+  # GitHub-side once already, industry-wide, in 2023) surfaces as a
+  # thumbprint_list diff that apply tries to reconcile via this exact
+  # action — confirmed via a real AccessDenied for it. Scoped to only this
+  # provider's own ARN, so unlike the write actions guarded against in the
+  # managed_role_names/managed_policy_names comment above, it can't be used
+  # to escalate privilege (it can't alter a trust policy or attach
+  # permissions anywhere else).
+  statement {
+    sid       = "UpdateOwnOidcThumbprint"
+    effect    = "Allow"
+    actions   = ["iam:UpdateOpenIDConnectProviderThumbprint"]
+    resources = [local.self_oidc_provider_arn]
   }
 }
 
