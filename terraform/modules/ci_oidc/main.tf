@@ -152,10 +152,14 @@ data "aws_iam_policy_document" "deploy_permissions" {
     effect = "Allow"
     actions = [
       "s3:GetEncryptionConfiguration",
-      # Despite the name, this one isn't covered by the s3:GetBucket*
-      # wildcard below — AWS's actual action name has no "Bucket" in it,
-      # same as GetEncryptionConfiguration above.
+      # Despite the name, these aren't covered by the s3:GetBucket*
+      # wildcard below — AWS's actual action names have no "Bucket" in them,
+      # same as GetEncryptionConfiguration above. GetReplicationConfiguration
+      # backs the GetBucketReplication API call the provider's Read makes
+      # for the replication attribute — confirmed via a real AccessDenied on
+      # exactly this action when it was still missing.
       "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
       # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
       # attributes (policy, acl, cors_rule, website, replication, ...) on
       # every refresh, none of which this project declares as their own
@@ -192,10 +196,16 @@ data "aws_iam_policy_document" "deploy_permissions" {
       "s3:PutBucketOwnershipControls",
       "s3:PutBucketNotification",
       "s3:PutBucketTagging",
-      # Despite the name, this one isn't covered by the s3:GetBucket*
-      # wildcard below — AWS's actual action name has no "Bucket" in it,
-      # same as GetEncryptionConfiguration above.
+      # Despite the name, these aren't covered by the s3:GetBucket*
+      # wildcard below — AWS's actual action names have no "Bucket" in them,
+      # same as GetEncryptionConfiguration above. Missing
+      # GetReplicationConfiguration surfaced as "Cannot import non-existent
+      # remote object" on this bucket's import block in main.tf, not as an
+      # explicit AccessDenied — the provider can't tell "denied" from
+      # "doesn't exist" here, so a permission gap on any sub-attribute Read
+      # during import looks like a missing bucket.
       "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
       # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
       # attributes (policy, acl, cors_rule, website, replication, ...) on
       # every refresh, none of which this project declares as their own
