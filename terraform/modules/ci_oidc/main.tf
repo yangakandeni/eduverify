@@ -152,6 +152,10 @@ data "aws_iam_policy_document" "deploy_permissions" {
     effect = "Allow"
     actions = [
       "s3:GetEncryptionConfiguration",
+      # Despite the name, this one isn't covered by the s3:GetBucket*
+      # wildcard below — AWS's actual action name has no "Bucket" in it,
+      # same as GetEncryptionConfiguration above.
+      "s3:GetLifecycleConfiguration",
       # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
       # attributes (policy, acl, cors_rule, website, replication, ...) on
       # every refresh, none of which this project declares as their own
@@ -188,6 +192,10 @@ data "aws_iam_policy_document" "deploy_permissions" {
       "s3:PutBucketOwnershipControls",
       "s3:PutBucketNotification",
       "s3:PutBucketTagging",
+      # Despite the name, this one isn't covered by the s3:GetBucket*
+      # wildcard below — AWS's actual action name has no "Bucket" in it,
+      # same as GetEncryptionConfiguration above.
+      "s3:GetLifecycleConfiguration",
       # aws_s3_bucket's Read populates a long tail of deprecated/sub-resource
       # attributes (policy, acl, cors_rule, website, replication, ...) on
       # every refresh, none of which this project declares as their own
