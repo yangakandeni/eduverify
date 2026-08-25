@@ -34,6 +34,12 @@ variable "s3_bucket_name" {
   default     = "eduverify-registers"
 }
 
+variable "import_existing_registers_bucket" {
+  description = "Whether the registers bucket already exists in this environment's AWS account untracked by Terraform state, and so needs the import block in main.tf to run. True for staging (bucket predates its Terraform state). Set false for an environment's first-ever apply, where the bucket doesn't exist yet — the import block errors with \"Cannot import non-existent remote object\" otherwise, since it can't tell 'create this' from 'adopt that'."
+  type        = bool
+  default     = true
+}
+
 variable "lambda_memory_size" {
   description = "Memory (MB) allocated to the ingestion Lambda. Lambda scales CPU with memory, so this also controls parse speed. A real ~200-page DHET register PDF peaks around 700MB of Python-tracked memory and takes ~27s to extract on a fast dev machine alone (before grouping/build/DynamoDB writes) — 3008MB (~2 vCPU) gives headroom on both dimensions; 512MB measurably times out on the same input."
   type        = number

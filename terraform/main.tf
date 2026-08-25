@@ -66,10 +66,16 @@ module "s3" {
 # on create) but wasn't tracked in the staging state file, so `terraform
 # apply` kept trying to create it and failing with a 409. This block is a
 # no-op once a given environment's bucket is already in state, so it's safe
-# to leave in place across environments/re-applies.
+# to leave in place across environments/re-applies — but it's NOT a no-op on
+# an environment's first-ever apply if the bucket doesn't exist yet: the
+# provider can't tell "denied" from "doesn't exist" here (same ambiguity as
+# the s3:GetReplicationConfiguration gap below), so the import just fails
+# with "Cannot import non-existent remote object" and blocks the whole apply.
+# Gated per-environment via import_existing_registers_bucket for that reason.
 import {
-  to = module.s3.aws_s3_bucket.registers
-  id = var.s3_bucket_name
+  for_each = var.import_existing_registers_bucket ? [1] : []
+  to       = module.s3.aws_s3_bucket.registers
+  id       = var.s3_bucket_name
 }
 
 module "iam" {

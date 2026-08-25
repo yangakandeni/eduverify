@@ -15,6 +15,10 @@ environment          = "production"
 project_name         = "eduverify"
 dynamodb_table_name  = "eduverify-institutions"
 s3_bucket_name       = "eduverify-registers"
+# Unlike staging, this bucket has never existed in the production account —
+# this is production's first-ever apply. The import block in main.tf would
+# fail with "Cannot import non-existent remote object" otherwise.
+import_existing_registers_bucket = false
 amplify_branch_name  = "main"
 log_retention_days   = 30
 tf_state_bucket_name = "eduverify-prod-tfstate-367740899404"
