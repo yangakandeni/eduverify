@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -15,10 +15,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       <div className="relative z-10 flex w-full max-w-sm flex-col items-center">
         <Link href="/" className="mb-8 flex items-center gap-2">
-          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-accent">
-            <Shield className="h-4 w-4 text-accent-foreground" />
-          </span>
-          <span className="font-display text-xl font-bold tracking-tight text-white">EduVerify</span>
+          <Image src="/assets/images/eduverify-logo-graphic.png" alt="" width={80} height={74} className="h-15 w-auto" />
+          <Image src="/assets/images/eduverify-logo-text.png" alt="EduVerify" width={1038} height={240} className="h-10 w-auto mb-[-35px]" />
         </Link>
         {children}
       </div>

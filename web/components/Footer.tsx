@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const PLATFORM_LINKS = [
@@ -22,7 +22,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <div className="mb-3 flex items-center gap-2">
-              <span className="font-display font-bold text-white">EduVerify</span>
+              <Image src="/assets/images/eduverify-logo-graphic.png" alt="" width={80} height={74} className="h-10 w-auto" />
+              <Image src="/assets/images/eduverify-logo-text.png" alt="EduVerify" width={1038} height={240} className="h-8 w-auto mb-[-18px] ml-[-8px]" />
             </div>
 
             <p className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs leading-relaxed">
