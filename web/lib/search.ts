@@ -60,7 +60,7 @@ function matchProvinceQuery(q: string): string | undefined {
  *   - Qualification title, e.g. "Computer Science" (score 20-38, scaled by match count)
  *   - Province name, e.g. "Western Cape" (score 15)
  */
-export function searchLocal(query: string, filters: SearchFilters = {}, limit = 24): InstitutionRecord[] {
+export function searchLocal(query: string, filters: SearchFilters = {}, limit = 25): InstitutionRecord[] {
   const q = normalizeText(query);
   const qReg = normalizeRegistrationNumber(query);
   if (!q) return [];

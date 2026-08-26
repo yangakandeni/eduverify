@@ -68,6 +68,14 @@ describe("searchLocal qualification-title fallback", () => {
   });
 });
 
+describe("searchLocal default limit", () => {
+  it("returns up to 25 results by default, matching eduverify-api's default page size", () => {
+    // "college" has 100+ true matches in the bundled seed data — enough to hit the cap.
+    const results = searchLocal("college");
+    expect(results.length).toBe(25);
+  });
+});
+
 describe("institutionNameMatches", () => {
   it("is true for a query matching the institution's common abbreviation", () => {
     expect(institutionNameMatches(makeInstitution(), "uj")).toBe(true);
