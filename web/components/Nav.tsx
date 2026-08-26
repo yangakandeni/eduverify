@@ -1,7 +1,8 @@
 "use client";
 
 import { Show, UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Menu, Shield, X } from "lucide-react";
+import { LayoutDashboard, Menu, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -14,7 +15,7 @@ export default function Nav() {
     <nav className="sticky top-0 z-40 border-b border-white/10 bg-primary">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-          <span className="font-display text-lg font-bold tracking-tight text-white">EduVerify</span>
+          <Image src="/assets/images/eduverify-logo-graphic.png" alt="" width={80} height={74} priority className="h-10 w-auto" />
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
