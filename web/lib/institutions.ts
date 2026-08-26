@@ -4,6 +4,14 @@ import { ALL_INSTITUTIONS, findLocalById } from "./localData";
 import { searchLocal } from "./search";
 import type { InstitutionRecord, SearchFilters } from "./types";
 
+/** eduverify-api hasn't run the faculties_and_programmes baking step yet (tracked
+ * separately), so a record it returns may omit the field entirely. Defaults it to [] —
+ * the same fallback dynamodb.ts's toRecord applies for live-ingested, not-yet-baked items —
+ * so getAllProgrammes/getFacultyLabels never see undefined. */
+function normalizeApiInstitution(institution: InstitutionRecord): InstitutionRecord {
+  return { ...institution, faculties_and_programmes: institution.faculties_and_programmes ?? [] };
+}
+
 const REGISTRATION_NUMBER_PATTERN = /\d{4}\s*\/\s*[A-Za-z]{2}\s*\d{2}\s*\/\s*\d{3}/;
 
 /** Rollout flag for the eduverify-api cutover (Part 3 of the monetization plan) — staging
@@ -62,7 +70,7 @@ async function searchViaApi(query: string, filters: SearchFilters): Promise<Sear
   if (filters.institutionType) params.set("type", filters.institutionType);
 
   const response = await getJson<ApiSearchResponse>(`/v1/institutions/search?${params.toString()}`);
-  const results = response?.results ?? [];
+  const results = (response?.results ?? []).map(normalizeApiInstitution);
   return { results, notFound: results.length === 0 };
 }
 
@@ -99,7 +107,7 @@ export async function getInstitution(id: string): Promise<InstitutionRecord | nu
     // eduverify-api's GET /v1/institutions/{id} wraps its record in { institution } (see
     // eduverify-api/src/router.ts) rather than returning it bare.
     const response = await getJson<{ institution: InstitutionRecord }>(`/v1/institutions/${encodeURIComponent(id)}`);
-    return response?.institution ?? null;
+    return response?.institution ? normalizeApiInstitution(response.institution) : null;
   }
 
   try {
@@ -129,6 +137,14 @@ const FETCH_ALL_PAGE_SIZE = 1000;
 export async function getAllInstitutions(): Promise<InstitutionRecord[]> {
   if (!isExternalApiEnabled()) return ALL_INSTITUTIONS;
 
-  const response = await getJson<ApiListResponse>(`/v1/institutions/list?status=ALL&pageSize=${FETCH_ALL_PAGE_SIZE}`);
-  return response?.institutions ?? [];
+  // fields=full opts back into complete InstitutionRecords (with faculties_and_programmes) —
+  // eduverify-api's /v1/institutions/list otherwise defaults to a lighter summary shape
+  // (qualificationCount + facultyLabels, no nested detail) meant for callers that only need
+  // browse-card counts. The homepage needs every SAQA-matched programme row up front (per-card
+  // qualification-title matching, the qualifications explorer's global title search), and
+  // fetching that one institution at a time would mean hundreds of extra round trips.
+  const response = await getJson<ApiListResponse>(
+    `/v1/institutions/list?status=ALL&pageSize=${FETCH_ALL_PAGE_SIZE}&fields=full`,
+  );
+  return (response?.institutions ?? []).map(normalizeApiInstitution);
 }

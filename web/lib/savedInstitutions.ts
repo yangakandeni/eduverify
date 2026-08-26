@@ -6,11 +6,7 @@ import type { SavedInstitution } from "./dashboardData";
 
 const SAVED_KEY = "eduverify:saved";
 
-/** One-time snapshot read, not a subscription — a lazy initializer avoids the
- * SSR-only render entirely re-running via an effect (and reads correctly again once
- * this client component mounts and hydrates in the browser). */
 function readLocalSavedIds(): Set<string> {
-  if (typeof window === "undefined") return new Set();
   try {
     const raw = window.localStorage.getItem(SAVED_KEY);
     return raw ? new Set(JSON.parse(raw)) : new Set();
@@ -28,7 +24,15 @@ function writeLocalSavedIds(ids: Set<string>) {
  * them across devices; signed-out visitors fall back to a local, anonymous set. */
 export function useSavedInstitutions(): [Set<string>, (id: string) => void] {
   const { isSignedIn, isLoaded } = useUser();
-  const [savedIds, setSavedIds] = useState<Set<string>>(readLocalSavedIds);
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => new Set());
+
+  // Starts empty (matching the server-rendered markup) and reconciles with
+  // localStorage only after mount, so the client's first paint never diverges
+  // from what was already sent down as HTML — reading it as part of the
+  // initial state instead caused a hydration mismatch.
+  useEffect(() => {
+    setSavedIds(readLocalSavedIds());
+  }, []);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
@@ -46,10 +50,6 @@ export function useSavedInstitutions(): [Set<string>, (id: string) => void] {
     };
   }, [isLoaded, isSignedIn]);
 
-  useEffect(() => {
-    if (!isSignedIn) writeLocalSavedIds(savedIds);
-  }, [savedIds, isSignedIn]);
-
   function toggleSaved(id: string) {
     setSavedIds((current) => {
       const next = new Set(current);
@@ -63,6 +63,8 @@ export function useSavedInstitutions(): [Set<string>, (id: string) => void] {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ institutionId: id }),
         }).catch(() => {});
+      } else {
+        writeLocalSavedIds(next);
       }
 
       return next;

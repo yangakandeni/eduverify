@@ -88,6 +88,14 @@ describe("apiClient", () => {
       await vi.runAllTimersAsync();
       await assertion;
     });
+
+    it("wraps a raw network failure (e.g. connection refused) as an ApiError with status 0", async () => {
+      const { getJson, ApiError } = await freshApiClient();
+      vi.mocked(fetch).mockRejectedValue(new TypeError("fetch failed"));
+
+      await expect(getJson("/v1/institutions/abc")).rejects.toBeInstanceOf(ApiError);
+      await expect(getJson("/v1/institutions/abc")).rejects.toMatchObject({ status: 0 });
+    });
   });
 
   describe("postJson", () => {
