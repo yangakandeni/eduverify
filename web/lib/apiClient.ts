@@ -2,8 +2,9 @@ const BASE_URL = process.env.EDUVERIFY_API_BASE_URL ?? "";
 const API_KEY = process.env.EDUVERIFY_API_KEY ?? "";
 const REQUEST_TIMEOUT_MS = 5000;
 
-/** Thrown for any non-ok response, and for a timed-out/aborted request (status 0). Carries
- * the HTTP status so callers can distinguish "not found" from a real outage. */
+/** Thrown for any non-ok response, and for a timed-out/aborted/network-failed request
+ * (status 0 — there's no HTTP response to carry a real status). Carries the HTTP status so
+ * callers can distinguish "not found" from a real outage. */
 export class ApiError extends Error {
   readonly status: number;
 
@@ -29,7 +30,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     if ((error as Error).name === "AbortError") {
       throw new ApiError(0, `Request to ${path} timed out after ${REQUEST_TIMEOUT_MS}ms`);
     }
-    throw error;
+    // fetch() itself throws a plain TypeError (not an ApiError) for a connection failure —
+    // e.g. eduverify-api isn't running locally. Wrapping it here keeps every caller
+    // (toServiceUnavailableResponse, error.tsx) able to key off ApiError alone rather than
+    // also handling a raw network exception as a separate case.
+    throw new ApiError(0, `Request to ${path} failed: ${(error as Error).message}`);
   } finally {
     clearTimeout(timeout);
   }
