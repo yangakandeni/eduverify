@@ -166,6 +166,15 @@ describe("institutions", () => {
         await expect(getInstitution("INST#1")).rejects.toMatchObject({ status: 503 });
         expect(localData.findLocalById).not.toHaveBeenCalled();
       });
+
+      it("defaults faculties_and_programmes to [] when the API response omits it (bake gap)", async () => {
+        const { faculties_and_programmes, ...institutionWithoutFaculties } = makeInstitution();
+        vi.mocked(apiClient.getJson).mockResolvedValue({ institution: institutionWithoutFaculties });
+
+        const result = await getInstitution("INST#1");
+
+        expect(result?.faculties_and_programmes).toEqual([]);
+      });
     });
 
     describe("searchInstitutions", () => {
@@ -198,6 +207,15 @@ describe("institutions", () => {
         await expect(searchInstitutions("fixture")).rejects.toMatchObject({ status: 500 });
         expect(search.searchLocal).not.toHaveBeenCalled();
       });
+
+      it("defaults faculties_and_programmes to [] when the API response omits it (bake gap)", async () => {
+        const { faculties_and_programmes, ...institutionWithoutFaculties } = makeInstitution();
+        vi.mocked(apiClient.getJson).mockResolvedValue({ query: "fixture", results: [institutionWithoutFaculties] });
+
+        const result = await searchInstitutions("fixture");
+
+        expect(result.results[0].faculties_and_programmes).toEqual([]);
+      });
     });
   });
 
@@ -225,11 +243,29 @@ describe("institutions", () => {
         expect(path).toContain("status=ALL");
       });
 
+      it("requests fields=full — the homepage needs every SAQA-matched programme row up front (qualification search, faculty pills), unlike the default summary shape", async () => {
+        vi.mocked(apiClient.getJson).mockResolvedValue({ institutions: [], page: 1, pageSize: 1000, total: 0 });
+
+        await getAllInstitutions();
+
+        const [path] = vi.mocked(apiClient.getJson).mock.calls[0];
+        expect(path).toContain("fields=full");
+      });
+
       it("propagates an API error instead of degrading to bundled local data", async () => {
         const { ApiError } = apiClient;
         vi.mocked(apiClient.getJson).mockRejectedValue(new ApiError(503, "service unavailable"));
 
         await expect(getAllInstitutions()).rejects.toMatchObject({ status: 503 });
+      });
+
+      it("defaults faculties_and_programmes to [] when the API response omits it (bake gap)", async () => {
+        const { faculties_and_programmes, ...institutionWithoutFaculties } = makeInstitution();
+        vi.mocked(apiClient.getJson).mockResolvedValue({ institutions: [institutionWithoutFaculties], page: 1, pageSize: 1000, total: 1 });
+
+        const result = await getAllInstitutions();
+
+        expect(result[0].faculties_and_programmes).toEqual([]);
       });
     });
   });
