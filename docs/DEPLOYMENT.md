@@ -37,10 +37,14 @@ belt-and-suspenders convenience, not the isolation mechanism.
 ### DEV, and the branch → environment flow
 
 There's a third environment, DEV, that isn't AWS infra at all: it's a
-developer's own machine running `npm run dev` in `web/` against the bundled
-local seed data (see `web/CLAUDE.md`'s Architecture section) — no calls to
-`eduverify-api`, no AWS credentials needed. Day-to-day feature work happens
-here, on a feature branch.
+developer's own machine running `npm run dev` in `web/`, calling a
+locally-running `eduverify-api` dev server (`USE_EXTERNAL_API=true` by
+default — see `web/.env.local.example` and `web/CLAUDE.md`'s Environments
+section) instead of the bundled local seed data. No AWS credentials are
+needed: `eduverify-api`'s dev server runs against DynamoDB Local, not real
+AWS. Falling back to the bundled seed data (`USE_EXTERNAL_API=false`) is
+still available for offline work. Day-to-day feature work happens here, on a
+feature branch.
 
 Both `main` and `staging` are branch-protected (required PR + passing CI,
 direct pushes rejected — `enforce_admins` is on, so this applies to the repo
