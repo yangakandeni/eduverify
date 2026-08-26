@@ -11,18 +11,18 @@
 # environments/production.secrets.tfvars layered on top with a second
 # -var-file flag. See docs/DEPLOYMENT.md.
 
-environment          = "production"
-project_name         = "eduverify"
-dynamodb_table_name  = "eduverify-institutions"
-s3_bucket_name       = "eduverify-registers"
+environment         = "production"
+project_name        = "eduverify"
+dynamodb_table_name = "eduverify-institutions"
+s3_bucket_name      = "eduverify-registers"
 # Unlike staging, this bucket has never existed in the production account —
 # this is production's first-ever apply. The import block in main.tf would
 # fail with "Cannot import non-existent remote object" otherwise.
 import_existing_registers_bucket = false
-amplify_branch_name  = "main"
-log_retention_days   = 30
-tf_state_bucket_name = "eduverify-prod-tfstate-367740899404"
-github_deploy_refs   = ["refs/heads/main"]
+amplify_branch_name              = "main"
+log_retention_days               = 30
+tf_state_bucket_name             = "eduverify-prod-tfstate-367740899404"
+github_deploy_refs               = ["refs/heads/main"]
 # deploy.yml's job sets `environment: production`, which changes the OIDC
 # token's sub claim to the environment form — see modules/ci_oidc.
 github_environment = "production"
