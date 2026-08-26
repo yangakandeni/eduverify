@@ -14,11 +14,16 @@ const privateInstitutions: InstitutionRecord[] = institutions.map((institution) 
   institutionType: "Private Higher Education Institution",
 }));
 
-/** The DHET scrape occasionally repeats an entire row verbatim (same registration
- * number and all) — dedupe once here so every consumer gets a clean, unique-by-id list. */
+/** The DHET register sometimes lists the same institution under more than one section
+ * (e.g. an earlier "Cancelled" tabular entry and a later "Discontinued" name-list entry) —
+ * dedupe by id keeping the last occurrence, since document order tracks section order and
+ * later sections are the more terminal/current status. */
 function dedupeById(records: InstitutionRecord[]): InstitutionRecord[] {
-  const seen = new Set<string>();
-  return records.filter((record) => (seen.has(record.id) ? false : (seen.add(record.id), true)));
+  const byId = new Map<string, InstitutionRecord>();
+  for (const record of records) {
+    byId.set(record.id, record);
+  }
+  return Array.from(byId.values());
 }
 
 export const ALL_INSTITUTIONS: InstitutionRecord[] = dedupeById([
