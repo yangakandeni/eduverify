@@ -16,7 +16,8 @@ export interface BrowseFilters {
 /** Registered/Provisionally Registered cover most of the register; the remaining three
  * options surface institutions the DHET register flags as no longer (or never)
  * legitimately registered — cancelled, self-discontinued, or an outright "bogus college"
- * warning listing (see getStatusBadge and parser/pdf_extract.py's section 3-6 handling). */
+ * warning listing (see getStatusBadge; the DHET register's own 6-section layout is handled
+ * upstream by eduverify-api's ingestion, not this repo). */
 export const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "registered", label: "Registered" },
   { value: "provisional", label: "Provisionally Registered" },
@@ -88,7 +89,7 @@ export function isProvinceFilterDisabled(status: string): boolean {
 
 /** Public University and TVET College records are never given a status other than
  * "Registered" by any data path (see web/lib/publicUniversities.ts, publicTvets.ts,
- * dynamodb.ts, and getStatusBadge's fallthrough in presentation.ts) — the other status
+ * and getStatusBadge's fallthrough in presentation.ts) — the other status
  * options can never match one of these types, so they're disabled rather than offered. */
 export function isStatusOptionValidForType(statusValue: string, institutionType: string): boolean {
   if (institutionType !== "Public University" && institutionType !== "TVET College") return true;
