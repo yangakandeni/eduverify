@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-const NAV_LINKS: any[] = [];
+const NAV_LINKS: { label: string; href: string }[] = [];
 
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -16,6 +16,7 @@ export default function Nav() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
           <Image src="/assets/images/eduverify-logo-graphic.png" alt="" width={80} height={74} priority className="h-10 w-auto" />
+          <Image src="/assets/images/eduverify-logo-text.png" alt="EduVerify" width={1038} height={240} priority className="h-6 w-auto" />
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">

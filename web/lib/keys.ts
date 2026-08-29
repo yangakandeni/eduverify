@@ -1,8 +1,8 @@
 const COMBINING_MARKS = /[̀-ͯ]/g;
 
-/** Mirrors parser/dynamo_item.py (Python, this repo) and eduverify-api's src/lib/keys.ts (a
- * separate repo) so PKs computed here match what's actually seeded into the shared DynamoDB
- * table. If this slugify algorithm ever changes, all three locations must change together. */
+/** Mirrors eduverify-api's src/lib/keys.ts (a separate repo) so ids computed here match
+ * what eduverify-api returns for the same institution. If this slugify algorithm ever
+ * changes, both locations must change together. */
 function slugify(value: string): string {
   return value
     .normalize("NFKD")

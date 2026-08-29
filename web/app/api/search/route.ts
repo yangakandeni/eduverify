@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   const filters = { province, institutionType };
 
   // Typeahead suggestions stay local-only for instant response regardless of
-  // USE_EXTERNAL_API; DynamoDB/the API is only consulted for the full search a user
+  // USE_EXTERNAL_API; the API is only consulted for the full search a user
   // triggers on submit.
   if (mode === "typeahead") {
     const results = searchLocal(query, filters, 8);
