@@ -15,6 +15,8 @@ const LEGAL_LINKS = [
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const apiBaseUrl = process.env.EDUVERIFY_API_BASE_URL;
+  const apiDocsUrl = apiBaseUrl ? `${apiBaseUrl}/v1/docs` : null;
 
   return (
     <footer className="mt-auto bg-primary text-white/60">
@@ -42,6 +44,18 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              {apiDocsUrl && (
+                <li>
+                  <a
+                    href={apiDocsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm transition hover:text-white"
+                  >
+                    API Docs
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
