@@ -5,6 +5,14 @@ name: Deploy Staging
 # Environment "Deployment branches and tags" rule (Settings -> Environments -> staging),
 # which must be restricted to the `staging` branch — that's what actually stops this
 # from running against the wrong ref, not this workflow file alone.
+#
+# No longer applies this repo's Terraform stack (DynamoDB/S3/Lambda parser
+# pipeline + its CI OIDC role) — that infra was destroyed and is unused now
+# that staging reads institution data from the separate eduverify-api-staging
+# service (USE_EXTERNAL_API=true, see web/CLAUDE.md). Amplify Hosting itself
+# was always created by hand via the Console (see terraform/frontend.tf) and
+# auto-deploys web/ on push through its own GitHub connection, independent of
+# this workflow. This job is now just the pytest guard on the parser/ package.
 on:
   workflow_dispatch: {}
 
@@ -12,13 +20,9 @@ concurrency:
   group: deploy-staging
   cancel-in-progress: false
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   deploy:
-    name: Test, package & apply
+    name: Test parser
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -37,36 +41,3 @@ jobs:
       - name: Run pytest (guard against broken deploys)
         run: python -m pytest tests/
         working-directory: parser
-
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.9.8"
-
-      # Builds the Lambda layer's dependency directory before Terraform ever
-      # reads it: data.archive_file.layer (terraform/modules/lambda) zips
-      # this directory during `terraform plan`'s refresh, which is too early
-      # for a null_resource/local-exec inside that module to populate it
-      # reliably on a fresh runner. Architecture/python-version here must
-      # match var.lambda_architecture / the Lambda runtime default in
-      # terraform/variables.tf and terraform/modules/lambda/variables.tf.
-      - name: Build Lambda layer
-        run: scripts/build_lambda_layer.sh parser/requirements-lambda.txt terraform/modules/lambda/build/layer 3.12 x86_64
-
-      # No separate packaging step for the function code itself: an
-      # archive_file resource zips parser/ (source_dir) directly, content-
-      # hashed via source_code_hash so `terraform apply` only redeploys what
-      # changed.
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN_STAGING }}
-          aws-region: ${{ vars.AWS_REGION || 'af-south-1' }}
-
-      - name: Terraform init
-        run: terraform init -backend-config=environments/staging.backend.hcl -input=false
-        working-directory: terraform
-
-      - name: Terraform apply
-        run: terraform apply -auto-approve -var-file=environments/staging.tfvars
-        working-directory: terraform
