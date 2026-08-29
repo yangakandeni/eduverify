@@ -31,6 +31,9 @@ export function useSavedInstitutions(): [Set<string>, (id: string) => void] {
   // from what was already sent down as HTML — reading it as part of the
   // initial state instead caused a hydration mismatch.
   useEffect(() => {
+    // A lazy useState initializer would run on the server too (no window) and
+    // reintroduce the hydration mismatch the comment above describes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate, see above
     setSavedIds(readLocalSavedIds());
   }, []);
 

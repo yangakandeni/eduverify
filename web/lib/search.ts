@@ -50,8 +50,9 @@ function matchProvinceQuery(q: string): string | undefined {
 }
 
 /**
- * Fuzzy/partial matching over the bundled seed data. Used as a fallback when DynamoDB
- * is unreachable, and as the primary source for fast client-side typeahead suggestions.
+ * Fuzzy/partial matching over the bundled seed data. Used as the local fallback when
+ * `USE_EXTERNAL_API` is off, and as the primary source for fast client-side typeahead
+ * suggestions.
  *
  * Supports four search intents, ranked so a strong institution-name match always wins
  * over a qualification or province match (e.g. "Cape College" surfaces Cape Audio College

@@ -1,55 +1,21 @@
 import { getJson } from "./apiClient";
-import { getInstitutionByPK, getInstitutionByRegistrationNumber, queryByNamePrefix } from "./dynamodb";
 import { ALL_INSTITUTIONS, findLocalById } from "./localData";
 import { searchLocal } from "./search";
 import type { InstitutionRecord, SearchFilters } from "./types";
 
 /** eduverify-api hasn't run the faculties_and_programmes baking step yet (tracked
- * separately), so a record it returns may omit the field entirely. Defaults it to [] —
- * the same fallback dynamodb.ts's toRecord applies for live-ingested, not-yet-baked items —
- * so getAllProgrammes/getFacultyLabels never see undefined. */
+ * separately), so a record it returns may omit the field entirely. Defaults it to [] so
+ * getAllProgrammes/getFacultyLabels never see undefined. */
 function normalizeApiInstitution(institution: InstitutionRecord): InstitutionRecord {
   return { ...institution, faculties_and_programmes: institution.faculties_and_programmes ?? [] };
 }
 
-const REGISTRATION_NUMBER_PATTERN = /\d{4}\s*\/\s*[A-Za-z]{2}\s*\d{2}\s*\/\s*\d{3}/;
-
-/** Rollout flag for the eduverify-api cutover (Part 3 of the monetization plan) — staging
- * runs the API path while production still reads DynamoDB/local directly, until the parity
- * check and hero/browse rework are done. Read per-call, not cached, so tests can toggle it
+/** eduverify-api is the source of truth in DEV, STAGING, and PROD. Set USE_EXTERNAL_API=false
+ * to fall back to the bundled local seed data instead — e.g. for offline work, or when
+ * eduverify-api isn't running locally. Read per-call, not cached, so tests can toggle it
  * freely and a running server picks up an env change on next request. */
 function isExternalApiEnabled(): boolean {
   return process.env.USE_EXTERNAL_API === "true";
-}
-
-function dedupeById(institutions: InstitutionRecord[]): InstitutionRecord[] {
-  const seen = new Map<string, InstitutionRecord>();
-  for (const institution of institutions) {
-    if (!seen.has(institution.id)) seen.set(institution.id, institution);
-  }
-  return [...seen.values()];
-}
-
-function applyFilters(institutions: InstitutionRecord[], filters: SearchFilters): InstitutionRecord[] {
-  return institutions.filter((institution) => {
-    if (filters.province && institution.province !== filters.province) return false;
-    if (filters.institutionType && institution.institutionType !== filters.institutionType) return false;
-    return true;
-  });
-}
-
-async function queryDynamo(query: string): Promise<InstitutionRecord[]> {
-  const hits: InstitutionRecord[] = [];
-
-  if (REGISTRATION_NUMBER_PATTERN.test(query)) {
-    const exact = await getInstitutionByRegistrationNumber(query.trim());
-    if (exact) hits.push(exact);
-  }
-
-  const prefixHits = await queryByNamePrefix(query.trim());
-  hits.push(...prefixHits);
-
-  return hits;
 }
 
 export interface SearchOutcome {
@@ -75,13 +41,9 @@ async function searchViaApi(query: string, filters: SearchFilters): Promise<Sear
 }
 
 /**
- * DynamoDB is queried for exact registration-number and name-prefix matches (its GSI1SK
- * ordering is case-sensitive, so it can't do case-insensitive substring search on its own).
- * Local fuzzy matching always runs alongside it, both as a fallback when DynamoDB is
- * unreachable and to catch partial/lowercase queries DynamoDB's exact matching would miss.
- *
- * Behind `USE_EXTERNAL_API`, this instead calls eduverify-api and lets any error propagate —
- * there's no local fallback on that path, so an API outage is a real, user-visible outage.
+ * Behind `USE_EXTERNAL_API`, this calls eduverify-api and lets any error propagate — there's
+ * no local fallback on that path, so an API outage is a real, user-visible outage. With the
+ * flag off, this runs local fuzzy matching over the bundled seed data instead.
  */
 export async function searchInstitutions(query: string, filters: SearchFilters = {}): Promise<SearchOutcome> {
   const trimmed = query.trim();
@@ -89,17 +51,8 @@ export async function searchInstitutions(query: string, filters: SearchFilters =
 
   if (isExternalApiEnabled()) return searchViaApi(trimmed, filters);
 
-  let dynamoHits: InstitutionRecord[] = [];
-  try {
-    dynamoHits = await queryDynamo(trimmed);
-  } catch (error) {
-    console.warn("[eduverify] DynamoDB search unavailable, using local data only:", (error as Error).message);
-  }
-
-  const localHits = searchLocal(trimmed, filters);
-  const combined = applyFilters(dedupeById([...dynamoHits, ...localHits]), filters);
-
-  return { results: combined, notFound: combined.length === 0 };
+  const results = searchLocal(trimmed, filters);
+  return { results, notFound: results.length === 0 };
 }
 
 export async function getInstitution(id: string): Promise<InstitutionRecord | null> {
@@ -108,13 +61,6 @@ export async function getInstitution(id: string): Promise<InstitutionRecord | nu
     // eduverify-api/src/router.ts) rather than returning it bare.
     const response = await getJson<{ institution: InstitutionRecord }>(`/v1/institutions/${encodeURIComponent(id)}`);
     return response?.institution ? normalizeApiInstitution(response.institution) : null;
-  }
-
-  try {
-    const institution = await getInstitutionByPK(id);
-    if (institution) return institution;
-  } catch (error) {
-    console.warn("[eduverify] DynamoDB lookup unavailable, using local data only:", (error as Error).message);
   }
 
   return findLocalById(id) ?? null;

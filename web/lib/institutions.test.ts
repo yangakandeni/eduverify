@@ -1,16 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as dynamodb from "./dynamodb";
 import * as localData from "./localData";
 import * as search from "./search";
 import * as apiClient from "./apiClient";
 import { getAllInstitutions, getInstitution, searchInstitutions } from "./institutions";
 import type { InstitutionRecord } from "./types";
-
-vi.mock("./dynamodb", () => ({
-  getInstitutionByPK: vi.fn(),
-  getInstitutionByRegistrationNumber: vi.fn(),
-  queryByNamePrefix: vi.fn(),
-}));
 
 vi.mock("./localData", () => ({
   ALL_INSTITUTIONS: [
@@ -57,9 +50,6 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
 describe("institutions", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
-    vi.mocked(dynamodb.getInstitutionByPK).mockReset();
-    vi.mocked(dynamodb.getInstitutionByRegistrationNumber).mockReset();
-    vi.mocked(dynamodb.queryByNamePrefix).mockReset().mockResolvedValue([]);
     vi.mocked(localData.findLocalById).mockReset();
     vi.mocked(search.searchLocal).mockReset().mockReturnValue([]);
     vi.mocked(apiClient.getJson).mockReset();
@@ -69,21 +59,10 @@ describe("institutions", () => {
     vi.unstubAllEnvs();
   });
 
-  describe("legacy path (USE_EXTERNAL_API unset)", () => {
+  describe("local fallback path (USE_EXTERNAL_API unset)", () => {
     describe("getInstitution", () => {
-      it("returns the DynamoDB hit when found", async () => {
-        const institution = makeInstitution();
-        vi.mocked(dynamodb.getInstitutionByPK).mockResolvedValue(institution);
-
-        const result = await getInstitution("INST#1");
-
-        expect(result).toEqual(institution);
-        expect(localData.findLocalById).not.toHaveBeenCalled();
-      });
-
-      it("falls back to local data when DynamoDB has no match", async () => {
+      it("returns the local hit when found", async () => {
         const localInstitution = makeInstitution({ id: "INST#2" });
-        vi.mocked(dynamodb.getInstitutionByPK).mockResolvedValue(null);
         vi.mocked(localData.findLocalById).mockReturnValue(localInstitution);
 
         const result = await getInstitution("INST#2");
@@ -91,14 +70,12 @@ describe("institutions", () => {
         expect(result).toEqual(localInstitution);
       });
 
-      it("swallows a DynamoDB error and degrades to local data", async () => {
-        const localInstitution = makeInstitution({ id: "INST#3" });
-        vi.mocked(dynamodb.getInstitutionByPK).mockRejectedValue(new Error("connection timed out"));
-        vi.mocked(localData.findLocalById).mockReturnValue(localInstitution);
+      it("returns null when there's no local match", async () => {
+        vi.mocked(localData.findLocalById).mockReturnValue(undefined);
 
-        const result = await getInstitution("INST#3");
+        const result = await getInstitution("INST#missing");
 
-        expect(result).toEqual(localInstitution);
+        expect(result).toBeNull();
       });
     });
 
@@ -108,26 +85,21 @@ describe("institutions", () => {
         expect(result).toEqual({ results: [], notFound: false });
       });
 
-      it("combines and dedupes DynamoDB and local hits", async () => {
-        const shared = makeInstitution({ id: "INST#shared" });
+      it("returns local fuzzy-search hits", async () => {
         const localOnly = makeInstitution({ id: "INST#local" });
-        vi.mocked(dynamodb.queryByNamePrefix).mockResolvedValue([shared]);
-        vi.mocked(search.searchLocal).mockReturnValue([shared, localOnly]);
-
-        const result = await searchInstitutions("fixture");
-
-        expect(result.results.map((r) => r.id).sort()).toEqual(["INST#local", "INST#shared"]);
-        expect(result.notFound).toBe(false);
-      });
-
-      it("swallows a DynamoDB error and uses local results only", async () => {
-        const localOnly = makeInstitution({ id: "INST#local" });
-        vi.mocked(dynamodb.queryByNamePrefix).mockRejectedValue(new Error("connection timed out"));
         vi.mocked(search.searchLocal).mockReturnValue([localOnly]);
 
         const result = await searchInstitutions("fixture");
 
-        expect(result.results).toEqual([localOnly]);
+        expect(result).toEqual({ results: [localOnly], notFound: false });
+      });
+
+      it("reports notFound when local search has no hits", async () => {
+        vi.mocked(search.searchLocal).mockReturnValue([]);
+
+        const result = await searchInstitutions("fixture");
+
+        expect(result).toEqual({ results: [], notFound: true });
       });
     });
   });
@@ -146,7 +118,6 @@ describe("institutions", () => {
 
         expect(result).toEqual(institution);
         expect(apiClient.getJson).toHaveBeenCalledWith(expect.stringContaining("/v1/institutions/INST%231"));
-        expect(dynamodb.getInstitutionByPK).not.toHaveBeenCalled();
         expect(localData.findLocalById).not.toHaveBeenCalled();
       });
 
@@ -196,7 +167,6 @@ describe("institutions", () => {
         expect(path).toContain("/v1/institutions/search?");
         expect(path).toContain("q=fixture");
         expect(path).toContain("province=Gauteng");
-        expect(dynamodb.queryByNamePrefix).not.toHaveBeenCalled();
         expect(search.searchLocal).not.toHaveBeenCalled();
       });
 
@@ -220,7 +190,7 @@ describe("institutions", () => {
   });
 
   describe("getAllInstitutions", () => {
-    it("legacy path: returns the bundled ALL_INSTITUTIONS array unchanged", async () => {
+    it("local fallback path: returns the bundled ALL_INSTITUTIONS array unchanged", async () => {
       const result = await getAllInstitutions();
       expect(result).toEqual(localData.ALL_INSTITUTIONS);
       expect(apiClient.getJson).not.toHaveBeenCalled();
