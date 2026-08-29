@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import Footer from "@/components/Footer";
 
@@ -6,6 +6,10 @@ vi.mock("next/image", () => ({
   // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text -- test double, alt comes from spread props
   default: (props: React.ComponentProps<"img">) => <img {...props} />,
 }));
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("Footer disclaimer", () => {
   it("names both DHET and SAQA as the independent registers it is not affiliated with", () => {
@@ -27,5 +31,27 @@ describe("Footer logo", () => {
       "/assets/images/eduverify-logo-text.png",
     );
     expect(screen.queryByText("EduVerify", { selector: "span" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Footer API docs link", () => {
+  it("links to this environment's eduverify-api docs when EDUVERIFY_API_BASE_URL is configured", () => {
+    vi.stubEnv("EDUVERIFY_API_BASE_URL", "https://iw1e0x36ma.execute-api.af-south-1.amazonaws.com/staging");
+    render(<Footer />);
+
+    const link = screen.getByRole("link", { name: "API Docs" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://iw1e0x36ma.execute-api.af-south-1.amazonaws.com/staging/v1/docs",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("omits the API docs link when EDUVERIFY_API_BASE_URL is not configured", () => {
+    vi.stubEnv("EDUVERIFY_API_BASE_URL", "");
+    render(<Footer />);
+
+    expect(screen.queryByRole("link", { name: "API Docs" })).not.toBeInTheDocument();
   });
 });
