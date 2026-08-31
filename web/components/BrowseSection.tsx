@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Loader2, WifiOff } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BrowseHeader from "@/components/BrowseHeader";
 import BrowseInstitutionCard from "@/components/BrowseInstitutionCard";
 import BrowsePagination from "@/components/BrowsePagination";
@@ -12,6 +12,7 @@ import {
   filterInstitutionsForBrowse,
   getEmptyStateDetail,
   getEmptyStateHeading,
+  getInflightMessage,
   getServiceUnavailableDetail,
   getServiceUnavailableHeading,
   isProvinceFilterDisabled,
@@ -21,6 +22,24 @@ import { useSavedInstitutions } from "@/lib/savedInstitutions";
 import type { InstitutionRecord } from "@/lib/types";
 
 const ITEMS_PER_PAGE = 6;
+const INFLIGHT_TICK_MS = 100;
+
+/** Escalating status text shown while a search is in flight. Mounted only for the
+ * lifetime of the loading state (see the `loading` branch below), so a fresh mount —
+ * and a fresh countdown from "Checking the register..." — happens for free each time a
+ * new search starts, with no need to manually reset state across loading sessions. */
+function InflightStatus() {
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedMs((value) => value + INFLIGHT_TICK_MS);
+    }, INFLIGHT_TICK_MS);
+    return () => clearInterval(interval);
+  }, []);
+
+  return <p aria-live="polite">{getInflightMessage(elapsedMs)}</p>;
+}
 
 interface BrowseSectionProps {
   institutions: InstitutionRecord[];
@@ -136,7 +155,7 @@ export default function BrowseSection({
         ) : loading ? (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card py-16 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin" />
-            <p>Checking the register...</p>
+            <InflightStatus />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-10 text-center">

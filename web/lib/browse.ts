@@ -77,6 +77,25 @@ export function getServiceUnavailableDetail(): string {
   return "We're having trouble reaching the verification service right now. Please try again shortly.";
 }
 
+/** Escalating copy for the loading state, shown in ascending order as a search stays in
+ * flight — apiClient's REQUEST_TIMEOUT_MS is 5s, so these are timed to reassure the user
+ * before that timeout (and any resulting error state) can kick in. */
+export const INFLIGHT_MESSAGES: { delayMs: number; text: string }[] = [
+  { delayMs: 0, text: "Checking the register..." },
+  { delayMs: 1500, text: "Verifying..." },
+  { delayMs: 3000, text: "Just a sec..." },
+  { delayMs: 4500, text: "Almost there..." },
+];
+
+export function getInflightMessage(elapsedMs: number): string {
+  let message = INFLIGHT_MESSAGES[0].text;
+  for (const candidate of INFLIGHT_MESSAGES) {
+    if (elapsedMs < candidate.delayMs) break;
+    message = candidate.text;
+  }
+  return message;
+}
+
 export const INSTITUTION_TYPE_OPTIONS: { value: InstitutionType; label: string }[] = [
   { value: "Public University", label: "Public University" },
   { value: "Private Higher Education Institution", label: "Private Institution" },
