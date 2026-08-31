@@ -4,6 +4,7 @@ import { DM_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import Analytics from "@/components/Analytics";
 import BackToTopButton from "@/components/BackToTopButton";
 import Footer from "@/components/Footer";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import Nav from "@/components/Nav";
 import { clerkAppearance } from "@/lib/clerkAppearance";
 import "./globals.css";
@@ -43,6 +44,7 @@ export default function RootLayout({
         className={`${inter.variable} ${plusJakartaSans.variable} ${dmMono.variable} h-full scroll-smooth antialiased`}
       >
         <body className="min-h-full flex flex-col bg-background text-foreground">
+          <GoogleAnalytics />
           <Nav />
           {children}
           <Footer />
