@@ -23,8 +23,8 @@ const SECTIONS = [
     body: (
       <>
         If you have questions about your data or this policy, you can contact us at{" "}
-        <a href="mailto:support@eduverify.co.za" className="font-medium text-accent underline hover:no-underline">
-          support@eduverify.co.za
+        <a href="mailto:techoloshe@gmail.com" className="font-medium text-accent underline hover:no-underline">
+          techoloshe@gmail.com
         </a>
         .
       </>

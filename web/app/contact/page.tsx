@@ -30,10 +30,10 @@ export default function ContactPage() {
               General support, partner inquiries, and data updates.
             </p>
             <a
-              href="mailto:support@eduverify.co.za"
+              href="mailto:techoloshe@gmail.com"
               className="mt-1 text-sm font-semibold text-accent underline hover:no-underline"
             >
-              support@eduverify.co.za
+              techoloshe@gmail.com
             </a>
           </div>
 
