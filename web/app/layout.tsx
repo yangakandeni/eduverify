@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { DM_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
+import Analytics from "@/components/Analytics";
 import BackToTopButton from "@/components/BackToTopButton";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
@@ -47,6 +48,7 @@ export default function RootLayout({
           <Footer />
           <BackToTopButton />
         </body>
+        <Analytics />
       </html>
     </ClerkProvider>
   );
