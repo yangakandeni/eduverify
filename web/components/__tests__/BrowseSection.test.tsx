@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import BrowseSection from "@/components/BrowseSection";
 import type { InstitutionRecord } from "@/lib/types";
 
@@ -79,6 +79,55 @@ describe("BrowseSection error state", () => {
 
     expect(screen.queryByText("Service temporarily unavailable")).not.toBeInTheDocument();
     expect(screen.getByText("No institutions found")).toBeInTheDocument();
+  });
+});
+
+describe("BrowseSection loading state", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("starts with 'Checking the register...'", () => {
+    render(<BrowseSection institutions={[]} loading onVerify={vi.fn()} />);
+
+    expect(screen.getByText("Checking the register...")).toBeInTheDocument();
+  });
+
+  it("escalates the status message the longer the search stays in flight", () => {
+    render(<BrowseSection institutions={[]} loading onVerify={vi.fn()} />);
+
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(screen.getByText("Verifying...")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(screen.getByText("Just a sec...")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(screen.getByText("Almost there...")).toBeInTheDocument();
+  });
+
+  it("resets back to the initial message on a fresh load after a previous one finished", () => {
+    const { rerender } = render(<BrowseSection institutions={[]} loading onVerify={vi.fn()} />);
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(screen.getByText("Just a sec...")).toBeInTheDocument();
+
+    rerender(<BrowseSection institutions={[]} loading={false} onVerify={vi.fn()} />);
+    rerender(<BrowseSection institutions={[]} loading onVerify={vi.fn()} />);
+
+    expect(screen.getByText("Checking the register...")).toBeInTheDocument();
   });
 });
 
