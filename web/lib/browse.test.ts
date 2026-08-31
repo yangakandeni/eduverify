@@ -7,6 +7,7 @@ import {
   getBrowseTitle,
   getEmptyStateDetail,
   getEmptyStateHeading,
+  getInflightMessage,
   getResultCountLabel,
   getServiceUnavailableDetail,
   getServiceUnavailableHeading,
@@ -259,6 +260,31 @@ describe("isProvinceFilterDisabled", () => {
     expect(isProvinceFilterDisabled("registered")).toBe(false);
     expect(isProvinceFilterDisabled("cancelled")).toBe(false);
     expect(isProvinceFilterDisabled(ALL_STATUSES_VALUE)).toBe(false);
+  });
+});
+
+describe("getInflightMessage", () => {
+  it("starts with 'Checking the register...' at zero elapsed time", () => {
+    expect(getInflightMessage(0)).toBe("Checking the register...");
+  });
+
+  it("stays on the initial message until the first threshold is reached", () => {
+    expect(getInflightMessage(1499)).toBe("Checking the register...");
+  });
+
+  it("escalates to 'Verifying...' once 1.5s have elapsed", () => {
+    expect(getInflightMessage(1500)).toBe("Verifying...");
+    expect(getInflightMessage(2999)).toBe("Verifying...");
+  });
+
+  it("escalates to 'Just a sec...' once 3s have elapsed", () => {
+    expect(getInflightMessage(3000)).toBe("Just a sec...");
+    expect(getInflightMessage(4499)).toBe("Just a sec...");
+  });
+
+  it("escalates to 'Almost there...' once 4.5s have elapsed, and stays there for longer waits", () => {
+    expect(getInflightMessage(4500)).toBe("Almost there...");
+    expect(getInflightMessage(60_000)).toBe("Almost there...");
   });
 });
 
