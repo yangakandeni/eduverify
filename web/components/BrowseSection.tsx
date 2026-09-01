@@ -127,6 +127,7 @@ export default function BrowseSection({
         <BrowseHeader
           resultCount={filtered.length}
           query={query}
+          loading={loading}
           province={province}
           institutionType={institutionType}
           status={status}
