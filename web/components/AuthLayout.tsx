@@ -16,7 +16,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="relative z-10 flex w-full max-w-sm flex-col items-center">
         <Link href="/" className="mb-8 flex items-center gap-2">
           <Image src="/assets/images/eduverify-logo-graphic.png" alt="" width={80} height={74} className="h-15 w-auto" />
-          <Image src="/assets/images/eduverify-logo-text.png" alt="EduVerify" width={1038} height={240} className="h-10 w-auto mb-[-35px]" />
+          <Image src="/assets/images/eduverify-logo-text.png" alt="EduVerify" width={1038} height={240} className="h-10 w-auto mb-[-38px] ml-[-10px]" />
         </Link>
         {children}
       </div>
