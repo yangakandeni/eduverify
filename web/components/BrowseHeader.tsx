@@ -17,6 +17,7 @@ import { CANONICAL_PROVINCES } from "@/lib/normalize";
 interface BrowseHeaderProps {
   resultCount: number;
   query?: string;
+  loading?: boolean;
   province: string;
   institutionType: string;
   status: string;
@@ -30,6 +31,7 @@ interface BrowseHeaderProps {
 export default function BrowseHeader({
   resultCount,
   query,
+  loading,
   province,
   institutionType,
   status,
@@ -45,7 +47,7 @@ export default function BrowseHeader({
         <div>
           <p className="font-mono text-xs font-semibold uppercase tracking-widest text-accent">Institution Directory</p>
           <h1 className="mt-1 font-display text-3xl font-bold text-foreground">{getBrowseTitle(query)}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{getResultCountLabel(resultCount)}</p>
+          {!loading && <p className="mt-1 text-sm text-muted-foreground">{getResultCountLabel(resultCount)}</p>}
         </div>
 
         <button

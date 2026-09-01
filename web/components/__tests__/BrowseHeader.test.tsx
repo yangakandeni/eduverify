@@ -21,6 +21,20 @@ function renderHeader(overrides: Partial<ComponentProps<typeof BrowseHeader>> = 
   );
 }
 
+describe("BrowseHeader result count", () => {
+  it("shows the result count label when not loading", () => {
+    renderHeader({ resultCount: 3 });
+
+    expect(screen.getByText("3 institutions found")).toBeInTheDocument();
+  });
+
+  it("hides the result count label while loading, instead of showing a stale '0 institutions found'", () => {
+    renderHeader({ resultCount: 0, loading: true });
+
+    expect(screen.queryByText(/institutions? found/)).not.toBeInTheDocument();
+  });
+});
+
 describe("BrowseHeader filters toggle", () => {
   it("calls onToggleFilters when the Filters button is clicked", () => {
     const onToggleFilters = vi.fn();
