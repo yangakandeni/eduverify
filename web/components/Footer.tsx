@@ -25,7 +25,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <div className="mb-3 flex items-center gap-2">
               <Image src="/assets/images/eduverify-logo-graphic.png" alt="" width={80} height={74} className="h-10 w-auto" />
-              <Image src="/assets/images/eduverify-logo-text.png" alt="EduVerify" width={1038} height={240} className="h-8 w-auto mb-[-18px] ml-[-8px]" />
+              <Image src="/assets/images/eduverify-logo-text.png" alt="EduVerify" width={1038} height={240} className="h-8 w-auto mt-[25px] ml-[-8px]" />
             </div>
 
             <p className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs leading-relaxed">
