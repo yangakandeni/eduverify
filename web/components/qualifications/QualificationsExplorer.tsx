@@ -61,10 +61,11 @@ export default function QualificationsExplorer({ facultyGroups, initialFaculty, 
 
   function handleSelectFaculty(faculty: string) {
     setSelectedFaculty(faculty);
+    setSearchQuery("");
+    setAppliedQuery("");
     setCurrentPage(1);
     const nextGroup = resolveActiveGroup(facultyGroups, allQualifications, faculty);
-    setDisplayedQualifications(filterQualifications(nextGroup.qualifications, searchQuery));
-    setAppliedQuery(searchQuery);
+    setDisplayedQualifications(nextGroup.qualifications);
   }
 
   function handleSearchChange(value: string) {
