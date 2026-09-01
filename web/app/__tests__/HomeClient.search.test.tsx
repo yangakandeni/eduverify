@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import HomeClient from "@/app/HomeClient";
+import { clearSearchResultsCache } from "@/lib/searchResultsCache";
 import type { InstitutionRecord } from "@/lib/types";
 
 const mockReplace = vi.fn();
@@ -53,6 +54,7 @@ function makeInstitution(overrides: Partial<InstitutionRecord> = {}): Institutio
 describe("HomeClient search (real MultiSearch)", () => {
   beforeEach(() => {
     mockReplace.mockClear();
+    clearSearchResultsCache();
     Element.prototype.scrollIntoView = vi.fn();
     vi.stubGlobal(
       "fetch",
@@ -113,6 +115,7 @@ describe("HomeClient search (real MultiSearch)", () => {
 describe("HomeClient search failure", () => {
   beforeEach(() => {
     mockReplace.mockClear();
+    clearSearchResultsCache();
     Element.prototype.scrollIntoView = vi.fn();
   });
 
@@ -172,6 +175,7 @@ describe("HomeClient search failure", () => {
 describe("HomeClient restoring a search from the URL (initialQuery)", () => {
   beforeEach(() => {
     mockReplace.mockClear();
+    clearSearchResultsCache();
     Element.prototype.scrollIntoView = vi.fn();
     vi.stubGlobal(
       "fetch",
@@ -199,6 +203,20 @@ describe("HomeClient restoring a search from the URL (initialQuery)", () => {
     expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("/api/search"));
   });
 
+  it("does not re-call /api/search when remounting with a query already fetched this session (e.g. back-navigation)", async () => {
+    const { unmount } = render(<HomeClient initialInstitutions={[makeInstitution()]} initialQuery="chemical" />);
+    await waitFor(() => expect(screen.getByTestId("browse")).toHaveTextContent("Fine Arts College"));
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    unmount();
+
+    render(<HomeClient initialInstitutions={[makeInstitution()]} initialQuery="chemical" />);
+
+    await waitFor(() => expect(screen.getByTestId("browse")).toHaveTextContent("Fine Arts College"));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(screen.getByPlaceholderText(/search by institution, qualification, or province/i)).toHaveValue("chemical");
+  });
+
   it("forwards initialPage to BrowseSection so it lands on the same page it left off on", async () => {
     render(<HomeClient initialInstitutions={[makeInstitution()]} initialQuery="chemical" initialPage={5} />);
 
@@ -219,6 +237,7 @@ describe("HomeClient restoring a search from the URL (initialQuery)", () => {
 describe("HomeClient pagination URL sync", () => {
   beforeEach(() => {
     mockReplace.mockClear();
+    clearSearchResultsCache();
     Element.prototype.scrollIntoView = vi.fn();
     vi.stubGlobal(
       "fetch",

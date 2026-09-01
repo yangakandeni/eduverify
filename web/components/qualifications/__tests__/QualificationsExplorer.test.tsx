@@ -202,7 +202,7 @@ describe("QualificationsExplorer", () => {
     expect(screen.queryByText("Diploma in Fine Art")).not.toBeInTheDocument();
   });
 
-  it("names the search term and newly selected faculty when clicking a faculty with no matches for the current search", () => {
+  it("clears the active search query and shows every item in the newly selected faculty, instead of carrying the stale query over", () => {
     render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Commerce" />);
 
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Qualification 5" } });
@@ -210,7 +210,11 @@ describe("QualificationsExplorer", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /arts/i }));
 
-    expect(screen.getByText('No qualifications found for "Qualification 5" in Arts faculty')).toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toHaveValue("");
+    expect(screen.getByText("Diploma in Fine Art")).toBeInTheDocument();
+    expect(screen.getByText("Bachelor of Architecture")).toBeInTheDocument();
+    expect(screen.queryByText(/no qualifications found/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/results for/i)).not.toBeInTheDocument();
   });
 
   it("names the search term without a faculty clause when nothing matches under 'All Qualifications'", () => {
@@ -261,7 +265,7 @@ describe("QualificationsExplorer", () => {
     expect(screen.queryByText("Commerce Qualification 13")).not.toBeInTheDocument();
   });
 
-  it("does not clear the search box when the faculty selection changes", () => {
+  it("clears the search box when the faculty selection changes, so the new faculty's full list is visible", () => {
     render(<QualificationsExplorer facultyGroups={GROUPS} initialFaculty="Arts" />);
 
     const search = screen.getByRole("searchbox");
@@ -269,7 +273,8 @@ describe("QualificationsExplorer", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /commerce/i }));
 
-    expect(search).toHaveValue("keep me");
+    expect(search).toHaveValue("");
+    expect(screen.getByText("Commerce Qualification 1")).toBeInTheDocument();
   });
 
   it("matches a title regardless of search-term word order", () => {

@@ -9,6 +9,7 @@ import MultiSearch from "@/components/MultiSearch";
 import QualificationBrowser from "@/components/QualificationBrowser";
 import Modal from "@/components/ui/Modal";
 import { filterByCategory } from "@/lib/categories";
+import { getCachedSearchResults, setCachedSearchResults } from "@/lib/searchResultsCache";
 import type { InstitutionRecord } from "@/lib/types";
 
 interface SearchState {
@@ -68,6 +69,13 @@ export default function HomeClient({ initialInstitutions, initialQuery, initialP
     if (!trimmed) return;
 
     syncSearchUrl(trimmed, pageForUrl);
+
+    const cached = getCachedSearchResults(trimmed);
+    if (cached) {
+      setSearch({ active: true, status: "done", query: trimmed, results: cached });
+      return;
+    }
+
     setSearch({ active: true, status: "loading", query: trimmed, results: [] });
 
     try {
@@ -77,11 +85,13 @@ export default function HomeClient({ initialInstitutions, initialQuery, initialP
         setSearch({ active: true, status: "error", query: trimmed, results: [] });
         return;
       }
+      const results = data.results ?? [];
+      setCachedSearchResults(trimmed, results);
       setSearch({
         active: true,
         status: "done",
         query: trimmed,
-        results: data.results ?? [],
+        results,
       });
     } catch {
       // No local fallback left post-cutover — a real outage (network failure, or the API
