@@ -97,6 +97,12 @@ describe("BrowseSection loading state", () => {
     expect(screen.getByText("Checking the register...")).toBeInTheDocument();
   });
 
+  it("does not show a misleading '0 institutions found' while a search is still in flight", () => {
+    render(<BrowseSection institutions={[]} query="cape town" loading onVerify={vi.fn()} />);
+
+    expect(screen.queryByText(/institutions? found/)).not.toBeInTheDocument();
+  });
+
   it("escalates the status message the longer the search stays in flight", () => {
     render(<BrowseSection institutions={[]} loading onVerify={vi.fn()} />);
 
